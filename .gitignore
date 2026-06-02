@@ -1,0 +1,8 @@
+﻿.env
+data/chroma
+memory_store/memory.db
+memory_store/sessions
+__pycache__
+*/__pycache__
+*/*/__pycache__
+*.pyc

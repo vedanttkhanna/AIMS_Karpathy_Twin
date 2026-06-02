@@ -1,0 +1,9 @@
+google-generativeai
+chromadb
+sentence-transformers
+rank-bm25
+youtube-transcript-api
+beautifulsoup4
+requests
+rich
+python-dotenv

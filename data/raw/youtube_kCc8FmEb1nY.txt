@@ -1,0 +1,2957 @@
+SOURCE: https://www.youtube.com/watch?v=kCc8FmEb1nY
+
+[0s] hi everyone so by now you have probably
+[2s] heard of chat GPT it has taken the world
+[4s] and AI Community by storm and it is a
+[7s] system that allows you to interact with
+[9s] an AI and give it text based tasks so
+[12s] for example we can ask chat GPT to write
+[15s] us a small Hau about how important it is
+[16s] that people understand Ai and then they
+[18s] can use it to improve the world and make
+[20s] it more prosperous so when we run this
+[23s] AI knowledge brings prosperity for all
+[25s] to see Embrace its
+[27s] power okay not bad and so you could see
+[29s] that chpt went from left to right and
+[32s] generated all these words SE sort of
+[35s] sequentially now I asked it already the
+[37s] exact same prompt a little bit earlier
+[39s] and it generated a slightly different
+[41s] outcome ai's power to grow ignorance
+[44s] holds us back learn Prosperity weights
+[47s] so uh pretty good in both cases and
+[49s] slightly different so you can see that
+[50s] chat GPT is a probabilistic system and
+[52s] for any one prompt it can give us
+[54s] multiple answers sort of uh replying to
+[57s] it now this is just one example of a
+[59s] problem people have come up with many
+[61s] many examples and there are entire
+[63s] websites that index interactions with
+[66s] chpt and so many of them are quite
+[68s] humorous explain HTML to me like I'm a
+[70s] dog uh write release notes for chess 2
+[74s] write a note about Elon Musk buying a
+[76s] Twitter and so on so as an example uh
+[80s] please write a breaking news article
+[81s] about a leaf falling from a
+[83s] tree uh and a shocking turn of events a
+[86s] leaf has fallen from a tree in the local
+[88s] park Witnesses report that the leaf
+[90s] which was previously attached to a
+[91s] branch of a tree attached itself and
+[93s] fell to the ground very dramatic so you
+[96s] can see that this is a pretty remarkable
+[97s] system and it is what we call a language
+[100s] model uh because it um it models the
+[103s] sequence of words or characters or
+[106s] tokens more generally and it knows how
+[109s] sort of words follow each other in
+[110s] English language and so from its
+[112s] perspective what it is doing is it is
+[115s] completing the sequence so I give it the
+[117s] start of a sequence and it completes the
+[120s] sequence with the outcome and so it's a
+[122s] language model in that sense now I would
+[125s] like to focus on the under the hood of
+[127s] um under the hood components of what
+[129s] makes CH GPT work so what is the neural
+[132s] network under the hood that models the
+[134s] sequence of these words and that comes
+[137s] from this paper called attention is all
+[139s] you need in 2017 a landmark paper a
+[143s] landmark paper in AI that produced and
+[145s] proposed the Transformer
+[147s] architecture so GPT is uh short for
+[151s] generally generatively pre-trained
+[153s] Transformer so Transformer is the neuron
+[155s] nut that actually does all the heavy
+[156s] lifting under the hood it comes from
+[159s] this paper in 2017 now if you read this
+[161s] paper this uh reads like a pretty random
+[164s] machine translation paper and that's
+[166s] because I think the authors didn't fully
+[167s] anticipate the impact that the
+[169s] Transformer would have on the field and
+[171s] this architecture that they produced in
+[172s] the context of machine translation in
+[174s] their case actually ended up taking over
+[177s] uh the rest of AI in the next 5 years
+[180s] after and so this architecture with
+[182s] minor changes was copy pasted into a
+[185s] huge amount of applications in AI in
+[187s] more recent years and that includes at
+[190s] the core of chat GPT now we are not
+[193s] going to what I'd like to do now is I'd
+[195s] like to build out something like chat
+[197s] GPT but uh we're not going to be able to
+[199s] of course reproduce chat GPT this is a
+[201s] very serious production grade system it
+[203s] is trained on uh a good chunk of
+[206s] internet and then there's a lot of uh
+[209s] pre-training and fine-tuning stages to
+[211s] it and so it's very complicated what I'd
+[213s] like to focus on is just to train a
+[216s] Transformer based language model and in
+[218s] our case it's going to be a character
+[220s] level language model I still think that
+[223s] is uh very educational with respect to
+[225s] how these systems work so I don't want
+[227s] to train on the chunk of Internet we
+[228s] need a smaller data set in this case I
+[231s] propose that we work with uh my favorite
+[233s] toy data set it's called tiny
+[235s] Shakespeare and um what it is is
+[237s] basically it's a concatenation of all of
+[239s] the works of sh Shakespeare in my
+[240s] understanding and so this is all of
+[242s] Shakespeare in a single file uh this
+[245s] file is about 1 megab and it's just all
+[247s] of
+[248s] Shakespeare and what we are going to do
+[250s] now is we're going to basically model
+[252s] how these characters uh follow each
+[254s] other so for example given a chunk of
+[256s] these characters like this uh given some
+[259s] context of characters in the past the
+[262s] Transformer neural network will look at
+[264s] the characters that I've highlighted and
+[266s] is going to predict that g is likely to
+[268s] come next in the sequence and it's going
+[270s] to do that because we're going to train
+[271s] that Transformer on Shakespeare and it's
+[274s] just going to try to produce uh
+[276s] character sequences that look like this
+[279s] and in that process is going to model
+[280s] all the patterns inside this data so
+[283s] once we've trained the system i' just
+[285s] like to give you a preview we can
+[287s] generate infinite Shakespeare and of
+[289s] course it's a fake thing that looks kind
+[291s] of like
+[293s] Shakespeare
+[295s] um apologies for there's some Jank that
+[299s] I'm not able to resolve in in here but
+[302s] um you can see how this is going
+[305s] character by character and it's kind of
+[307s] like predicting Shakespeare like
+[309s] language so verily my Lord the sites
+[312s] have left the again the king coming with
+[315s] my curses with precious pale and then
+[319s] tranos say something else Etc and this
+[321s] is just coming out of the Transformer in
+[323s] a very similar manner as it would come
+[325s] out in chat GPT in our case character by
+[327s] character in chat GPT uh it's coming out
+[331s] on the token by token level and tokens
+[333s] are these sort of like little subword
+[335s] pieces so they're not Word level they're
+[336s] kind of like word chunk
+[338s] level um and now I've already written
+[343s] this entire code uh to train these
+[345s] Transformers um and it is in a GitHub
+[348s] repository that you can find and it's
+[350s] called nanog
+[351s] GPT so nanog GPT is a repository that
+[354s] you can find in my GitHub and it's a
+[356s] repository for training Transformers um
+[359s] on any given text and what I think is
+[362s] interesting about it because there's
+[363s] many ways to train Transformers but this
+[365s] is a very simple implementation so it's
+[366s] just two files of 300 lines of code each
+[370s] one file defines the GPT model the
+[372s] Transformer and one file trains it on
+[374s] some given Text data set and here I'm
+[377s] showing that if you train it on a open
+[378s] web Text data set which is a fairly
+[380s] large data set of web pages then I
+[382s] reproduce the the performance of
+[385s] gpt2 so gpt2 is an early version of open
+[389s] AI GPT uh from 2017 if I recall
+[392s] correctly and I've only so far
+[394s] reproduced the the smallest 124 million
+[396s] parameter model uh but basically this is
+[398s] just proving that the codebase is
+[399s] correctly arranged and I'm able to load
+[402s] the uh neural network weights that openi
+[405s] has released later so you can take a
+[408s] look at the finished code here in N GPT
+[410s] but what I would like to do in this
+[411s] lecture is I would like to basically uh
+[415s] write this repository from scratch so
+[417s] we're going to begin with an empty file
+[419s] and we're we're going to define a
+[420s] Transformer piece by piece we're going
+[423s] to train it on the tiny Shakespeare data
+[425s] set and we'll see how we can then uh
+[428s] generate infinite Shakespeare and of
+[430s] course this can copy paste to any
+[432s] arbitrary Text data set uh that you like
+[434s] uh but my goal really here is to just
+[436s] make you understand and appreciate uh
+[438s] how under the hood chat GPT works and um
+[442s] really all that's required is a
+[444s] Proficiency in Python and uh some basic
+[447s] understanding of um calculus and
+[449s] statistics
+[450s] and it would help if you also see my
+[452s] previous videos on the same YouTube
+[454s] channel in particular my make more
+[455s] series where I um Define smaller and
+[460s] simpler neural network language models
+[462s] uh so multi perceptrons and so on it
+[465s] really introduces the language modeling
+[466s] framework and then uh here in this video
+[469s] we're going to focus on the Transformer
+[470s] neural network itself okay so I created
+[473s] a new Google collab uh jup notebook here
+[477s] and this will allow me to later easily
+[478s] share this code that we're going to
+[480s] develop together uh with you so you can
+[481s] follow along so this will be in a video
+[483s] description uh later now here I've just
+[487s] done some preliminaries I downloaded the
+[489s] data set the tiny Shakespeare data set
+[490s] at this URL and you can see that it's
+[492s] about a 1 Megabyte file then here I open
+[495s] the input.txt file and just read in all
+[497s] the text of the string and we see that
+[500s] we are working with 1 million characters
+[502s] roughly and the first 1,000 characters
+[504s] if we just print them out are basically
+[506s] what you would expect this is the first
+[508s] 1,000 characters of the tiny Shakespeare
+[510s] data set roughly up to here so so far so
+[514s] good next we're going to take this text
+[517s] and the text is a sequence of characters
+[519s] in Python so when I call the set
+[521s] Constructor on it I'm just going to get
+[524s] the set of all the characters that occur
+[526s] in this text and then I call list on
+[529s] that to create a list of those
+[531s] characters instead of just a set so that
+[533s] I have an ordering an arbitrary ordering
+[536s] and then I sort that so basically we get
+[539s] just all the characters that occur in
+[540s] the entire data set and they're sorted
+[542s] now the number of them is going to be
+[544s] our vocabulary size these are the
+[546s] possible elements of our sequences and
+[549s] we see that when I print here the
+[551s] characters there's 65 of them in total
+[554s] there's a space character and then all
+[556s] kinds of special characters and then U
+[559s] capitals and lowercase letters so that's
+[561s] our vocabulary and that's the sort of
+[563s] like possible uh characters that the
+[565s] model can see or emit okay so next we
+[569s] will would like to develop some strategy
+[571s] to tokenize the input text now when
+[575s] people say tokenize they mean convert
+[576s] the raw text as a string to some
+[579s] sequence of integers According to some
+[581s] uh notebook According to some vocabulary
+[583s] of possible elements so as an example
+[586s] here we are going to be building a
+[588s] character level language model so we're
+[589s] simply going to be translating
+[590s] individual characters into integers so
+[593s] let me show you uh a chunk of code that
+[595s] sort of does that for us so we're
+[597s] building both the encoder and the
+[598s] decoder
+[600s] and let me just talk through what's
+[601s] happening
+[602s] here when we encode an arbitrary text
+[605s] like hi there we're going to receive a
+[608s] list of integers that represents that
+[610s] string so for example 46 47 Etc and then
+[614s] we also have the reverse mapping so we
+[617s] can take this list and decode it to get
+[620s] back the exact same string so it's
+[622s] really just like a translation to
+[624s] integers and back for arbitrary string
+[626s] and for us it is done on a character
+[628s] level
+[630s] now the way this was achieved is we just
+[631s] iterate over all the characters here and
+[634s] create a lookup table from the character
+[635s] to the integer and vice versa and then
+[638s] to encode some string we simply
+[640s] translate all the characters
+[641s] individually and to decode it back we
+[644s] use the reverse mapping and concatenate
+[646s] all of it now this is only one of many
+[649s] possible encodings or many possible sort
+[651s] of tokenizers and it's a very simple one
+[654s] but there's many other schemas that
+[655s] people have come up with in practice so
+[657s] for example Google uses a sentence
+[659s] piece uh so sentence piece will also
+[662s] encode text into um integers but in a
+[665s] different schema and using a different
+[668s] vocabulary and sentence piece is a
+[670s] subword uh sort of tokenizer and what
+[673s] that means is that um you're not
+[675s] encoding entire words but you're not
+[677s] also encoding individual characters it's
+[679s] it's a subword unit level and that's
+[682s] usually what's adopted in practice for
+[684s] example also openai has this Library
+[686s] called tick token that uses a bite pair
+[688s] encode
+[689s] tokenizer um and that's what GPT uses
+[693s] and you can also just encode words into
+[695s] like hell world into a list of integers
+[698s] so as an example I'm using the Tik token
+[700s] Library here I'm getting the encoding
+[703s] for gpt2 or that was used for gpt2
+[706s] instead of just having 65 possible
+[708s] characters or tokens they have 50,000
+[711s] tokens and so when they encode the exact
+[714s] same string High there we only get a
+[717s] list of three integers but those
+[719s] integers are not between 0 and 64 they
+[721s] are between Z and 5,
+[725s] 5,256 so basically you can trade off the
+[729s] code book size and the sequence lengths
+[732s] so you can have very long sequences of
+[733s] integers with very small vocabularies or
+[736s] we can have short um sequences of
+[740s] integers with very large vocabularies
+[743s] and so typically people use in practice
+[745s] these subword encodings but I'd like to
+[748s] keep our token ier very simple so we're
+[750s] using character level tokenizer and that
+[753s] means that we have very small code books
+[755s] we have very simple encode and decode
+[757s] functions uh but we do get very long
+[760s] sequences as a result but that's the
+[762s] level at which we're going to stick with
+[763s] this lecture because it's the simplest
+[765s] thing okay so now that we have an
+[766s] encoder and a decoder effectively a
+[769s] tokenizer we can tokenize the entire
+[771s] training set of Shakespeare so here's a
+[773s] chunk of code that does that and I'm
+[775s] going to start to use the pytorch
+[776s] library and specifically the torch.
+[778s] tensor from the pytorch library so we're
+[781s] going to take all of the text in tiny
+[783s] Shakespeare encode it and then wrap it
+[785s] into a torch. tensor to get the data
+[788s] tensor so here's what the data tensor
+[790s] looks like when I look at just the first
+[792s] 1,000 characters or the 1,000 elements
+[794s] of it so we see that we have a massive
+[796s] sequence of integers and this sequence
+[798s] of integers here is basically an
+[800s] identical translation of the first
+[802s] 10,000 characters
+[804s] here so I believe for example that zero
+[807s] is a new line character and maybe one
+[809s] one is a space not 100% sure but from
+[812s] now on the entire data set of text is
+[814s] re-represented as just it's just
+[815s] stretched out as a single very large uh
+[818s] sequence of
+[819s] integers let me do one more thing before
+[821s] we move on here I'd like to separate out
+[823s] our data set into a train and a
+[825s] validation split so in particular we're
+[828s] going to take the first 90% of the data
+[831s] set and consider that to be the training
+[832s] data for the Transformer and we're going
+[834s] to withhold the last 10% at the end of
+[836s] it to be the validation data and this
+[839s] will help us understand to what extent
+[841s] our model is overfitting so we're going
+[843s] to basically hide and keep the
+[844s] validation data on the side because we
+[846s] don't want just a perfect memorization
+[848s] of this exact Shakespeare we want a
+[851s] neural network that sort of creates
+[852s] Shakespeare like uh text and so it
+[855s] should be fairly likely for it to
+[857s] produce the actual like stowed away uh
+[861s] true Shakespeare text um and so we're
+[864s] going to use this to uh get a sense of
+[866s] the overfitting okay so now we would
+[868s] like to start plugging these text
+[870s] sequences or integer sequences into the
+[872s] Transformer so that it can train and
+[874s] learn those patterns now the important
+[876s] thing to realize is we're never going to
+[878s] actually feed entire text into a
+[880s] Transformer all at once that would be
+[882s] computationally very expensive and
+[884s] prohibitive so when we actually train a
+[886s] Transformer on a lot of these data sets
+[888s] we only work with chunks of the data set
+[890s] and when we train the Transformer we
+[892s] basically sample random little chunks
+[893s] out of the training set and train on
+[895s] just chunks at a time and these chunks
+[898s] have basically some kind of a length and
+[901s] some maximum length now the maximum
+[904s] length typically at least in the code I
+[906s] usually write is called block size you
+[908s] can you can uh find it under different
+[910s] names like context length or something
+[912s] like that let's start with the block
+[914s] size of just eight and let me look at
+[916s] the first train data characters the
+[918s] first block size plus one characters
+[920s] I'll explain why plus one in a
+[922s] second so this is the first nine
+[924s] characters in the sequence in the
+[927s] training set now what I'd like to point
+[930s] out is that when you sample a chunk of
+[931s] data like this so say the these nine
+[934s] characters out of the training set this
+[936s] actually has multiple examples packed
+[938s] into it and uh that's because all of
+[941s] these characters follow each other and
+[943s] so what this thing is going to say when
+[947s] we plug it into a Transformer is we're
+[949s] going to actually simultaneously train
+[950s] it to make prediction at every one of
+[952s] these
+[953s] positions now in the in a chunk of nine
+[956s] characters there's actually eight indiv
+[958s] ual examples packed in there so there's
+[961s] the example that when 18 when in the
+[964s] context of 18 47 likely comes next in a
+[968s] context of 18 and 47 56 comes next in a
+[972s] context of 18 47 56 57 can come next and
+[976s] so on so that's the eight individual
+[978s] examples let me actually spell it out
+[980s] with
+[981s] code so here's a chunk of code to
+[984s] illustrate X are the inputs to the
+[986s] Transformer it will just be the first
+[988s] block size characters y will be the uh
+[992s] next block size characters so it's
+[994s] offset by one and that's because y are
+[997s] the targets for each position in the
+[1000s] input and then here I'm iterating over
+[1002s] all the block size of eight and the
+[1005s] context is always all the characters in
+[1007s] x uh up to T and including T and the
+[1011s] target is always the teth character but
+[1013s] in the targets array y so let me just
+[1016s] run
+[1017s] this and basically it spells out what I
+[1019s] said in words uh these are the eight
+[1022s] examples hidden in a chunk of nine
+[1024s] characters that we uh sampled from the
+[1028s] training set I want to mention one more
+[1031s] thing we train on all the eight examples
+[1034s] here with context between one all the
+[1036s] way up to context of block size and we
+[1039s] train on that not just for computational
+[1040s] reasons because we happen to have the
+[1042s] sequence already or something like that
+[1043s] it's not just done for efficiency it's
+[1046s] also done um to make the Transformer
+[1048s] Network be used to seeing contexts all
+[1052s] the way from as little as one all the
+[1053s] way to block size and we'd like the
+[1056s] transform to be used to seeing
+[1058s] everything in between and that's going
+[1059s] to be useful later during inference
+[1061s] because while we're sampling we can
+[1063s] start the sampling generation with as
+[1065s] little as one character of context and
+[1067s] the Transformer knows how to predict the
+[1069s] next character with all the way up to
+[1071s] just context of one and so then it can
+[1073s] predict everything up to block size and
+[1075s] after block size we have to start
+[1076s] truncating because the Transformer will
+[1078s] will never um receive more than block
+[1081s] size inputs when it's predicting the
+[1083s] next
+[1083s] character Okay so we've looked at the
+[1086s] time dimension of the tensors that are
+[1087s] going to be feeding into the Transformer
+[1089s] there's one more Dimension to care about
+[1091s] and that is the batch Dimension and so
+[1093s] as we're sampling these chunks of text
+[1095s] we're going to be actually every time
+[1097s] we're going to feed them into a
+[1098s] Transformer we're going to have many
+[1100s] batches of multiple chunks of text that
+[1102s] are all like stacked up in a single
+[1103s] tensor and that's just done for
+[1105s] efficiency just so that we can keep the
+[1107s] gpus busy uh because they are very good
+[1109s] at parallel processing of um of data and
+[1113s] so we just want to process multiple
+[1115s] chunks all at the same time but those
+[1117s] chunks are processed completely
+[1118s] independently they don't talk to each
+[1119s] other and so on so let me basically just
+[1122s] generalize this and introduce a batch
+[1124s] Dimension here's a chunk of
+[1126s] code let me just run it and then I'm
+[1128s] going to explain what it
+[1130s] does so here because we're going to
+[1132s] start sampling random locations in the
+[1134s] data set to pull chunks from I am
+[1137s] setting the seed so that um in the
+[1140s] random number generator so that the
+[1141s] numbers I see here are going to be the
+[1142s] same numbers you see later if you try to
+[1144s] reproduce this now the batch size here
+[1147s] is how many independent sequences we are
+[1149s] processing every forward backward pass
+[1151s] of the
+[1152s] Transformer the block size as I
+[1154s] explained is the maximum context length
+[1156s] to make those predictions so let's say B
+[1159s] size four block size eight and then
+[1161s] here's how we get batch for any
+[1163s] arbitrary split if the split is a
+[1165s] training split then we're going to look
+[1166s] at train data otherwise at valid data
+[1170s] that gives us the data array and then
+[1173s] when I Generate random positions to grab
+[1175s] a chunk out of I actually grab I
+[1178s] actually generate batch size number of
+[1181s] Random offsets so because this is four
+[1184s] we are ex is going to be a uh four
+[1187s] numbers that are randomly generated
+[1189s] between zero and Len of data minus block
+[1191s] size so it's just random offsets into
+[1193s] the training
+[1194s] set and then X's as I explained are the
+[1198s] first first block size characters
+[1200s] starting at I the Y's are the offset by
+[1205s] one of that so just add plus one and
+[1208s] then we're going to get those chunks for
+[1210s] every one of integers I INX and use a
+[1214s] torch. stack to take all those uh uh
+[1217s] one-dimensional tensors as we saw here
+[1220s] and we're going to um stack them up at
+[1224s] rows and so they all become a row in a
+[1227s] 4x8 tensor
+[1229s] so here's where I'm printing then when I
+[1232s] sample a batch XB and YB the inputs to
+[1235s] the Transformer now are the input X is
+[1239s] the 4x8 tensor four uh rows of eight
+[1244s] columns and each one of these is a chunk
+[1247s] of the training
+[1248s] set and then the targets here are in the
+[1252s] associated array Y and they will come in
+[1254s] to the Transformer all the way at the
+[1255s] end uh to um create the loss function
+[1259s] uh so they will give us the correct
+[1261s] answer for every single position inside
+[1263s] X and then these are the four
+[1266s] independent
+[1267s] rows so spelled out as we did
+[1271s] before uh this 4x8 array contains a
+[1274s] total of 32 examples and they're
+[1277s] completely independent as far as the
+[1279s] Transformer is
+[1280s] concerned uh so when the input is 24 the
+[1285s] target is 43 or rather 43 here in the Y
+[1288s] array
+[1289s] when the input is 2443 the target is
+[1291s] 58 uh when the input is 24 43 58 the
+[1294s] target is 5 Etc or like when it is a 52
+[1298s] 581 the target is
+[1300s] 58 right so you can sort of see this
+[1303s] spelled out these are the 32 independent
+[1305s] examples packed in to a single batch of
+[1308s] the input X and then the desired targets
+[1311s] are in y and so now this integer tensor
+[1317s] of um X is going to feed into the
+[1320s] Transformer and that Transformer is
+[1322s] going to simultaneously process all
+[1324s] these examples and then look up the
+[1326s] correct um integers to predict in every
+[1328s] one of these positions in the tensor y
+[1331s] okay so now that we have our batch of
+[1333s] input that we'd like to feed into a
+[1335s] Transformer let's start basically
+[1336s] feeding this into neural networks now
+[1339s] we're going to start off with the
+[1340s] simplest possible neural network which
+[1342s] in the case of language modeling in my
+[1343s] opinion is the Byram language model and
+[1345s] we've covered the Byram language model
+[1346s] in my make more series in a lot of depth
+[1349s] and so here I'm going to sort of go
+[1351s] faster and let's just Implement pytorch
+[1353s] module directly that implements the byr
+[1356s] language
+[1356s] model so I'm importing the pytorch um NN
+[1361s] module uh for
+[1363s] reproducibility and then here I'm
+[1364s] constructing a Byram language model
+[1366s] which is a subass of NN
+[1368s] module and then I'm calling it and I'm
+[1371s] passing it the inputs and the targets
+[1373s] and I'm just printing now when the
+[1375s] inputs on targets come here you see that
+[1377s] I'm just taking the index uh the inputs
+[1380s] X here which I rename to idx and I'm
+[1383s] just passing them into this token
+[1384s] embedding table so it's going on here is
+[1387s] that here in the Constructor we are
+[1389s] creating a token embedding table and it
+[1392s] is of size vocap size by vocap
+[1395s] size and we're using an. embedding which
+[1398s] is a very thin wrapper around basically
+[1400s] a tensor of shape voap size by vocab
+[1403s] size and what's happening here is that
+[1405s] when we pass idx here every single
+[1408s] integer in our input is going to refer
+[1410s] to this embedding table and it's going
+[1412s] to pluck out a row of that embedding
+[1414s] table corresponding to its index so 24
+[1417s] here will go into the embedding table
+[1419s] and we'll pluck out the 24th row and
+[1422s] then 43 will go here and pluck out the
+[1424s] 43d row Etc and then pytorch is going to
+[1427s] arrange all of this into a batch by Time
+[1430s] by channel uh tensor in this case batch
+[1433s] is four time is eight and C which is the
+[1437s] channels is vocab size or 65 and so
+[1441s] we're just going to pluck out all those
+[1442s] rows arrange them in a b by T by C and
+[1445s] now we're going to interpret this as the
+[1447s] logits which are basically the scores
+[1450s] for the next character in the sequence
+[1452s] and so what's happening here is we are
+[1454s] predicting what comes next based on just
+[1457s] the individual identity of a single
+[1459s] token and you can do that because um I
+[1462s] mean currently the tokens are not
+[1463s] talking to each other and they're not
+[1465s] seeing any context except for they're
+[1466s] just seeing themselves so I'm a f I'm a
+[1469s] token number five and then I can
+[1472s] actually make pretty decent predictions
+[1473s] about what comes next just by knowing
+[1475s] that I'm token five because some
+[1477s] characters uh know um C follow other
+[1479s] characters in in typical scenarios so we
+[1482s] saw a lot of this in a lot more depth in
+[1484s] the make more series and here if I just
+[1486s] run this then we currently get the
+[1489s] predictions the scores the lits for
+[1493s] every one of the 4x8 positions now that
+[1495s] we've made predictions about what comes
+[1497s] next we'd like to evaluate the loss
+[1498s] function and so in make more series we
+[1500s] saw that a good way to measure a loss or
+[1503s] like a quality of the predictions is to
+[1505s] use the negative log likelihood loss
+[1507s] which is also implemented in pytorch
+[1509s] under the name cross entropy so what we'
+[1512s] like to do here is loss is the cross
+[1515s] entropy on the predictions and the
+[1517s] targets and so this measures the quality
+[1520s] of the logits with respect to the
+[1521s] Targets in other words we have the
+[1524s] identity of the next character so how
+[1526s] well are we predicting the next
+[1528s] character based on the lits and
+[1530s] intuitively the correct um the correct
+[1533s] dimension of low jits uh depending on
+[1536s] whatever the target is should have a
+[1538s] very high number and all the other
+[1539s] dimensions should be very low number
+[1541s] right now the issue is that this won't
+[1544s] actually this is what we want we want to
+[1546s] basically output the logits and the
+[1550s] loss this is what we want but
+[1552s] unfortunately uh this won't actually run
+[1555s] we get an error message but intuitively
+[1557s] we want to uh measure this now when we
+[1561s] go to the pytorch um cross entropy
+[1564s] documentation here um we're trying to
+[1568s] call the cross entropy in its functional
+[1570s] form uh so that means we don't have to
+[1571s] create like a module for it but here
+[1574s] when we go to the documentation you have
+[1576s] to look into the details of how pitor
+[1578s] expects these inputs and basically the
+[1580s] issue here is ptor expects if you have
+[1584s] multi-dimensional input which we do
+[1585s] because we have a b BYT by C tensor then
+[1588s] it actually really wants the channels to
+[1591s] be the second uh Dimension here so if
+[1595s] you um so basically it wants a b by C
+[1598s] BYT instead of a b by T by C and so it's
+[1602s] just the details of how P torch treats
+[1605s] um these kinds of inputs and so we don't
+[1609s] actually want to deal with that so what
+[1611s] we're going to do instead is we need to
+[1612s] basically reshape our logits so here's
+[1614s] what I like to do I like to take
+[1616s] basically give names to the dimensions
+[1618s] so lit. shape is B BYT by C and unpack
+[1621s] those numbers and then let's uh say that
+[1624s] logits equals lit. View and we want it
+[1627s] to be a b * c b * T by C so just a two-
+[1631s] dimensional
+[1632s] array right so we're going to take all
+[1635s] the we're going to take all of these um
+[1638s] positions here and we're going to uh
+[1640s] stretch them out in a onedimensional
+[1642s] sequence and uh preserve the channel
+[1645s] Dimension as the second
+[1646s] dimension so we're just kind of like
+[1648s] stretching out the array so it's two-
+[1649s] dimensional and in that case it's going
+[1651s] to better conform to what pytorch uh
+[1653s] sort of expects in its Dimensions now we
+[1656s] have to do the same to targets because
+[1658s] currently targets are um of shape B by T
+[1664s] and we want it to be just B * T so
+[1667s] onedimensional now alternatively you
+[1669s] could always still just do minus one
+[1671s] because pytor will guess what this
+[1673s] should be if you want to lay it out uh
+[1675s] but let me just be explicit and say p *
+[1677s] t once we've reshaped this it will match
+[1680s] the cross entropy case and then we
+[1683s] should be able to evaluate our
+[1686s] loss okay so that R now and we can do
+[1690s] loss and So currently we see that the
+[1692s] loss is
+[1693s] 4.87 now because our uh we have 65
+[1697s] possible vocabulary elements we can
+[1699s] actually guess at what the loss should
+[1700s] be and in
+[1702s] particular we covered negative log
+[1704s] likelihood in a lot of detail we are
+[1706s] expecting log or lawn of um 1 over 65
+[1712s] and negative of that so we're expecting
+[1714s] the loss to be about 4.1 17 but we're
+[1717s] getting 4.87 and so that's telling us
+[1720s] that the initial predictions are not uh
+[1722s] super diffuse they've got a little bit
+[1723s] of entropy and so we're guessing wrong
+[1727s] uh so uh yes but actually we're I a we
+[1730s] are able to evaluate the loss okay so
+[1733s] now that we can evaluate the quality of
+[1734s] the model on some data we'd like to also
+[1737s] be able to generate from the model so
+[1739s] let's do the generation now I'm going to
+[1741s] go again a little bit faster here
+[1743s] because I covered all this already in
+[1744s] previous
+[1745s] videos
+[1747s] so here's a generate function for the
+[1751s] model so we take some uh we take the the
+[1755s] same kind of input idx here and
+[1758s] basically this is the current uh context
+[1762s] of some characters in a batch in some
+[1764s] batch so it's also B BYT and the job of
+[1768s] generate is to basically take this B BYT
+[1770s] and extend it to be B BYT + 1 plus 2
+[1772s] plus 3 and so it's just basically it
+[1774s] continues the generation in all the
+[1776s] batch dimensions in the time Dimension
+[1779s] So that's its job and it will do that
+[1781s] for Max new tokens so you can see here
+[1783s] on the bottom there's going to be some
+[1785s] stuff here but on the bottom whatever is
+[1787s] predicted is concatenated on top of the
+[1790s] previous idx along the First Dimension
+[1793s] which is the time Dimension to create a
+[1794s] b BYT + one so that becomes a new idx so
+[1798s] the job of generate is to take a b BYT
+[1800s] and make it a b BYT plus 1 plus 2 plus
+[1802s] three as many as we want Max new tokens
+[1805s] so this is the generation from the model
+[1808s] now inside the generation what what are
+[1810s] we doing we're taking the current
+[1811s] indices we're getting the predictions so
+[1815s] we get uh those are in the low jits and
+[1818s] then the loss here is going to be
+[1819s] ignored because um we're not we're not
+[1821s] using that and we have no targets that
+[1823s] are sort of ground truth targets that
+[1825s] we're going to be comparing with
+[1828s] then once we get the logits we are only
+[1830s] focusing on the last step so instead of
+[1833s] a b by T by C we're going to pluck out
+[1836s] the negative-1 the last element in the
+[1838s] time Dimension because those are the
+[1840s] predictions for what comes next so that
+[1842s] gives us the logits which we then
+[1844s] convert to probabilities via softmax and
+[1847s] then we use tor. multinomial to sample
+[1849s] from those probabilities and we ask
+[1851s] pytorch to give us one sample and so idx
+[1854s] next will become a b by one because in
+[1857s] each uh one of the batch Dimensions
+[1860s] we're going to have a single prediction
+[1861s] for what comes next so this num samples
+[1863s] equals one will make this be a
+[1866s] one and then we're going to take those
+[1868s] integers that come from the sampling
+[1870s] process according to the probability
+[1871s] distribution given here and those
+[1873s] integers got just concatenated on top of
+[1875s] the current sort of like running stream
+[1877s] of integers and this gives us a b BYT +
+[1880s] one and then we can return that now one
+[1884s] thing here is you see how I'm calling
+[1886s] self of idx which will end up going to
+[1889s] the forward function I'm not providing
+[1891s] any Targets So currently this would give
+[1893s] an error because targets is uh is uh
+[1896s] sort of like not given so targets has to
+[1899s] be optional so targets is none by
+[1901s] default and then if targets is none then
+[1904s] there's no loss to create so it's just
+[1907s] loss is none but else all of this
+[1910s] happens and we can create a loss so this
+[1913s] will make it so um if we have the
+[1916s] targets we provide them and get a loss
+[1917s] if we have no targets it will'll just
+[1919s] get the
+[1920s] loits so this here will generate from
+[1922s] the model um and let's take that for a
+[1926s] ride
+[1928s] now oops so I have another code chunk
+[1931s] here which will generate for the model
+[1933s] from the model and okay this is kind of
+[1935s] crazy so maybe let me let me break this
+[1938s] down so these are the idx
+[1943s] right I'm creating a batch will be just
+[1946s] one time will be just one so I'm
+[1950s] creating a little one by one tensor and
+[1952s] it's holding a zero and the D type the
+[1955s] data type is uh integer so zero is going
+[1958s] to be how we kick off the generation and
+[1960s] remember that zero is uh is the element
+[1964s] standing for a new line character so
+[1965s] it's kind of like a reasonable thing to
+[1967s] to feed in as the very first character
+[1969s] in a sequence to be the new
+[1971s] line um so it's going to be idx which
+[1974s] we're going to feed in here then we're
+[1976s] going to ask for 100 tokens
+[1978s] and then. generate will continue that
+[1981s] now because uh generate works on the
+[1985s] level of batches we we then have to
+[1987s] index into the zero throw to basically
+[1989s] unplug the um the single batch Dimension
+[1993s] that exists and then that gives us a um
+[1998s] time steps just a onedimensional array
+[2000s] of all the indices which we will convert
+[2003s] to simple python list from pytorch
+[2006s] tensor so that that can feed into our
+[2008s] decode function and uh convert those
+[2012s] integers into text so let me bring this
+[2014s] back and we're generating 100 tokens
+[2017s] let's
+[2017s] run and uh here's the generation that we
+[2020s] achieved so obviously it's garbage and
+[2023s] the reason it's garbage is because this
+[2024s] is a totally random model so next up
+[2027s] we're going to want to train this model
+[2029s] now one more thing I wanted to point out
+[2030s] here is this function is written to be
+[2033s] General but it's kind of like ridiculous
+[2035s] right now because
+[2038s] we're feeding in all this we're building
+[2039s] out this context and we're concatenating
+[2042s] it all and we're always feeding it all
+[2045s] into the model but that's kind of
+[2047s] ridiculous because this is just a simple
+[2049s] Byram model so to make for example this
+[2051s] prediction about K we only needed this W
+[2054s] but actually what we fed into the model
+[2055s] is we fed the entire sequence and then
+[2058s] we only looked at the very last piece
+[2060s] and predicted K so the only reason I'm
+[2063s] writing it in this way is because right
+[2065s] now this is a byr model but I'd like to
+[2067s] keep keep this function fixed and I'd
+[2069s] like it to work um later when our
+[2072s] characters actually um basically look
+[2075s] further in the history and so right now
+[2077s] the history is not used so this looks
+[2079s] silly uh but eventually the history will
+[2082s] be used and so that's why we want to uh
+[2084s] do it this way so just a quick comment
+[2086s] on that so now we see that this is um
+[2089s] random so let's train the model so it
+[2091s] becomes a bit less random okay let's Now
+[2093s] train the model so first what I'm going
+[2095s] to do is I'm going to create a pyour
+[2097s] optimization object so here we are using
+[2100s] the optimizer ATM W um now in a make
+[2105s] more series we've only ever use tastic
+[2106s] gradi in descent the simplest possible
+[2108s] Optimizer which you can get using the
+[2110s] SGD instead but I want to use Adam which
+[2112s] is a much more advanced and popular
+[2114s] Optimizer and it works extremely well
+[2116s] for uh typical good setting for the
+[2119s] learning rate is roughly 3 E4 uh but for
+[2122s] very very small networks like is the
+[2123s] case here you can get away with much
+[2125s] much higher learning rates R3 or even
+[2128s] higher probably but let me create the
+[2130s] optimizer object which will basically
+[2133s] take the gradients and uh update the
+[2135s] parameters using the
+[2136s] gradients and then here our batch size
+[2140s] up above was only four so let me
+[2141s] actually use something bigger let's say
+[2143s] 32 and then for some number of steps um
+[2146s] we are sampling a new batch of data
+[2148s] we're evaluating the loss uh we're
+[2151s] zeroing out all the gradients from the
+[2152s] previous step getting the gradients for
+[2154s] all the parameters and then using those
+[2156s] gradients to up update our parameters so
+[2158s] typical training loop as we saw in the
+[2160s] make more series so let me now uh run
+[2164s] this for say 100 iterations and let's
+[2167s] see what kind of losses we're going to
+[2169s] get so we started around
+[2172s] 4.7 and now we're getting to down to
+[2174s] like 4.6 4.5 Etc so the optimization is
+[2178s] definitely happening but um let's uh
+[2182s] sort of try to increase number of
+[2183s] iterations and only print at the
+[2185s] end because we probably want train for
+[2189s] longer okay so we're down to 3.6
+[2194s] roughly roughly down to
+[2200s] three this is the most janky
+[2206s] optimization okay it's working let's
+[2208s] just do
+[2210s] 10,000 and then from here we want to
+[2213s] copy this and hopefully that we're going
+[2216s] to get something reason and of course
+[2218s] it's not going to be Shakespeare from a
+[2220s] byr model but at least we see that the
+[2221s] loss is improving and uh hopefully we're
+[2225s] expecting something a bit more
+[2226s] reasonable okay so we're down at about
+[2228s] 2.5 is let's see what we get okay
+[2232s] dramatic improvements certainly on what
+[2234s] we had here so let me just increase the
+[2237s] number of tokens okay so we see that
+[2239s] we're starting to get something at least
+[2241s] like reasonable is
+[2245s] um certainly not shakes spear but uh the
+[2249s] model is making progress so that is the
+[2251s] simplest possible
+[2253s] model so now what I'd like to do
+[2256s] is obviously this is a very simple model
+[2259s] because the tokens are not talking to
+[2261s] each other so given the previous context
+[2263s] of whatever was generated we're only
+[2265s] looking at the very last character to
+[2266s] make the predictions about what comes
+[2268s] next so now these uh now these tokens
+[2270s] have to start talking to each other and
+[2273s] figuring out what is in the context so
+[2275s] that they can make better predictions
+[2276s] for what comes next and this is how
+[2277s] we're going to kick off the uh
+[2279s] Transformer okay so next I took the code
+[2282s] that we developed in this juper notebook
+[2283s] and I converted it to be a script and
+[2285s] I'm doing this because I just want to
+[2288s] simplify our intermediate work into just
+[2290s] the final product that we have at this
+[2292s] point so in the top here I put all the
+[2295s] hyp parameters that we to find I
+[2296s] introduced a few and I'm going to speak
+[2298s] to that in a little bit otherwise a lot
+[2300s] of this should be recognizable uh
+[2303s] reproducibility read data get the
+[2305s] encoder and the decoder create the train
+[2307s] into splits uh use the uh kind of like
+[2310s] data loader um that gets a batch of the
+[2314s] inputs and Targets this is new and I'll
+[2316s] talk about it in a second now this is
+[2319s] the Byram language model that we
+[2320s] developed and it can forward and give us
+[2323s] a logits and loss and it can
+[2325s] generate and then here we are creating
+[2328s] the optimizer and this is the training
+[2331s] Loop so everything here should look
+[2333s] pretty familiar now some of the small
+[2335s] things that I added number one I added
+[2337s] the ability to run on a GPU if you have
+[2340s] it so if you have a GPU then you can
+[2342s] this will use Cuda instead of just CPU
+[2344s] and everything will be a lot more faster
+[2347s] now when device becomes Cuda then we
+[2349s] need to make sure that when we load the
+[2351s] data we move it to
+[2353s] device when we create the model we want
+[2355s] to move uh the model parameters to
+[2358s] device so as an example here we have the
+[2361s] N an embedding table and it's got a
+[2363s] weight inside it which stores the uh
+[2366s] sort of lookup table so so that would be
+[2367s] moved to the GPU so that all the
+[2369s] calculations here happen on the GPU and
+[2372s] they can be a lot faster and then
+[2374s] finally here when I'm creating the
+[2375s] context that feeds in to generate I have
+[2377s] to make sure that I create it on the
+[2379s] device number two what I introduced is
+[2383s] uh the fact that here in the training
+[2386s] Loop here I was just printing the um l.
+[2390s] item inside the training Loop but this
+[2393s] is a very noisy measurement of the
+[2394s] current loss because every batch will be
+[2396s] more or less lucky and so what I want to
+[2399s] do usually um is uh I have an estimate
+[2402s] loss function and the estimate loss
+[2405s] basically then um goes up here and it
+[2410s] averages up the loss over multiple
+[2412s] batches so in particular we're going to
+[2415s] iterate eval iter times and we're going
+[2417s] to basically get our loss and then we're
+[2419s] going to get the average loss for both
+[2421s] splits and so this will be a lot less
+[2424s] noisy so here when we call the estimate
+[2426s] loss we're we're going to report the uh
+[2428s] pretty accurate train and validation
+[2431s] loss now when we come back up you'll
+[2433s] notice a few things here I'm setting the
+[2435s] model to evaluation phase and down here
+[2438s] I'm resetting it back to training phase
+[2440s] now right now for our model as is this
+[2442s] doesn't actually do anything because the
+[2444s] only thing inside this model is this uh
+[2446s] nn. embedding and um this this um
+[2451s] Network would behave both would behave
+[2453s] the same in both evaluation mode and
+[2455s] training mode we have no drop off layers
+[2457s] we have no batm layers Etc but it is a
+[2460s] good practice to Think Through what mode
+[2462s] your neural network is in because some
+[2464s] layers will have different Behavior Uh
+[2467s] at inference time or training time and
+[2471s] there's also this context manager torch
+[2472s] up nograd and this is just telling
+[2474s] pytorch that everything that happens
+[2476s] inside this function we will not call do
+[2478s] backward on and so pytorch can be a lot
+[2481s] more efficient with its memory use
+[2483s] because it doesn't have to store all the
+[2485s] intermediate variables uh because we're
+[2487s] never going to call backward and so it
+[2489s] can it can be a lot more memory
+[2490s] efficient in that way so also a good
+[2492s] practice to tpy torch when we don't
+[2495s] intend to do back
+[2496s] propagation so right now this script is
+[2499s] about 120 lines of code of and that's
+[2503s] kind of our starter code I'm calling it
+[2505s] b.p and I'm going to release it later
+[2508s] now running this
+[2510s] script gives us output in the terminal
+[2512s] and it looks something like this it
+[2514s] basically as I ran this code uh it was
+[2517s] giving me the train loss and Val loss
+[2519s] and we see that we convert to somewhere
+[2521s] around
+[2521s] 2.5 with the pyr model and then here's
+[2524s] the sample that we produced at the
+[2527s] end and so we have everything packaged
+[2529s] up in the script and we're in a good
+[2531s] position now to iterate on this okay so
+[2533s] we are almost ready to start writing our
+[2535s] very first self attention block for
+[2538s] processing these uh tokens now before we
+[2542s] actually get there I want to get you
+[2544s] used to a mathematical trick that is
+[2546s] used in the self attention inside a
+[2548s] Transformer and is really just like at
+[2550s] the heart of an an efficient
+[2552s] implementation of self attention and so
+[2554s] I want to work with this toy example to
+[2556s] just get you used to this operation and
+[2558s] then it's going to make it much more
+[2559s] clear once we actually get to um to it
+[2563s] uh in the script
+[2564s] again so let's create a b BYT by C where
+[2567s] BT and C are just 48 and two in the toy
+[2570s] example and these are basically channels
+[2573s] and we have uh batches and we have the
+[2575s] time component and we have information
+[2578s] at each point in the sequence so
+[2581s] see now what we would like to do is we
+[2583s] would like these um tokens so we have up
+[2586s] to eight tokens here in a batch and
+[2588s] these eight tokens are currently not
+[2590s] talking to each other and we would like
+[2591s] them to talk to each other we'd like to
+[2593s] couple them and in particular we don't
+[2597s] we we want to couple them in a very
+[2598s] specific way so the token for example at
+[2601s] the fifth location it should not
+[2603s] communicate with tokens in the sixth
+[2605s] seventh and eighth location
+[2607s] because uh those are future tokens in
+[2609s] the sequence the token on the fifth
+[2611s] location should only talk to the one in
+[2613s] the fourth third second and first so
+[2616s] it's only so information only flows from
+[2618s] previous context to the current time
+[2620s] step and we cannot get any information
+[2622s] from the future because we are about to
+[2624s] try to predict the
+[2625s] future so what is the easiest way for
+[2629s] tokens to communicate okay the easiest
+[2632s] way I would say is okay if we're up to
+[2634s] if we're a fifth token and I'd like to
+[2636s] communicate with my past the simplest
+[2638s] way we can do that is to just do a
+[2640s] weight is to just do an average of all
+[2643s] the um of all the preceding elements so
+[2646s] for example if I'm the fif token I would
+[2648s] like to take the channels uh that make
+[2650s] up that are information at my step but
+[2653s] then also the channels from the fourth
+[2655s] step third step second step and the
+[2657s] first step I'd like to average those up
+[2659s] and then that would become sort of like
+[2661s] a feature Vector that summarizes me in
+[2663s] the context of my history now of course
+[2666s] just doing a sum or like an average is
+[2668s] an extremely weak form of interaction
+[2670s] like this communication is uh extremely
+[2672s] lossy we've lost a ton of information
+[2674s] about the spatial Arrangements of all
+[2675s] those tokens uh but that's okay for now
+[2678s] we'll see how we can bring that
+[2679s] information back later for now what we
+[2681s] would like to do is for every single
+[2683s] batch element independently for every
+[2686s] teeth token in that sequence we'd like
+[2689s] to now calculate the average of all the
+[2693s] vectors in all the previous tokens and
+[2695s] also at this token so let's write that
+[2698s] out um I have a small snippet here and
+[2701s] instead of just fumbling around let me
+[2703s] just copy paste it and talk to
+[2705s] it so in other words we're going to
+[2708s] create X and B is short for bag of words
+[2712s] because bag of words is um is kind of
+[2715s] like um a term that people use when you
+[2717s] are just averaging up things so this is
+[2719s] just a bag of words basically there's a
+[2721s] word stored on every one of these eight
+[2723s] locations and we're doing a bag of words
+[2725s] we're just averaging
+[2727s] so in the beginning we're going to say
+[2728s] that it's just initialized at Zero and
+[2730s] then I'm doing a for Loop here so we're
+[2732s] not being efficient yet that's coming
+[2734s] but for now we're just iterating over
+[2736s] all the batch Dimensions independently
+[2738s] iterating over time and then the
+[2740s] previous uh tokens are at this uh batch
+[2745s] Dimension and then everything up to and
+[2747s] including the teeth token okay so when
+[2751s] we slice out X in this way X prev
+[2754s] Becomes of shape um how many T elements
+[2758s] there were in the past and then of
+[2760s] course C so all the two-dimensional
+[2762s] information from these little tokens so
+[2765s] that's the previous uh sort of chunk of
+[2768s] um tokens from my current sequence and
+[2772s] then I'm just doing the average or the
+[2773s] mean over the zero Dimension so I'm
+[2775s] averaging out the time here and I'm just
+[2779s] going to get a little c one dimensional
+[2781s] Vector which I'm going to store in X bag
+[2783s] of words so I can run this and and uh
+[2787s] this is not going to be very informative
+[2790s] because let's see so this is X of Zer so
+[2792s] this is the zeroth batch element and
+[2795s] then expo at zero now you see how the at
+[2800s] the first location here you see that the
+[2802s] two are equal and that's because it's
+[2805s] we're just doing an average of this one
+[2806s] token but here this one is now an
+[2809s] average of these two and now this one is
+[2813s] an average of these
+[2814s] three and so on
+[2817s] so uh and this last one is the average
+[2821s] of all of these elements so vertical
+[2823s] average just averaging up all the tokens
+[2825s] now gives this outcome
+[2827s] here so this is all well and good uh but
+[2830s] this is very inefficient now the trick
+[2832s] is that we can be very very efficient
+[2834s] about doing this using matrix
+[2836s] multiplication so that's the
+[2838s] mathematical trick and let me show you
+[2839s] what I mean let's work with the toy
+[2841s] example here let me run it and I'll
+[2844s] explain I have a simple Matrix here that
+[2847s] is a 3X3 of all ones a matrix B of just
+[2851s] random numbers and it's a 3x2 and a
+[2853s] matrix C which will be 3x3 multip 3x2
+[2856s] which will give out a 3x2 so here we're
+[2859s] just using um matrix multiplication so a
+[2863s] multiply B gives us
+[2866s] C okay so how are these numbers in C um
+[2871s] achieved right so this number in the top
+[2874s] left is the first row of a dot product
+[2877s] with the First Column of B and since all
+[2880s] the the row of a right now is all just
+[2882s] ones then the do product here with with
+[2885s] this column of B is just going to do a
+[2887s] sum of these of this column so 2 + 6 + 6
+[2891s] is
+[2892s] 14 the element here in the output of C
+[2895s] is also the first column here the first
+[2897s] row of a multiplied now with the second
+[2900s] column of B so 7 + 4 + 5 is 16 now you
+[2905s] see that there's repeating elements here
+[2906s] so this 14 again is because this row is
+[2908s] again all ones and it's multiplying the
+[2910s] First Column of B so we get 14 and this
+[2913s] one is and so on so this last number
+[2915s] here is the last row do product last
+[2919s] column now the trick here is uh the
+[2922s] following this is just a boring number
+[2924s] of um it's just a boring array of all
+[2928s] ones but torch has this function called
+[2930s] Trail which is short for a
+[2934s] triangular uh something like that and
+[2936s] you can wrap it in torch up once and it
+[2938s] will just return the lower triangular
+[2940s] portion of this
+[2943s] okay so now it will basically zero out
+[2946s] uh these guys here so we just get the
+[2948s] lower triangular part well what happens
+[2950s] if we do
+[2954s] that so now we'll have a like this and B
+[2957s] like this and now what are we getting
+[2958s] here in C well what is this number well
+[2962s] this is the first row times the First
+[2964s] Column and because this is zeros
+[2968s] uh these elements here are now ignored
+[2970s] so we just get a two and then this
+[2972s] number here is the first row times the
+[2975s] second column and because these are
+[2977s] zeros they get ignored and it's just
+[2979s] seven this seven multiplies this one but
+[2982s] look what happened here because this is
+[2983s] one and then zeros we what ended up
+[2986s] happening is we're just plucking out the
+[2988s] row of this row of B and that's what we
+[2991s] got now here we have one 1 Z so here 110
+[2997s] do product with these two columns will
+[2999s] now give us 2 + 6 which is 8 and 7 + 4
+[3002s] which is 11 and because this is 111 we
+[3005s] ended up with the addition of all of
+[3007s] them and so basically depending on how
+[3010s] many ones and zeros we have here we are
+[3012s] basically doing a sum currently of a
+[3016s] variable number of these rows and that
+[3018s] gets deposited into
+[3020s] C So currently we're doing sums because
+[3023s] these are ones but we can also do
+[3025s] average right and you can start to see
+[3027s] how we could do average uh of the rows
+[3029s] of B uh sort of in an incremental
+[3032s] fashion because we don't have to we can
+[3035s] basically normalize these rows so that
+[3037s] they sum to one and then we're going to
+[3039s] get an average so if we took a and then
+[3041s] we did aals
+[3043s] aide torch. sum in the um of a in the um
+[3051s] oneth Dimension and then let's keep them
+[3055s] as true so so therefore the broadcasting
+[3057s] will work out so if I rerun this you see
+[3060s] now that these rows now sum to one so
+[3064s] this row is one this row is 0. 5.5 Z and
+[3067s] here we get 1/3 and now when we do a
+[3069s] multiply B what are we getting here we
+[3072s] are just getting the first row first row
+[3075s] here now we are getting the average of
+[3078s] the first two
+[3080s] rows okay so 2 and six average is four
+[3083s] and four and seven average is
+[3085s] 5.5 and on the bottom here we are now
+[3087s] getting the average of these three rows
+[3091s] so the average of all of elements of B
+[3093s] are now deposited here and so you can
+[3096s] see that by manipulating these uh
+[3100s] elements of this multiplying Matrix and
+[3102s] then multiplying it with any given
+[3104s] Matrix we can do these averages in this
+[3107s] incremental fashion because we just get
+[3110s] um and we can manipulate that based on
+[3113s] the elements of a okay so that's very
+[3115s] convenient so let's let's swing back up
+[3117s] here and see how we can vectorize this
+[3119s] and make it much more efficient using
+[3120s] what we've learned so in
+[3123s] particular we are going to produce an
+[3125s] array a but here I'm going to call it we
+[3128s] short for weights but this is our
+[3131s] a and this is how much of every row we
+[3134s] want to average up and it's going to be
+[3137s] an average because you can see that
+[3138s] these rows sum to
+[3140s] one so this is our a and then our B in
+[3143s] this example of course is X
+[3147s] so what's going to happen here now is
+[3149s] that we are going to have an expo
+[3151s] 2 and this Expo 2 is going to be way
+[3156s] multiplying
+[3158s] RX so let's think this true way is T BYT
+[3162s] and this is Matrix multiplying in
+[3164s] pytorch a b by T by
+[3167s] C and it's giving us uh different what
+[3170s] shape so pytorch will come here and it
+[3172s] will see that these shapes are not the
+[3174s] same so it will create a batch Dimension
+[3177s] here and this is a batched matrix
+[3180s] multiply and so it will apply this
+[3182s] matrix multiplication in all the batch
+[3184s] elements um in parallel and individually
+[3188s] and then for each batch element there
+[3189s] will be a t BYT multiplying T by C
+[3192s] exactly as we had
+[3195s] below so this will now create B by T by
+[3200s] C and Expo 2 will now become identical
+[3204s] to Expo
+[3208s] so we can see that torch. all close of
+[3212s] xbo and xbo 2 should be true
+[3216s] now so this kind of like convinces us
+[3218s] that uh these are in fact um the same so
+[3223s] xbo and xbo 2 if I just print
+[3227s] them uh okay we're not going to be able
+[3229s] to okay we're not going to be able to
+[3231s] just stare it down but
+[3234s] um well let me try Expo basically just
+[3236s] at the zeroth element and Expo two at
+[3238s] the zeroth element so just the first
+[3239s] batch and we should see that this and
+[3242s] that should be identical which they
+[3244s] are right so what happened here the
+[3247s] trick is we were able to use batched
+[3249s] Matrix multiply to do this uh
+[3252s] aggregation really and it's a weighted
+[3255s] aggregation and the weights are
+[3257s] specified in this um T BYT array and
+[3261s] we're basically doing weighted sums and
+[3264s] uh these weighted sums are are U
+[3266s] according to uh the weights inside here
+[3268s] they take on sort of this triangular
+[3271s] form and so that means that a token at
+[3273s] the teth dimension will only get uh sort
+[3276s] of um information from the um tokens
+[3279s] perceiving it so that's exactly what we
+[3281s] want and finally I would like to rewrite
+[3283s] it in one more way and we're going to
+[3286s] see why that's useful so this is the
+[3288s] third version and it's also identical to
+[3290s] the first and second but let me talk
+[3293s] through it it uses
+[3294s] softmax so Trill here is this Matrix
+[3300s] lower triangular
+[3301s] ones way begins as all
+[3305s] zero okay so if I just print way in the
+[3307s] beginning it's all zero then I
+[3311s] used masked fill so what this is doing
+[3315s] is we. masked fill it's all zeros and
+[3318s] I'm saying for all the elements where
+[3320s] Trill is equal equal Z make them be
+[3323s] negative Infinity so all the elements
+[3326s] where Trill is zero will become negative
+[3328s] Infinity now so this is what we get and
+[3332s] then the final line here is
+[3336s] softmax so if I take a softmax along
+[3338s] every single so dim is negative one so
+[3340s] along every single row if I do softmax
+[3344s] what is that going to
+[3346s] do well softmax is um is also like a
+[3351s] normalization operation right and so
+[3354s] spoiler alert you get the exact same
+[3358s] Matrix let me bring back to
+[3360s] softmax and recall that in softmax we're
+[3362s] going to exponentiate every single one
+[3364s] of these and then we're going to divide
+[3366s] by the sum and so if we exponentiate
+[3370s] every single element here we're going to
+[3371s] get a one and here we're going to get uh
+[3374s] basically zero 0 z0 Z everywhere else
+[3377s] and then when we normalize we just get
+[3379s] one here we're going to get one one and
+[3381s] then zeros and then softmax will again
+[3384s] divide and this will give us 5.5 and so
+[3387s] on and so this is also the uh the same
+[3390s] way to produce uh this mask now the
+[3393s] reason that this is a bit more
+[3394s] interesting and the reason we're going
+[3396s] to end up using it in self
+[3397s] attention is that these weights here
+[3401s] begin uh with zero and you can think of
+[3404s] this as like an interaction strength or
+[3406s] like an affinity so basically it's
+[3409s] telling us how much of each uh token
+[3412s] from the past do we want to Aggregate
+[3414s] and average up
+[3417s] and then this line is saying tokens from
+[3419s] the past cannot communicate by setting
+[3422s] them to negative Infinity we're saying
+[3424s] that we will not aggregate anything from
+[3426s] those
+[3427s] tokens and so basically this then goes
+[3429s] through softmax and through the weighted
+[3431s] and this is the aggregation through
+[3432s] matrix
+[3434s] multiplication and so what this is now
+[3436s] is you can think of these as um these
+[3439s] zeros are currently just set by us to be
+[3441s] zero but a quick preview is that these
+[3445s] affinities between the tokens are not
+[3447s] going to be just constant at zero
+[3449s] they're going to be data dependent these
+[3451s] tokens are going to start looking at
+[3452s] each other and some tokens will find
+[3454s] other tokens more or less interesting
+[3457s] and depending on what their values are
+[3459s] they're going to find each other
+[3461s] interesting to different amounts and I'm
+[3462s] going to call those affinities I think
+[3465s] and then here we are saying the future
+[3467s] cannot communicate with the past we're
+[3469s] we're going to clamp them and then when
+[3471s] we normalize and sum we're going to
+[3473s] aggregate uh sort of their values
+[3476s] depending on how interesting they find
+[3477s] each other and so that's the preview for
+[3479s] self attention and basically long story
+[3483s] short from this entire section is that
+[3485s] you can do weighted aggregations of your
+[3487s] past
+[3488s] Elements by having by using matrix
+[3492s] multiplication of a lower triangular
+[3494s] fashion and then the elements here in
+[3497s] the lower triangular part are telling
+[3498s] you how much of each element uh fuses
+[3501s] into this position so we're going to use
+[3504s] this trick now to develop the self
+[3505s] attention block block so first let's get
+[3507s] some quick preliminaries out of the way
+[3510s] first the thing I'm kind of bothered by
+[3511s] is that you see how we're passing in
+[3513s] vocap size into the Constructor there's
+[3515s] no need to do that because vocap size is
+[3516s] already defined uh up top as a global
+[3518s] variable so there's no need to pass this
+[3520s] stuff
+[3521s] around next what I want to do is I don't
+[3524s] want to actually create I want to create
+[3526s] like a level of indirection here where
+[3527s] we don't directly go to the embedding
+[3529s] for the um logits but instead we go
+[3532s] through this intermediate phase because
+[3534s] we're going to start making that bigger
+[3537s] so let me introduce a new variable n
+[3539s] embed it shorted for number of embedding
+[3542s] Dimensions so
+[3544s] nbed here will be say 32 that was a
+[3549s] suggestion from GitHub co-pilot by the
+[3551s] way um it also suest 32 which is a good
+[3554s] number so this is an embedding table and
+[3556s] only 32 dimensional
+[3558s] embeddings so then here this is not
+[3561s] going to give us logits directly instead
+[3563s] this is going to give us token
+[3564s] embeddings that's I'm going to call it
+[3567s] and then to go from the token Tings to
+[3569s] the logits we're going to need a linear
+[3570s] layer so self. LM head let's call it
+[3574s] short for language modeling head is n
+[3576s] and linear from n ined up to vocap size
+[3579s] and then when we swing over here we're
+[3581s] actually going to get the loits by
+[3583s] exactly what the co-pilot says now we
+[3586s] have to be careful here because this C
+[3588s] and this C are not equal um this is nmed
+[3592s] C and this is vocap size so let's just
+[3595s] say that n ined is equal to
+[3597s] C and then this just creates one spous
+[3601s] layer of interaction through a linear
+[3602s] layer but uh this should basically
+[3611s] run so we see that this runs and uh this
+[3615s] currently looks kind of spous but uh
+[3617s] we're going to build on top of this now
+[3619s] next up so far we've taken these indices
+[3622s] and we've encoded them based on the
+[3623s] identity of the uh tokens in inside idx
+[3628s] the next thing that people very often do
+[3630s] is that we're not just encoding the
+[3631s] identity of these tokens but also their
+[3633s] position so we're going to have a second
+[3635s] position uh embedding table here so
+[3638s] self. position embedding table is an an
+[3641s] embedding of block size by an embed and
+[3644s] so each position from zero to block size
+[3646s] minus one will also get its own
+[3647s] embedding vector and then here first let
+[3650s] me decode B BYT from idx do
+[3654s] shape and then here we're also going to
+[3656s] have a pause embedding which is the
+[3658s] positional embedding and these are this
+[3660s] is to arrange so this will be basically
+[3663s] just integers from Z to T minus one and
+[3666s] all of those integers from 0 to T minus
+[3668s] one get embedded through the table to
+[3669s] create a t by
+[3671s] C and then here this gets renamed to
+[3674s] just say x and x will be the addition of
+[3678s] the token embeddings with the positional
+[3680s] embeddings and here the broadcasting
+[3682s] note will work out so B by T by C plus T
+[3685s] by C
+[3686s] this gets right aligned a new dimension
+[3688s] of one gets added and it gets
+[3690s] broadcasted across
+[3691s] batch so at this point x holds not just
+[3694s] the token identities but the positions
+[3697s] at which these tokens occur and this is
+[3699s] currently not that useful because of
+[3701s] course we just have a simple byr model
+[3703s] so it doesn't matter if you're in the
+[3704s] fifth position the second position or
+[3706s] wherever it's all translation invariant
+[3708s] at this stage uh so this information
+[3710s] currently wouldn't help uh but as we
+[3712s] work on the self attention block we'll
+[3714s] see that this starts to matter
+[3719s] okay so now we get the Crux of self
+[3721s] attention so this is probably the most
+[3723s] important part of this video to
+[3725s] understand we're going to implement a
+[3727s] small self attention for a single
+[3728s] individual head as they're called so we
+[3731s] start off with where we were so all of
+[3733s] this code is familiar so right now I'm
+[3736s] working with an example where I Chang
+[3737s] the number of channels from 2 to 32 so
+[3740s] we have a 4x8 arrangement of tokens and
+[3744s] each to and the information each token
+[3746s] is currently 32 dimensional but we just
+[3748s] are working with random
+[3750s] numbers now we saw here that the code as
+[3754s] we had it before does a uh simple weight
+[3757s] simple average of all the past tokens
+[3761s] and the current token so it's just the
+[3763s] previous information and current
+[3764s] information is just being mixed together
+[3765s] in an average and that's what this code
+[3768s] currently achieves and it Doo by
+[3770s] creating this lower triangular structure
+[3772s] which allows us to mask out this uh we
+[3775s] uh Matrix that we create so we mask it
+[3779s] out and then we normalize it and
+[3781s] currently when we initialize the
+[3783s] affinities between all the different
+[3785s] sort of tokens or nodes I'm going to use
+[3788s] those terms
+[3789s] interchangeably so when we initialize
+[3791s] the affinities between all the different
+[3793s] tokens to be zero then we see that way
+[3796s] gives us this um structure where every
+[3798s] single row has these um uniform numbers
+[3802s] and so that's what that's what then uh
+[3805s] in this Matrix multiply makes it so that
+[3807s] we're doing a simple
+[3808s] average now we don't actually want this
+[3812s] to be all uniform because different uh
+[3816s] tokens will find different other tokens
+[3818s] more or less interesting and we want
+[3820s] that to be data dependent so for example
+[3822s] if I'm a vowel then maybe I'm looking
+[3824s] for consonants in my past and maybe I
+[3826s] want to know what those consonants are
+[3828s] and I want that information to flow to
+[3830s] me and so I want to now gather
+[3832s] information from the past but I want to
+[3834s] do it in the data dependent way and this
+[3836s] is the problem that self attention
+[3838s] solves now the way self attention solves
+[3840s] this is the following every single node
+[3843s] or every single token at each position
+[3846s] will emit two vectors it will emit a
+[3849s] query and it will emit a
+[3852s] key now the query Vector roughly
+[3855s] speaking is what am I looking for and
+[3858s] the key Vector roughly speaking is what
+[3860s] do I
+[3861s] contain and then the way we get
+[3864s] affinities between these uh tokens now
+[3867s] in a sequence is we basically just do a
+[3869s] do product between the keys and the
+[3871s] queries so my query dot products with
+[3875s] all the keys of all the other tokens and
+[3877s] that dot product now becomes
+[3881s] wayy and so um if the key and the query
+[3885s] are sort of aligned they will interact
+[3887s] to a very high amount and then I will
+[3890s] get to learn more about that specific
+[3892s] token as opposed to any other token in
+[3895s] the sequence
+[3896s] so let's implement this
+[3900s] now we're going to implement a
+[3903s] single what's called head of self
+[3907s] attention so this is just one head
+[3909s] there's a hyper parameter involved with
+[3910s] these heads which is the head size and
+[3913s] then here I'm initializing linear
+[3915s] modules and I'm using bias equals false
+[3918s] so these are just going to apply a
+[3919s] matrix multiply with some fixed
+[3921s] weights and now let me produce a key and
+[3926s] q k and Q by forwarding these modules on
+[3929s] X so the size of this will now
+[3932s] become B by T by 16 because that is the
+[3936s] head size and the same here B by T by
+[3944s] 16 so this being the head size so you
+[3947s] see here that when I forward this linear
+[3949s] on top of my X all the tokens in all the
+[3952s] positions in the B BYT Arrangement all
+[3955s] of them them in parallel and
+[3957s] independently produce a key and a query
+[3959s] so no communication has happened
+[3961s] yet but the communication comes now all
+[3964s] the queries will do product with all the
+[3967s] keys so basically what we want is we
+[3969s] want way now or the affinities between
+[3972s] these to be query multiplying key but we
+[3976s] have to be careful with uh we can't
+[3978s] Matrix multiply this we actually need to
+[3980s] transpose uh K but we have to be also
+[3983s] careful because these are when you have
+[3985s] The Bash Dimension so in particular we
+[3987s] want to transpose uh the last two
+[3990s] dimensions dimension1 and dimension -2
+[3993s] so
+[3996s] -21 and so this Matrix multiply now will
+[4000s] basically do the following B by T by
+[4004s] 16 Matrix multiplies B by 16 by T to
+[4009s] give us B by T by
+[4013s] T right
+[4016s] so for every row of B we're now going to
+[4018s] have a t Square Matrix giving us the
+[4021s] affinities and these are now the way so
+[4024s] they're not zeros they are now coming
+[4026s] from this dot product between the keys
+[4028s] and the queries so this can now run I
+[4031s] can I can run this and the weighted
+[4033s] aggregation now is a function in a data
+[4036s] Bandon manner between the keys and
+[4038s] queries of these nodes so just
+[4040s] inspecting what happened
+[4042s] here the way takes on this form
+[4046s] and you see that before way was uh just
+[4049s] a constant so it was applied in the same
+[4051s] way to all the batch elements but now
+[4053s] every single batch elements will have
+[4054s] different sort of we because uh every
+[4057s] single batch element contains different
+[4059s] uh tokens at different positions and so
+[4061s] this is not data dependent so when we
+[4064s] look at just the zeroth uh Row for
+[4067s] example in the input these are the
+[4069s] weights that came out and so you can see
+[4071s] now that they're not just exactly
+[4073s] uniform um and in particular as an
+[4075s] example here for the last row this was
+[4078s] the eighth token and the eighth token
+[4080s] knows what content it has and it knows
+[4082s] at what position it's in and now the E
+[4084s] token based on that uh creates a query
+[4088s] hey I'm looking for this kind of stuff
+[4090s] um I'm a vowel I'm on the E position I'm
+[4092s] looking for any consonant at positions
+[4094s] up to four and then all the nodes get to
+[4098s] emit keys and maybe one of the channels
+[4100s] could be I am a I am a consonant and I
+[4103s] am in a position up to four and that
+[4105s] that key would have a high number in
+[4107s] that specific Channel and that's how the
+[4109s] query and the key when they do product
+[4111s] they can find each other and create a
+[4113s] high affinity and when they have a high
+[4115s] Affinity like say uh this token was
+[4118s] pretty interesting to uh to this eighth
+[4121s] token when they have a high Affinity
+[4123s] then through the softmax I will end up
+[4125s] aggregating a lot of its information
+[4127s] into my position and so I'll get to
+[4129s] learn a lot about
+[4131s] it now just this we're looking at way
+[4135s] after this has already happened um let
+[4139s] me erase this operation as well so let
+[4141s] me erase the masking and the softmax
+[4143s] just to show you the under the hood
+[4144s] internals and how that works so without
+[4147s] the masking in the softmax Whey comes
+[4149s] out like this right this is the outputs
+[4151s] of the do products um and these are the
+[4154s] raw outputs and they take on values from
+[4155s] negative you know two to positive two
+[4158s] Etc so that's the raw interactions and
+[4161s] raw affinities between all the nodes but
+[4164s] now if I'm going if I'm a fifth node I
+[4166s] will not want to aggregate anything from
+[4168s] the sixth node seventh node and the
+[4170s] eighth node so actually we use the upper
+[4172s] triangular masking so those are not
+[4175s] allowed to
+[4177s] communicate and now we actually want to
+[4180s] have a nice uh distribution uh so we
+[4182s] don't want to aggregate negative .11 of
+[4185s] this node that's crazy so instead we
+[4187s] exponentiate and normalize and now we
+[4189s] get a nice distribution that sums to one
+[4191s] and this is telling us now in the data
+[4192s] dependent manner how much of information
+[4194s] to aggregate from any of these tokens in
+[4196s] the
+[4198s] past so that's way and it's not zeros
+[4201s] anymore but but it's calculated in this
+[4204s] way now there's one more uh part to a
+[4208s] single self attention head and that is
+[4210s] that when we do the aggregation we don't
+[4212s] actually aggregate the tokens exactly we
+[4215s] aggregate we produce one more value here
+[4217s] and we call that the
+[4220s] value so in the same way that we
+[4222s] produced p and query we're also going to
+[4223s] create a value
+[4226s] and
+[4226s] then here we don't
+[4230s] aggregate X we calculate a v which is
+[4234s] just achieved by uh propagating this
+[4237s] linear on top of X again and then we
+[4240s] output way multiplied by V so V is the
+[4244s] elements that we aggregate or the the
+[4246s] vectors that we aggregate instead of the
+[4247s] raw
+[4248s] X and now of course uh this will make it
+[4251s] so that the output here of this single
+[4253s] head will be 16 dimensional because that
+[4255s] is the head
+[4257s] size so you can think of X as kind of
+[4259s] like private information to this token
+[4261s] if you if you think about it that way so
+[4263s] X is kind of private to this token so
+[4266s] I'm a fifth token at some and I have
+[4268s] some identity and uh my information is
+[4271s] kept in Vector X and now for the
+[4274s] purposes of the single head here's what
+[4276s] I'm interested in here's what I have and
+[4280s] if you find me interesting here's what I
+[4281s] will communicate to you and that's
+[4283s] stored in v and so V is the thing that
+[4286s] gets aggregated for the purposes of this
+[4288s] single head between the different
+[4290s] notes and that's uh basically the self
+[4294s] attention mechanism this is this is what
+[4296s] it does there are a few notes that I
+[4299s] would make like to make about attention
+[4301s] number one attention is a communication
+[4304s] mechanism you can really think about it
+[4306s] as a communication mechanism where you
+[4308s] have a number of nodes in a directed
+[4310s] graph where basically you have edges
+[4312s] pointed between noes like
+[4313s] this and what happens is every node has
+[4316s] some Vector of information and it gets
+[4318s] to aggregate information via a weighted
+[4321s] sum from all of the nodes that point to
+[4323s] it and this is done in a data dependent
+[4326s] manner so depending on whatever data is
+[4328s] actually stored that you should not at
+[4329s] any point in time now our graph doesn't
+[4333s] look like this our graph has a different
+[4335s] structure we have eight nodes because
+[4337s] the block size is eight and there's
+[4338s] always eight to
+[4340s] tokens and uh the first node is only
+[4343s] pointed to by itself the second node is
+[4345s] pointed to by the first node and itself
+[4347s] all the way up to the eighth node which
+[4349s] is pointed to by all the previous nodes
+[4352s] and itself and so that's the structure
+[4354s] that our directed graph has or happens
+[4357s] happens to have in Auto regressive sort
+[4358s] of scenario like language modeling but
+[4361s] in principle attention can be applied to
+[4362s] any arbitrary directed graph and it's
+[4364s] just a communication mechanism between
+[4366s] the nodes the second note is that notice
+[4368s] that there is no notion of space so
+[4371s] attention simply acts over like a set of
+[4373s] vectors in this graph and so by default
+[4376s] these nodes have no idea where they are
+[4378s] positioned in the space and that's why
+[4379s] we need to encode them positionally and
+[4382s] sort of give them some information that
+[4383s] is anchored to a specific position so
+[4385s] that they sort of know where they are
+[4388s] and this is different than for example
+[4389s] from convolution because if you're run
+[4391s] for example a convolution operation over
+[4393s] some input there's a very specific sort
+[4395s] of layout of the information in space
+[4398s] and the convolutional filters sort of
+[4400s] act in space and so it's it's not like
+[4403s] an attention in ATT ention is just a set
+[4406s] of vectors out there in space they
+[4407s] communicate and if you want them to have
+[4409s] a notion of space you need to
+[4411s] specifically add it which is what we've
+[4413s] done when we calculated the um relative
+[4416s] the positional encode encodings and
+[4418s] added that information to the vectors
+[4420s] the next thing that I hope is very clear
+[4421s] is that the elements across the batch
+[4423s] Dimension which are independent examples
+[4425s] never talk to each other they're always
+[4427s] processed independently and this is a
+[4429s] batched matrix multiply that applies
+[4431s] basically a matrix multiplication uh
+[4433s] kind of in parallel across the batch
+[4434s] dimension so maybe it would be more
+[4436s] accurate to say that in this analogy of
+[4438s] a directed graph we really have because
+[4440s] the back size is four we really have
+[4443s] four separate pools of eight nodes and
+[4445s] those eight nodes only talk to each
+[4447s] other but in total there's like 32 nodes
+[4448s] that are being processed uh but there's
+[4451s] um sort of four separate pools of eight
+[4453s] you can look at it that way the next
+[4455s] note is that here in the case of
+[4458s] language modeling uh we have this
+[4460s] specific uh structure of directed graph
+[4462s] where the future tokens will not
+[4464s] communicate to the Past tokens but this
+[4467s] doesn't necessarily have to be the
+[4468s] constraint in the general case and in
+[4470s] fact in many cases you may want to have
+[4472s] all of the uh noes talk to each other uh
+[4475s] fully so as an example if you're doing
+[4477s] sentiment analysis or something like
+[4478s] that with a Transformer you might have a
+[4480s] number of tokens and you may want to
+[4482s] have them all talk to each other fully
+[4485s] because later you are predicting for
+[4486s] example the sentiment of the sentence
+[4489s] and so it's okay for these NOS to talk
+[4490s] to each other and so in those cases you
+[4493s] will use an encoder block of self
+[4495s] attention and uh all it means that it's
+[4498s] an encoder block is that you will delete
+[4500s] this line of code allowing all the noes
+[4502s] to completely talk to each other what
+[4504s] we're implementing here is sometimes
+[4506s] called a decoder block and it's called a
+[4509s] decoder because it is sort of like a
+[4512s] decoding language and it's got this
+[4515s] autor regressive format where you have
+[4517s] to mask with the Triangular Matrix so
+[4519s] that uh nodes from the future never talk
+[4522s] to the Past because they would give away
+[4524s] the answer
+[4525s] and so basically in encoder blocks you
+[4527s] would delete this allow all the noes to
+[4529s] talk in decoder blocks this will always
+[4531s] be present so that you have this
+[4533s] triangular structure uh but both are
+[4535s] allowed and attention doesn't care
+[4536s] attention supports arbitrary
+[4538s] connectivity between nodes the next
+[4540s] thing I wanted to comment on is you keep
+[4541s] me you keep hearing me say attention
+[4543s] self attention Etc there's actually also
+[4545s] something called cross attention what is
+[4547s] the
+[4547s] difference
+[4549s] so basically the reason this attention
+[4552s] is self attention is because because the
+[4555s] keys queries and the values are all
+[4557s] coming from the same Source from X so
+[4561s] the same Source X produces Keys queries
+[4563s] and values so these nodes are self
+[4565s] attending but in principle attention is
+[4568s] much more General than that so for
+[4570s] example an encoder decoder Transformers
+[4572s] uh you can have a case where the queries
+[4575s] are produced from X but the keys and the
+[4577s] values come from a whole separate
+[4578s] external source and sometimes from uh
+[4581s] encoder blocks that encode some context
+[4583s] that we'd like to condition on
+[4585s] and so the keys and the values will
+[4586s] actually come from a whole separate
+[4588s] Source those are nodes on the side and
+[4591s] here we're just producing queries and
+[4592s] we're reading off information from the
+[4594s] side so cross attention is used when
+[4597s] there's a separate source of nodes we'd
+[4600s] like to pull information from into our
+[4602s] nodes and it's self attention if we just
+[4605s] have nodes that would like to look at
+[4606s] each other and talk to each other so
+[4608s] this attention here happens to be self
+[4611s] attention but in principle um attention
+[4615s] is a lot more General okay and the last
+[4617s] note at this stage is if we come to the
+[4619s] attention is all need paper here we've
+[4621s] already implemented attention so given
+[4623s] query key and value we've U multiplied
+[4626s] the query and a key we've soft maxed it
+[4629s] and then we are aggregating the values
+[4631s] there's one more thing that we're
+[4632s] missing here which is the dividing by
+[4633s] one / square root of the head size the
+[4636s] DK here is the head size why are they
+[4638s] doing this finds this important so they
+[4641s] call it the scaled attention and it's
+[4644s] kind of like an important normalization
+[4645s] to basically
+[4646s] have the problem is if you have unit gsh
+[4649s] and inputs so zero mean unit variance K
+[4652s] and Q are unit gashin then if you just
+[4654s] do we naively then you see that your we
+[4657s] actually will be uh the variance will be
+[4658s] on the order of head size which in our
+[4660s] case is 16 but if you multiply by one
+[4663s] over head size square root so this is
+[4665s] square root and this is one
+[4667s] over then the variance of we will be one
+[4670s] so it will be
+[4672s] preserved now why is this important
+[4674s] you'll not notice that way
+[4676s] here will feed into
+[4678s] softmax and so it's really important
+[4680s] especially at initialization that we be
+[4683s] fairly diffuse so in our case here we
+[4686s] sort of locked out here and we had a
+[4690s] fairly diffuse numbers here so um like
+[4693s] this now the problem is that because of
+[4695s] softmax if weight takes on very positive
+[4698s] and very negative numbers inside it
+[4700s] softmax will actually converge towards
+[4702s] one hot vectors and so I can illustrate
+[4705s] that here um say we are applying softmax
+[4709s] to a tensor of values that are very
+[4711s] close to zero then we're going to get a
+[4713s] diffuse thing out of
+[4714s] softmax but the moment I take the exact
+[4716s] same thing and I start sharpening it
+[4718s] making it bigger by multiplying these
+[4720s] numbers by eight for example you'll see
+[4722s] that the softmax will start to sharpen
+[4724s] and in fact it will sharpen towards the
+[4726s] max so it will sharpen towards whatever
+[4728s] number here is the highest and so um
+[4731s] basically we don't want these values to
+[4732s] be too extreme especially at
+[4733s] initialization otherwise softmax will be
+[4735s] way too peaky and um you're basically
+[4738s] aggregating um information from like a
+[4741s] single node every node just agregates
+[4743s] information from a single other node
+[4744s] that's not what we want especially at
+[4746s] initialization and so the scaling is
+[4748s] used just to control the variance at
+[4751s] initialization okay so having said all
+[4753s] that let's now take our self attention
+[4755s] knowledge and let's uh take it for a
+[4757s] spin so here in the code I created this
+[4759s] head module and it implements a single
+[4762s] head of self attention so you give it a
+[4764s] head size and then here it creates the
+[4766s] key query and the value linear layers
+[4769s] typically people don't use biases in
+[4771s] these uh so those are the linear
+[4773s] projections that we're going to apply to
+[4774s] all of our nodes now here I'm creating
+[4777s] this Trill variable Trill is not a
+[4780s] parameter of the module so in sort of
+[4781s] pytorch naming conventions uh this is
+[4783s] called a buffer it's not a parameter and
+[4786s] you have to call it you have to assign
+[4787s] it to the module using a register buffer
+[4789s] so that creates the trill uh the triang
+[4792s] lower triangular Matrix and we're given
+[4795s] the input X this should look very
+[4796s] familiar now we calculate the keys the
+[4798s] queries we C calculate the attention
+[4800s] scores inside way uh we normalize it so
+[4803s] we're using scaled attention here then
+[4806s] we make sure that uh future doesn't
+[4808s] communicate with the past so this makes
+[4810s] it a decoder block and then softmax and
+[4813s] then aggregate the value and
+[4815s] output then here in the language model
+[4817s] I'm creating a head in the Constructor
+[4820s] and I'm calling it self attention head
+[4822s] and the head size I'm going to keep as
+[4824s] the same and embed just for
+[4827s] now and then here once we've encoded the
+[4831s] information with the token embeddings
+[4832s] and the position embeddings we're simply
+[4834s] going to feed it into the self attention
+[4836s] head and then the output of that is
+[4838s] going to go into uh the decoder language
+[4842s] modeling head and create the logits so
+[4844s] this the sort of the simplest way to
+[4846s] plug in a self attention component uh
+[4849s] into our Network right now I had to make
+[4851s] one more change which is that here in
+[4855s] the generate uh we have to make sure
+[4857s] that our idx that we feed into the model
+[4861s] because now we're using positional
+[4862s] embeddings we can never have more than
+[4864s] block size coming in because if idx is
+[4867s] more than block size then our position
+[4869s] embedding table is going to run out of
+[4871s] scope because it only has embeddings for
+[4872s] up to block size and so therefore I
+[4875s] added some uh code here to crop the
+[4877s] context that we're going to feed into
+[4880s] self um so that uh we never pass in more
+[4883s] than block siiz elements
+[4885s] so those are the changes and let's Now
+[4887s] train the network okay so I also came up
+[4889s] to the script here and I decreased the
+[4890s] learning rate because uh the self
+[4892s] attention can't tolerate very very high
+[4894s] learning rates and then I also increased
+[4896s] number of iterations because the
+[4897s] learning rate is lower and then I
+[4899s] trained it and previously we were only
+[4901s] able to get to up to 2.5 and now we are
+[4903s] down to 2.4 so we definitely see a
+[4906s] little bit of an improvement from 2.5 to
+[4908s] 2.4 roughly uh but the text is still not
+[4911s] amazing so clearly the self attention
+[4913s] head is doing some useful communication
+[4916s] but um we still have a long way to go
+[4919s] okay so now we've implemented the scale.
+[4921s] product attention now next up and the
+[4922s] attention is all you need paper there's
+[4925s] something called multi-head attention
+[4927s] and what is multi-head attention it's
+[4929s] just applying multiple attentions in
+[4931s] parallel and concatenating their results
+[4933s] so they have a little bit of diagram
+[4935s] here I don't know if this is super clear
+[4938s] it's really just multiple attentions in
+[4940s] parallel so let's Implement that fairly
+[4943s] straightforward
+[4945s] if we want a multi-head attention then
+[4947s] we want multiple heads of self attention
+[4948s] running in parallel so in pytorch we can
+[4952s] do this by simply creating multiple
+[4955s] heads so however heads how however many
+[4958s] heads you want and then what is the head
+[4959s] size of each and then we run all of them
+[4963s] in parallel into a list and simply
+[4966s] concatenate all of the outputs and we're
+[4968s] concatenating over the channel
+[4970s] Dimension so the way this looks now is
+[4973s] we don't have just a single ATT
+[4976s] that uh has a hit size of 32 because
+[4979s] remember n Ed is
+[4980s] 32 instead of having one Communication
+[4983s] channel we now have four communication
+[4986s] channels in parallel and each one of
+[4988s] these communication channels typically
+[4990s] will be uh smaller uh correspondingly so
+[4994s] because we have four communication
+[4995s] channels we want eight dimensional self
+[4998s] attention and so from each Communication
+[5000s] channel we're going to together eight
+[5002s] dimensional vectors and then we have
+[5003s] four of them and that concatenates to
+[5005s] give us 32 which is the original and
+[5008s] embed and so this is kind of similar to
+[5010s] um if you're familiar with convolutions
+[5012s] this is kind of like a group convolution
+[5014s] uh because basically instead of having
+[5016s] one large convolution we do convolution
+[5018s] in groups and uh that's multi-headed
+[5020s] self
+[5021s] attention and so then here we just use
+[5024s] essay heads self attention heads instead
+[5027s] now I actually ran it and uh scrolling
+[5031s] down I ran the same thing and then we
+[5033s] now get this down to 2.28 roughly and
+[5037s] the output is still the generation is
+[5038s] still not amazing but clearly the
+[5040s] validation loss is improving because we
+[5042s] were at 2.4 just now and so it helps to
+[5045s] have multiple communication channels
+[5047s] because obviously these tokens have a
+[5049s] lot to talk about they want to find the
+[5051s] consonants the vowels they want to find
+[5053s] the vowels just from certain positions
+[5055s] uh they want to find any kinds of
+[5057s] different things and so it helps to
+[5059s] create multiple independent channels of
+[5060s] communication gather lots of different
+[5062s] types of data and then uh decode the
+[5065s] output now going back to the paper for a
+[5067s] second of course I didn't explain this
+[5068s] figure in full detail but we are
+[5070s] starting to see some components of what
+[5072s] we've already implemented we have the
+[5073s] positional encodings the token encodings
+[5075s] that add we have the masked multi-headed
+[5077s] attention implemented now here's another
+[5081s] multi-headed attention which is a cross
+[5082s] attention to an encoder which we haven't
+[5085s] we're not going to implement in this
+[5086s] case I'm going to come back to that
+[5088s] later but I want you to notice that
+[5090s] there's a feed forward part here and
+[5092s] then this is grouped into a block that
+[5093s] gets repeat it again and again now the
+[5096s] feedforward part here is just a simple
+[5097s] uh multi-layer perceptron
+[5100s] um so the multi-headed so here position
+[5104s] wise feed forward networks is just a
+[5106s] simple little MLP so I want to start
+[5108s] basically in a similar fashion also
+[5110s] adding computation into the network and
+[5113s] this computation is on a per node level
+[5116s] so I've already implemented it and you
+[5118s] can see the diff highlighted on the left
+[5120s] here when I've added or changed things
+[5122s] now before we had the self multi-headed
+[5125s] self attention that did the
+[5126s] communication but we went way too fast
+[5128s] to calculate the logits so the tokens
+[5131s] looked at each other but didn't really
+[5132s] have a lot of time to think on what they
+[5135s] found from the other tokens and so what
+[5138s] I've implemented here is a little feet
+[5140s] forward single layer and this little
+[5142s] layer is just a linear followed by a Rel
+[5145s] nonlinearity and that's that's it so
+[5148s] it's just a little layer and then I call
+[5150s] it feed
+[5152s] forward um and embed
+[5154s] and then this feed forward is just
+[5156s] called sequentially right after the self
+[5158s] attention so we self attend then we feed
+[5161s] forward and you'll notice that the feet
+[5162s] forward here when it's applying linear
+[5164s] this is on a per token level all the
+[5166s] tokens do this independently so the self
+[5169s] attention is the communication and then
+[5171s] once they've gathered all the data now
+[5173s] they need to think on that data
+[5175s] individually and so that's what feed
+[5176s] forward is doing and that's why I've
+[5178s] added it here now when I train this the
+[5181s] validation LW actually continues to go
+[5183s] down now to 2. 24 which is down from
+[5186s] 2.28 uh the output still look kind of
+[5188s] terrible but at least we've improved the
+[5191s] situation and so as a preview we're
+[5194s] going to now start to intersperse the
+[5197s] communication with the computation and
+[5199s] that's also what the Transformer does
+[5202s] when it has blocks that communicate and
+[5204s] then compute and it groups them and
+[5206s] replicates them okay so let me show you
+[5209s] what we'd like to do we'd like to do
+[5211s] something like this we have a block and
+[5213s] this block is is basically this part
+[5215s] here except for the cross
+[5217s] attention now the block basically
+[5219s] intersperses communication and then
+[5221s] computation the computation the
+[5223s] communication is done using multi-headed
+[5225s] selfelf attention and then the
+[5227s] computation is done using a feed forward
+[5228s] Network on all the tokens
+[5231s] independently now what I've added here
+[5234s] also is you'll
+[5236s] notice this takes the number of
+[5238s] embeddings in the embedding Dimension
+[5239s] and number of heads that we would like
+[5241s] which is kind of like group size in
+[5242s] group convolution and and I'm saying
+[5244s] that number of heads we'd like is four
+[5246s] and so because this is 32 we calculate
+[5249s] that because this is 32 the number of
+[5251s] heads should be four um the head size
+[5254s] should be eight so that everything sort
+[5256s] of works out Channel wise um so this is
+[5259s] how the Transformer structures uh sort
+[5261s] of the uh the sizes typically so the
+[5264s] head size will become eight and then
+[5265s] this is how we want to intersperse them
+[5267s] and then here I'm trying to create
+[5269s] blocks which is just a sequential
+[5271s] application of block block block so that
+[5273s] we're interspersing communication feed
+[5275s] forward many many times and then finally
+[5277s] we decode now I actually tried to run
+[5281s] this and the problem is this doesn't
+[5282s] actually give a very good uh answer and
+[5285s] very good result and the reason for that
+[5287s] is we're start starting to actually get
+[5289s] like a pretty deep neural net and deep
+[5291s] neural Nets uh suffer from optimization
+[5293s] issues and I think that's what we're
+[5294s] kind of like slightly starting to run
+[5296s] into so we need one more idea that we
+[5298s] can borrow from the um Transformer paper
+[5301s] to resolve those difficulties now there
+[5303s] are two optimizations that dramatically
+[5305s] help with the depth of these networks
+[5307s] and make sure that the networks remain
+[5309s] optimizable let's talk about the first
+[5311s] one the first one in this diagram is you
+[5313s] see this Arrow here and then this arrow
+[5316s] and this Arrow those are skip
+[5318s] connections or sometimes called residual
+[5320s] connections they come from this paper uh
+[5323s] the presidual learning for image
+[5324s] recognition from about
+[5326s] 2015 uh that introduced the concept now
+[5331s] these are basically what it means is you
+[5333s] transform data but then you have a skip
+[5335s] connection with addition from the
+[5337s] previous features now the way I like to
+[5340s] visualize it uh that I prefer is the
+[5343s] following here the computation happens
+[5345s] from the top to bottom and basically you
+[5348s] have this uh residual pathway and you
+[5351s] are free to Fork off from the residual
+[5353s] pathway perform some computation and
+[5355s] then project back to the residual
+[5356s] pathway via addition and so you go from
+[5359s] the the uh inputs to the targets only
+[5362s] via plus and plus plus and the reason
+[5365s] this is useful is because during back
+[5367s] propagation remember from our microG
+[5369s] grad video earlier addition distributes
+[5372s] gradients equally to both of its
+[5374s] branches that that fed as the input and
+[5377s] so the supervision or the gradients from
+[5380s] the loss basically hop through every
+[5383s] addition node all the way to the input
+[5386s] and then also Fork off into the residual
+[5390s] blocks but basically you have this
+[5392s] gradient Super Highway that goes
+[5393s] directly from the supervision all the
+[5395s] way to the input unimpeded and then
+[5398s] these viral blocks are usually
+[5399s] initialized in the beginning so they
+[5401s] contribute very very little if anything
+[5403s] to the residual pathway they they are
+[5405s] initialized that way so in the beginning
+[5407s] they are sort of almost kind of like not
+[5409s] there but then during the optimization
+[5411s] they come online over time and they uh
+[5414s] start to contribute but at least at the
+[5417s] initialization you can go from directly
+[5419s] supervision to the input gradient is
+[5421s] unimpeded and just flows and then the
+[5423s] blocks over time
+[5424s] kick in and so that dramatically helps
+[5427s] with the optimization so let's implement
+[5429s] this so coming back to our block here
+[5431s] basically what we want to do is we want
+[5433s] to do xal
+[5435s] X+ self attention and xal X+ self. feed
+[5439s] forward so this is X and then we Fork
+[5443s] off and do some communication and come
+[5445s] back and we Fork off and we do some
+[5446s] computation and come back so those are
+[5449s] residual connections and then swinging
+[5451s] back up here we also have to introd use
+[5454s] this projection so nn.
+[5457s] linear and uh this is going to be
+[5460s] from after we concatenate this this is
+[5463s] the prze and embed so this is the output
+[5465s] of the self tension itself but then we
+[5468s] actually want the uh to apply the
+[5471s] projection and that's the
+[5473s] result so the projection is just a
+[5475s] linear transformation of the outcome of
+[5476s] this
+[5477s] layer so that's the projection back into
+[5480s] the virual pathway and then here in a
+[5482s] feet forward it's going to be the same
+[5483s] same thing I could have a a self doot
+[5486s] projection here as well but let me just
+[5488s] simplify it and let me uh couple it
+[5492s] inside the same sequential container and
+[5494s] so this is the projection layer going
+[5496s] back into the residual
+[5498s] pathway and
+[5500s] so that's uh well that's it so now we
+[5503s] can train this so I implemented one more
+[5504s] small change when you look into the
+[5507s] paper again you see that the
+[5509s] dimensionality of input and output is
+[5511s] 512 for them and they're saying that the
+[5513s] inner layer here in the feet forward has
+[5515s] dimensionality of 248 so there's a
+[5517s] multiplier of four and so the inner
+[5520s] layer of the feet forward Network should
+[5522s] be multiplied by four in terms of
+[5524s] Channel sizes so I came here and I
+[5526s] multiplied four times embed here for the
+[5528s] feed forward and then from four times
+[5530s] nmed coming back down to nmed when we go
+[5533s] back to the pro uh to the projection so
+[5535s] adding a bit of computation here and
+[5537s] growing that layer that is in the
+[5539s] residual block on the side of the
+[5541s] residual
+[5542s] pathway and then I train this and we
+[5544s] actually get down all the way to uh 2.08
+[5547s] validation loss and we also see that
+[5549s] network is starting to get big enough
+[5550s] that our train loss is getting ahead of
+[5552s] validation loss so we're starting to see
+[5553s] like a little bit of
+[5555s] overfitting and um our our
+[5558s] um uh Generations here are still not
+[5561s] amazing but at least you see that we can
+[5562s] see like is here this now grief syn like
+[5566s] this starts to almost look like English
+[5568s] so um yeah we're starting to really get
+[5570s] there okay and the second Innovation
+[5572s] that is very helpful for optimizing very
+[5574s] deep neural networks is right here so we
+[5577s] have this addition now that's the
+[5578s] residual part but this Norm is referring
+[5580s] to something called layer Norm so layer
+[5583s] Norm is implemented in pytorch it's a
+[5584s] paper that came out a while back here
+[5589s] um and layer Norm is very very similar
+[5591s] to bash Norm so remember back to our
+[5594s] make more series part three we
+[5596s] implemented bash
+[5597s] normalization and uh bash normalization
+[5599s] basically just made sure that um Across
+[5602s] The Bash dimension any individual neuron
+[5605s] had unit uh Gan um distribution so it
+[5610s] was zero mean and unit standard
+[5612s] deviation one standard deviation output
+[5615s] so what I did here is I'm copy pasting
+[5617s] the bashor 1D that we developed in our
+[5619s] make more series and see here we can
+[5622s] initialize for example this module and
+[5624s] we can have a batch of 32 100
+[5627s] dimensional vectors feeding through the
+[5628s] bachor layer so what this does is it
+[5632s] guarantees that when we look at just the
+[5634s] zeroth column it's a zero mean one
+[5638s] standard deviation so it's normalizing
+[5640s] every single column of this uh input now
+[5644s] the rows are not uh going to be
+[5646s] normalized by default because we're just
+[5648s] normalizing columns so let's now
+[5650s] Implement layer Norm uh it's very
+[5652s] complicated look we come here we change
+[5655s] this from zero to one so we don't
+[5658s] normalize The Columns we normalize the
+[5660s] rows and now we've implemented layer
+[5663s] Norm
+[5665s] so now the columns are not going to be
+[5668s] normalized um but the rows are going to
+[5671s] be normalized for every individual
+[5673s] example it's 100 dimensional Vector is
+[5675s] normalized uh in this way and because
+[5678s] our computation Now does not span across
+[5680s] examples we can delete all of this
+[5683s] buffers stuff uh because uh we can
+[5685s] always apply this operation and don't
+[5688s] need to maintain any running buffers so
+[5690s] we don't need the
+[5692s] buffers uh we
+[5694s] don't There's no distinction between
+[5696s] training and test
+[5698s] time uh and we don't need these running
+[5700s] buffers we do keep gamma and beta we
+[5703s] don't need the momentum we don't care if
+[5705s] it's training or not and this is now a
+[5708s] layer
+[5709s] norm and it normalizes the rows instead
+[5712s] of the columns and this here is
+[5715s] identical to basically this here so
+[5719s] let's now Implement layer Norm in our
+[5721s] Transformer before I incorporate the
+[5723s] layer Norm I just wanted to note that as
+[5725s] I said very few details about the
+[5727s] Transformer have changed in the last 5
+[5728s] years but this is actually something
+[5730s] that slightly departs from the original
+[5731s] paper you see that the ADD and Norm is
+[5734s] applied after the
+[5736s] transformation but um in now it is a bit
+[5740s] more uh basically common to apply the
+[5742s] layer Norm before the transformation so
+[5744s] there's a reshuffling of the layer Norms
+[5746s] uh so this is called the prorm
+[5748s] formulation and that's the one that
+[5749s] we're going to implement as well so
+[5750s] select deviation from the original paper
+[5753s] basically we need two layer Norms layer
+[5755s] Norm one is uh NN do layer norm and we
+[5759s] tell it how many um what is the
+[5761s] embedding Dimension and we need the
+[5763s] second layer norm and then here the
+[5766s] layer Norms are applied immediately on X
+[5769s] so self. layer Norm one applied on X and
+[5773s] self. layer Norm two applied on X before
+[5775s] it goes into self attention and feed
+[5778s] forward and uh the size of the layer
+[5780s] Norm here is an ed so 32 so when the
+[5783s] layer Norm is normalizing our features
+[5786s] it is uh the normalization here uh
+[5790s] happens the mean and the variance are
+[5792s] taken over 32 numbers so the batch and
+[5794s] the time act as batch Dimensions both of
+[5797s] them so this is kind of like a per token
+[5800s] um transformation that just normalizes
+[5802s] the features and makes them a unit mean
+[5806s] uh unit Gan at
+[5808s] initialization but of course because
+[5810s] these layer Norms inside it have these
+[5812s] gamma and beta training
+[5814s] parameters uh the layer Norm will U
+[5817s] eventually create outputs that might not
+[5819s] be unit gion but the optimization will
+[5821s] determine that so for now this is the uh
+[5825s] this is incorporating the layer norms
+[5826s] and let's train them on okay so I let it
+[5829s] run and we see that we get down to 2.06
+[5832s] which is better than the previous 2.08
+[5834s] so a slight Improvement by adding the
+[5835s] layer norms and I'd expect that they
+[5837s] help uh even more if we had bigger and
+[5839s] deeper Network one more thing I forgot
+[5841s] to add is that there should be a layer
+[5843s] Norm here also typically as at the end
+[5846s] of the Transformer and right before the
+[5848s] final uh linear layer that decodes into
+[5851s] vocabulary so I added that as well so at
+[5855s] this stage we actually have a pretty
+[5856s] complete uh Transformer according to the
+[5858s] original paper and it's a decoder only
+[5860s] Transformer I'll I'll talk about that in
+[5862s] a second uh but at this stage uh the
+[5864s] major pieces are in place so we can try
+[5866s] to scale this up and see how well we can
+[5867s] push this number now in order to scale
+[5870s] out the model I had to perform some
+[5871s] cosmetic changes here to make it nicer
+[5874s] so I introduced this variable called n
+[5876s] layer which just specifies how many
+[5877s] layers of the blocks we're going to have
+[5881s] I created a bunch of blocks and we have
+[5882s] a new variable number of heads as well I
+[5885s] pulled out the layer Norm here and uh so
+[5887s] this is identical now one thing that I
+[5890s] did briefly change is I added a Dropout
+[5893s] so Dropout is something that you can add
+[5895s] right before the residual connection
+[5897s] back right before the connection back
+[5899s] into the residual pathway so we can drop
+[5902s] out that as l layer here we can drop out
+[5906s] uh here at the end of the multi-headed
+[5907s] exension as well and we can also drop
+[5910s] out here uh when we calculate the um
+[5914s] basically affinities and after the
+[5916s] softmax we can drop out some of those so
+[5918s] we can randomly prevent some of the
+[5920s] nodes from
+[5921s] communicating and so Dropout uh comes
+[5923s] from this paper from 2014 or so and
+[5929s] basically it takes your neural
+[5930s] nut and it randomly every forward
+[5933s] backward pass shuts off some subset of
+[5936s] uh neurons so randomly drops them to
+[5939s] zero and trains without them and what
+[5942s] this does effectively is because the
+[5944s] mask of what's being dropped out is
+[5946s] changed every single forward backward
+[5947s] pass it ends up kind of uh training an
+[5951s] ensemble of sub networks and then at
+[5953s] test time everything is fully enabled
+[5955s] and kind of all of those sub networks
+[5956s] are merged into a single Ensemble if you
+[5958s] can if you want to think about it that
+[5960s] way so I would read the paper to get the
+[5962s] full detail for now we're just going to
+[5964s] stay on the level of this is a
+[5965s] regularization technique and I added it
+[5968s] because I'm about to scale up the model
+[5970s] quite a bit and I was concerned about
+[5972s] overfitting so now when we scroll up to
+[5974s] the top uh we'll see that I changed a
+[5976s] number of hyper parameters here about
+[5978s] our neural nut so I made the batch size
+[5980s] be much larger now it's 64 I changed the
+[5983s] block size to be 256 so previously it
+[5986s] was just eight eight characters of
+[5987s] context now it is 256 characters of
+[5990s] context to predict the 257th
+[5994s] uh I brought down the learning rate a
+[5995s] little bit because the neural net is now
+[5997s] much bigger so I brought down the
+[5998s] learning rate the embedding Dimension is
+[6001s] now 384 and there are six heads so 384
+[6005s] divide 6 means that every head is 64
+[6008s] dimensional as it as a standard and then
+[6011s] there's going to be six layers of that
+[6013s] and the Dropout will be at 02 so every
+[6015s] forward backward pass 20% of all of
+[6018s] these um intermediate calculations are
+[6021s] disabled and dropped to zero
+[6024s] and then I already trained this and I
+[6025s] ran it so uh drum roll how well does it
+[6028s] perform so let me just scroll up
+[6031s] here we get a validation loss of
+[6034s] 1.48 which is actually quite a bit of an
+[6037s] improvement on what we had before which
+[6038s] I think was 2.07 so it went from 2.07
+[6041s] all the way down to 1.48 just by scaling
+[6043s] up this neural nut with the code that we
+[6045s] have and this of course ran for a lot
+[6047s] longer this maybe trained for I want to
+[6049s] say about 15 minutes on my a100 GPU so
+[6052s] that's a pretty a GPU and if you don't
+[6054s] have a GPU you're not going to be able
+[6056s] to reproduce this uh on a CPU this would
+[6059s] be um I would not run this on a CPU or
+[6061s] MacBook or something like that you'll
+[6063s] have to Brak down the number of uh
+[6064s] layers and the embedding Dimension and
+[6066s] so on uh but in about 15 minutes we can
+[6069s] get this kind of a result and um I'm
+[6072s] printing some of the Shakespeare here
+[6075s] but what I did also is I printed 10,000
+[6077s] characters so a lot more and I wrote
+[6078s] them to a file and so here we see some
+[6081s] of the outputs
+[6084s] so it's a lot more recognizable as the
+[6086s] input text file so the input text file
+[6089s] just for reference looked like this so
+[6091s] there's always like someone speaking in
+[6093s] this manner and uh our predictions now
+[6097s] take on that form except of course
+[6100s] they're they're nonsensical when you
+[6101s] actually read them
+[6103s] so it is every crimp tap be a house oh
+[6107s] those
+[6108s] prepation we give
+[6111s] heed um you know
+[6116s] Oho sent me you mighty
+[6119s] Lord anyway so you can read through this
+[6122s] um it's nonsensical of course but this
+[6124s] is just a Transformer trained on a
+[6126s] character level for 1 million characters
+[6129s] that come from Shakespeare so there's
+[6130s] sort of like blabbers on in Shakespeare
+[6132s] like manner but it doesn't of course
+[6134s] make sense at this scale uh but I think
+[6138s] I think still a pretty good
+[6139s] demonstration of what's
+[6140s] possible so now
+[6144s] I think uh that kind of like concludes
+[6146s] the programming section of this video we
+[6148s] basically kind of uh did a pretty good
+[6150s] job and um of implementing this
+[6152s] Transformer uh but the picture doesn't
+[6155s] exactly match up to what we've done so
+[6157s] what's going on with all these digital
+[6158s] Parts here so let me finish explaining
+[6161s] this architecture and why it looks so
+[6163s] funky basically what's happening here is
+[6165s] what we implemented here is a decoder
+[6167s] only Transformer so there's no component
+[6170s] here this part is called the encoder and
+[6172s] there's no cross attention block here
+[6175s] our block only has a self attention and
+[6178s] the feet forward so it is missing this
+[6180s] third in between piece here this piece
+[6183s] does cross attention so we don't have it
+[6185s] and we don't have the encoder we just
+[6187s] have the decoder and the reason we have
+[6188s] a decoder only uh is because we are just
+[6192s] uh generating text and it's
+[6193s] unconditioned on anything we're just
+[6195s] we're just blabbering on according to a
+[6196s] given data set what makes it a decoder
+[6199s] is that we are using the Triangular mask
+[6201s] in our uh trans former so it has this
+[6204s] Auto regressive property where we can
+[6206s] just uh go and sample from it so the
+[6208s] fact that it's using the Triangular
+[6210s] triangular mask to mask out the
+[6212s] attention makes it a decoder and it can
+[6214s] be used for language modeling now the
+[6217s] reason that the original paper had an
+[6219s] incoder decoder architecture is because
+[6221s] it is a machine translation paper so it
+[6223s] is concerned with a different setting in
+[6225s] particular it expects some uh tokens
+[6229s] that encode say for example French and
+[6232s] then it is expecting to decode the
+[6234s] translation in English so so you
+[6236s] typically these here are special tokens
+[6239s] so you are expected to read in this and
+[6242s] condition on it and then you start off
+[6244s] the generation with a special token
+[6245s] called start so this is a special new
+[6248s] token um that you introduce and always
+[6250s] place in the beginning and then the
+[6252s] network is expected to Output neural
+[6255s] networks are awesome and then a special
+[6257s] end token to finish the
+[6260s] generation so this part here will be
+[6263s] decoded exactly as we we've done it
+[6265s] neural networks are awesome will be
+[6267s] identical to what we did but unlike what
+[6269s] we did they wanton to condition the
+[6272s] generation on some additional
+[6274s] information and in that case this
+[6276s] additional information is the French
+[6278s] sentence that they should be
+[6279s] translating so what they do now is they
+[6282s] bring in the encoder now the encoder
+[6285s] reads this part here so we're only going
+[6288s] to take the part of French and we're
+[6290s] going to uh create tokens from it
+[6292s] exactly as we've seen in our video and
+[6294s] we're going to put a Transformer on it
+[6297s] but there's going to be no triangular
+[6298s] mask and so all the tokens are allowed
+[6300s] to talk to each other as much as they
+[6302s] want and they're just encoding
+[6304s] whatever's the content of this French uh
+[6307s] sentence once they've encoded it they
+[6310s] they basically come out in the top here
+[6313s] and then what happens here is in our
+[6314s] decoder which does the uh language
+[6317s] modeling there's an additional
+[6320s] connection here to the outputs of the
+[6322s] encoder
+[6323s] and that is brought in through a cross
+[6326s] attention so the queries are still
+[6328s] generated from X but now the keys and
+[6330s] the values are coming from the side the
+[6332s] keys and the values are coming from the
+[6334s] top generated by the nodes that came
+[6336s] outside of the de the encoder and those
+[6340s] tops the keys and the values there the
+[6342s] top of it feed in on a side into every
+[6345s] single block of the decoder and so
+[6347s] that's why there's an additional cross
+[6349s] attention and really what it's doing is
+[6351s] it's conditioning the decoding
+[6353s] not just on the past of this current
+[6355s] decoding but also on having seen the
+[6359s] full fully encoded French um prompt sort
+[6364s] of and so it's an encoder decoder model
+[6366s] which is why we have those two
+[6367s] Transformers an additional block and so
+[6369s] on so we did not do this because we have
+[6372s] no we have nothing to encode there's no
+[6373s] conditioning we just have a text file
+[6375s] and we just want to imitate it and
+[6376s] that's why we are using a decoder only
+[6379s] Transformer exactly as done in
+[6381s] GPT okay okay so now I wanted to do a
+[6384s] very brief walkthrough of nanog GPT
+[6386s] which you can find in my GitHub and uh
+[6388s] nanog GPT is basically two files of
+[6390s] Interest there's train.py and model.py
+[6393s] train.py is all the boilerplate code for
+[6395s] training the network it is basically all
+[6398s] the stuff that we had here it's the
+[6400s] training loop it's just that it's a lot
+[6402s] more complicated because we're saving
+[6404s] and loading checkpoints and pre-trained
+[6406s] weights and we are uh decaying the
+[6408s] learning rate and compiling the model
+[6410s] and using distributed training across
+[6411s] multiple nodes or GP use so the training
+[6414s] Pi gets a little bit more hairy
+[6416s] complicated uh there's more options Etc
+[6419s] but the model.py should look very very
+[6421s] um similar to what we've done here in
+[6424s] fact the model is is almost identical so
+[6428s] first here we have the causal self
+[6429s] attention block and all of this should
+[6431s] look very very recognizable to you we're
+[6433s] producing queries Keys values we're
+[6436s] doing Dot products we're masking
+[6438s] applying soft Maxs optionally dropping
+[6440s] out and here we are pulling the wi the
+[6443s] values what is different here is that in
+[6445s] our code I have separated out the
+[6450s] multi-headed detention into just a
+[6451s] single individual head and then here I
+[6454s] have multiple heads and I explicitly
+[6456s] concatenate them whereas here uh all of
+[6459s] it is implemented in a batched manner
+[6461s] inside a single causal self attention
+[6463s] and so we don't just have a b and a T
+[6465s] and A C Dimension we also end up with a
+[6467s] fourth dimension which is the heads and
+[6470s] so it just gets a lot more sort of hairy
+[6472s] because we have four dimensional array
+[6474s] um tensors now but it is um equivalent
+[6477s] mathematically so the exact same thing
+[6479s] is happening as what we have it's just
+[6481s] it's a bit more efficient because all
+[6482s] the heads are now treated as a batch
+[6484s] Dimension as
+[6485s] well then we have the multier perceptron
+[6488s] it's using the Galu nonlinearity which
+[6490s] is defined here except instead of Ru and
+[6493s] this is done just because opening I used
+[6494s] it and I want to be able to load their
+[6497s] checkpoints uh the blocks of the
+[6499s] Transformer are identical to communicate
+[6501s] in the compute phase as we saw and then
+[6503s] the GPT will be identical we have the
+[6505s] position encodings token encodings the
+[6507s] blocks the layer Norm at the end uh the
+[6510s] final linear layer and this should look
+[6513s] all very recognizable and there's a bit
+[6515s] more here because I'm loading
+[6516s] checkpoints and stuff like that I'm
+[6518s] separating out the parameters into those
+[6520s] that should be weight decayed and those
+[6522s] that
+[6522s] shouldn't um but the generate function
+[6524s] should also be very very similar so a
+[6527s] few details are different but you should
+[6528s] definitely be able to look at this uh
+[6531s] file and be able to understand little
+[6532s] the pieces now so let's now bring things
+[6535s] back to chat GPT what would it look like
+[6537s] if we wanted to train chat GPT ourselves
+[6539s] and how does it relate to what we
+[6540s] learned today well to train in chat GPT
+[6543s] there are roughly two stages first is
+[6545s] the pre-training stage and then the
+[6547s] fine-tuning stage in the pre-training
+[6549s] stage uh we are training on a large
+[6552s] chunk of internet and just trying to get
+[6554s] a first decoder only Transformer to
+[6557s] babble text so it's very very similar to
+[6560s] what we've done ourselves except we've
+[6563s] done like a tiny little baby
+[6564s] pre-training step um and so in our case
+[6568s] uh this is how you print a number of
+[6570s] parameters I printed it and it's about
+[6572s] 10 million so this Transformer that I
+[6575s] created here to create little
+[6577s] Shakespeare um Transformer was about 10
+[6580s] million parameters our data set is
+[6582s] roughly 1 million uh characters so
+[6585s] roughly 1 million tokens but you have to
+[6587s] remember that opening I is different
+[6588s] vocabulary they're not on the Character
+[6590s] level they use these um subword chunks
+[6593s] of words and so they have a vocabulary
+[6595s] of 50,000 roughly elements and so their
+[6598s] sequences are a bit more condensed so
+[6601s] our data set the Shakespeare data set
+[6603s] would be probably around 300,000 uh
+[6605s] tokens in the open AI vocabulary roughly
+[6609s] so we trained about 10 million parameter
+[6611s] model on roughly 300,000 tokens now when
+[6614s] you go to the gpt3
+[6616s] paper and you look at the Transformers
+[6620s] that they trained they trained a number
+[6622s] of trans Transformers of different sizes
+[6624s] but the biggest Transformer here has 175
+[6627s] billion parameters uh so ours is again
+[6629s] 10 million they used this number of
+[6631s] layers in the Transformer this is the
+[6634s] nmed this is the number of heads and
+[6636s] this is the head size and then this is
+[6639s] the batch size uh so ours was
+[6643s] 65 and the learning rate is similar now
+[6646s] when they train this Transformer they
+[6647s] trained on 300 billion tokens so again
+[6651s] remember ours is about 300,000
+[6653s] so this is uh about a millionfold
+[6656s] increase and this number would not be
+[6657s] even that large by today's standards
+[6659s] you'd be going up uh 1 trillion and
+[6661s] above so they are training a
+[6664s] significantly larger
+[6666s] model on uh a good chunk of the internet
+[6670s] and that is the pre-training stage but
+[6672s] otherwise these hyper parameters should
+[6673s] be fairly recognizable to you and the
+[6675s] architecture is actually like nearly
+[6677s] identical to what we implemented
+[6678s] ourselves but of course it's a massive
+[6680s] infrastructure challenge to train this
+[6682s] you're talking about typically thousands
+[6684s] of gpus having to you know talk to each
+[6687s] other to train models of this size so
+[6689s] that's just a pre-training stage now
+[6692s] after you complete the pre-training
+[6693s] stage uh you don't get something that
+[6695s] responds to your questions with answers
+[6698s] and is not helpful and Etc you get a
+[6700s] document
+[6701s] completer right so it babbles but it
+[6704s] doesn't Babble Shakespeare it babbles
+[6706s] internet it will create arbitrary news
+[6708s] articles and documents and it will try
+[6710s] to complete documents because that's
+[6711s] what it's trained for it's trying to
+[6712s] complete the sequence so when you give
+[6714s] it a question it would just uh
+[6716s] potentially just give you more questions
+[6718s] it would follow with more questions it
+[6720s] will do whatever it looks like the some
+[6722s] close document would do in the training
+[6725s] data on the internet and so who knows
+[6727s] you're getting kind of like undefined
+[6728s] Behavior it might basically answer with
+[6731s] to questions with other questions it
+[6733s] might ignore your question it might just
+[6735s] try to complete some news article it's
+[6737s] totally unineed as we say so the second
+[6740s] fine-tuning stage is to actually align
+[6742s] it to be an assistant and uh this is the
+[6745s] second stage and so this chat GPT block
+[6748s] post from openi talks a little bit about
+[6750s] how the stage is achieved we basically
+[6754s] um there's roughly three steps to to
+[6756s] this stage uh so what they do here is
+[6759s] they start to collect training data that
+[6761s] looks specifically like what an
+[6762s] assistant would do so these are
+[6764s] documents that have to format where the
+[6766s] question is on top and then an answer is
+[6767s] below and they have a large number of
+[6770s] these but probably not on the order of
+[6771s] the internet uh this is probably on the
+[6773s] of maybe thousands of examples and so
+[6778s] they they then fine-tune the model to
+[6780s] basically only focus on documents that
+[6783s] look like that and so you're starting to
+[6785s] slowly align it so it's going to expect
+[6787s] a question at the top and it's going to
+[6788s] expect to complete the answer and uh
+[6791s] these very very large models are very
+[6793s] sample efficient during their
+[6794s] fine-tuning so this actually somehow
+[6796s] works but that's just step one that's
+[6799s] just fine tuning so then they actually
+[6800s] have more steps where okay the second
+[6803s] step is you let the model respond and
+[6805s] then different Raiders look at the
+[6807s] different responses and rank them for
+[6809s] their preference as to which one is
+[6810s] better than the other they use that to
+[6812s] train a reward model so they can predict
+[6815s] uh basically using a different network
+[6817s] how much of any candidate
+[6819s] response would be desirable and then
+[6823s] once they have a reward model they run
+[6825s] po which is a form of polic policy
+[6827s] gradient um reinforcement learning
+[6829s] Optimizer to uh fine-tune this sampling
+[6833s] policy uh so that the answers that the
+[6835s] GP chat GPT now generates are expected
+[6839s] to score a high reward according to the
+[6842s] reward model and so basically there's a
+[6844s] whole aligning stage here or fine-tuning
+[6847s] stage it's got multiple steps in between
+[6849s] there as well and it takes the model
+[6851s] from being a document completer to a
+[6854s] question answerer and that's like a
+[6856s] whole separate stage a lot of this data
+[6859s] is not available publicly it is internal
+[6861s] to open AI and uh it's much harder to
+[6864s] replicate this stage um and so that's
+[6867s] roughly what would give you a chat GPT
+[6869s] and nanog GPT focuses on the
+[6871s] pre-training stage okay and that's
+[6872s] everything that I wanted to cover today
+[6875s] so we trained to summarize a decoder
+[6878s] only Transformer following this famous
+[6881s] paper attention is all you need from
+[6883s] 2017 and so that's basically a GPT we
+[6887s] trained it on Tiny Shakespeare and got
+[6890s] sensible results
+[6892s] all of the training code is
+[6894s] roughly 200 lines of code I will be
+[6897s] releasing this um code base so also it
+[6901s] comes with all the git log commits along
+[6904s] the way as we built it
+[6905s] up in addition to this code I'm going to
+[6908s] release the um notebook of course the
+[6910s] Google collab and I hope that gave you a
+[6913s] sense for how you can train um these
+[6916s] models like say gpt3 that will be um
+[6919s] architecturally basically identical to
+[6920s] what we have but they are somewhere
+[6922s] between 10,000 and 1 million times
+[6924s] bigger depending on how you count and so
+[6927s] uh that's all I have for now uh we did
+[6930s] not talk about any of the fine-tuning
+[6932s] stages that would typically go on top of
+[6933s] this so if you're interested in
+[6935s] something that's not just language
+[6936s] modeling but you actually want to you
+[6938s] know say perform tasks um or you want
+[6940s] them to be aligned in a specific way or
+[6943s] you want um to detect sentiment or
+[6945s] anything like that basically anytime you
+[6947s] don't want something that's just a
+[6948s] document completer you have to complete
+[6950s] further stages of fine tuning which did
+[6952s] not cover uh and that could be simple
+[6955s] supervised fine tuning or it can be
+[6957s] something more fancy like we see in chat
+[6958s] jpt where we actually train a reward
+[6960s] model and then do rounds of Po to uh
+[6963s] align it with respect to the reward
+[6964s] model so there's a lot more that can be
+[6966s] done on top of it I think for now we're
+[6968s] starting to get to about two hours Mark
+[6970s] uh so I'm going to um kind of finish
+[6973s] here uh I hope you enjoyed the lecture
+[6975s] uh and uh yeah go forth and transform
+[6978s] see you later

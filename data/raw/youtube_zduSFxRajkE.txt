@@ -1,0 +1,3424 @@
+SOURCE: https://www.youtube.com/watch?v=zduSFxRajkE
+
+[0s] hi everyone so in this video I'd like us
+[2s] to cover the process of tokenization in
+[4s] large language models now you see here
+[6s] that I have a set face and that's
+[8s] because uh tokenization is my least
+[10s] favorite part of working with large
+[11s] language models but unfortunately it is
+[13s] necessary to understand in some detail
+[15s] because it it is fairly hairy gnarly and
+[17s] there's a lot of hidden foot guns to be
+[19s] aware of and a lot of oddness with large
+[21s] language models typically traces back to
+[24s] tokenization so what is
+[26s] tokenization now in my previous video
+[28s] Let's Build GPT from scratch uh we
+[31s] actually already did tokenization but we
+[33s] did a very naive simple version of
+[35s] tokenization so when you go to the
+[37s] Google colab for that video uh you see
+[40s] here that we loaded our training set and
+[43s] our training set was this uh Shakespeare
+[45s] uh data set now in the beginning the
+[48s] Shakespeare data set is just a large
+[49s] string in Python it's just text and so
+[52s] the question is how do we plug text into
+[54s] large language models and in this case
+[58s] here we created a vocabulary of 65
+[61s] possible characters that we saw occur in
+[63s] this string these were the possible
+[65s] characters and we saw that there are 65
+[67s] of them and then we created a a lookup
+[70s] table for converting from every possible
+[73s] character a little string piece into a
+[76s] token an
+[77s] integer so here for example we tokenized
+[80s] the string High there and we received
+[83s] this sequence of
+[84s] tokens and here we took the first 1,000
+[87s] characters of our data set and we
+[89s] encoded it into tokens and because it is
+[92s] this is character level we received
+[94s] 1,000 tokens in a sequence so token 18
+[98s] 47
+[100s] Etc now later we saw that the way we
+[103s] plug these tokens into the language
+[105s] model is by using an embedding
+[108s] table and so basically if we have 65
+[111s] possible tokens then this embedding
+[113s] table is going to have 65 rows and
+[116s] roughly speaking we're taking the
+[118s] integer associated with every single
+[119s] sing Le token we're using that as a
+[121s] lookup into this table and we're
+[124s] plucking out the corresponding row and
+[126s] this row is a uh is trainable parameters
+[129s] that we're going to train using back
+[130s] propagation and this is the vector that
+[132s] then feeds into the Transformer um and
+[135s] that's how the Transformer Ser of
+[136s] perceives every single
+[138s] token so here we had a very naive
+[141s] tokenization process that was a
+[143s] character level tokenizer but in
+[145s] practice in state-ofthe-art uh language
+[147s] models people use a lot more complicated
+[148s] schemes unfortunately
+[150s] uh for constructing these uh token
+[154s] vocabularies so we're not dealing on the
+[156s] Character level we're dealing on chunk
+[158s] level and the way these um character
+[161s] chunks are constructed is using
+[163s] algorithms such as for example the bik
+[165s] pair in coding algorithm which we're
+[166s] going to go into in detail um and cover
+[171s] in this video I'd like to briefly show
+[172s] you the paper that introduced a bite
+[174s] level encoding as a mechanism for
+[176s] tokenization in the context of large
+[178s] language models and I would say that
+[180s] that's probably the gpt2 paper and if
+[182s] you scroll down here to the section
+[185s] input representation this is where they
+[187s] cover tokenization the kinds of
+[189s] properties that you'd like the
+[190s] tokenization to have and they conclude
+[193s] here that they're going to have a
+[194s] tokenizer where you have a vocabulary of
+[197s] 50,2 57 possible
+[200s] tokens and the context size is going to
+[204s] be 1,24 tokens so in the in in the
+[207s] attention layer of the Transformer
+[209s] neural network
+[210s] every single token is attending to the
+[212s] previous tokens in the sequence and it's
+[214s] going to see up to 1,24 tokens so tokens
+[217s] are this like fundamental unit um the
+[220s] atom of uh large language models if you
+[223s] will and everything is in units of
+[224s] tokens everything is about tokens and
+[227s] tokenization is the process for
+[228s] translating strings or text into
+[231s] sequences of tokens and uh vice versa
+[234s] when you go into the Llama 2 paper as
+[236s] well I can show you that when you search
+[238s] token you're going to get get 63 hits um
+[241s] and that's because tokens are again
+[243s] pervasive so here they mentioned that
+[245s] they trained on two trillion tokens of
+[246s] data and so
+[248s] on so we're going to build our own
+[251s] tokenizer luckily the bite be encoding
+[253s] algorithm is not uh that super
+[255s] complicated and we can build it from
+[256s] scratch ourselves and we'll see exactly
+[258s] how this works before we dive into code
+[260s] I'd like to give you a brief Taste of
+[262s] some of the complexities that come from
+[264s] the tokenization because I just want to
+[266s] make sure that we motivate it
+[267s] sufficiently for why we are doing all
+[269s] this and why this is so gross so
+[272s] tokenization is at the heart of a lot of
+[274s] weirdness in large language models and I
+[276s] would advise that you do not brush it
+[277s] off a lot of the issues that may look
+[280s] like just issues with the new network
+[282s] architecture or the large language model
+[284s] itself are actually issues with the
+[286s] tokenization and fundamentally Trace uh
+[289s] back to it so if you've noticed any
+[291s] issues with large language models can't
+[294s] you know not able to do spelling tasks
+[296s] very easily that's usually due to
+[297s] tokenization simple string processing
+[300s] can be difficult for the large language
+[302s] model to perform
+[303s] natively uh non-english languages can
+[306s] work much worse and to a large extent
+[308s] this is due to
+[309s] tokenization sometimes llms are bad at
+[311s] simple arithmetic also can trace be
+[314s] traced to
+[315s] tokenization uh gbt2 specifically would
+[317s] have had quite a bit more issues with
+[319s] python than uh future versions of it due
+[322s] to tokenization there's a lot of other
+[324s] issues maybe you've seen weird warnings
+[325s] about a trailing whites space this is a
+[327s] tokenization issue um
+[330s] if you had asked GPT earlier about solid
+[333s] gold Magikarp and what it is you would
+[335s] see the llm go totally crazy and it
+[337s] would start going off about a completely
+[339s] unrelated tangent topic maybe you've
+[341s] been told to use yl over Json in
+[343s] structure data all of that has to do
+[345s] with tokenization so basically
+[347s] tokenization is at the heart of many
+[349s] issues I will look back around to these
+[351s] at the end of the video but for now let
+[354s] me just um skip over it a little bit and
+[356s] let's go to this web app um the Tik
+[359s] tokenizer bell.app so I have it loaded
+[362s] here and what I like about this web app
+[364s] is that tokenization is running a sort
+[366s] of live in your browser in JavaScript so
+[369s] you can just type here stuff hello world
+[371s] and the whole string
+[374s] rokenes so here what we see on uh the
+[378s] left is a string that you put in on the
+[380s] right we're currently using the gpt2
+[382s] tokenizer we see that this string that I
+[384s] pasted here is currently tokenizing into
+[387s] 300 tokens and here they are sort of uh
+[390s] shown explicitly in different colors for
+[392s] every single token so for example uh
+[395s] this word tokenization became two tokens
+[398s] the token
+[400s] 3,642 and
+[404s] 1,634 the token um space is is token 318
+[410s] so be careful on the bottom you can show
+[411s] white space and keep in mind that there
+[414s] are spaces and uh sln new line
+[417s] characters in here but you can hide them
+[419s] for
+[421s] clarity the token space at is token 379
+[426s] the to the Token space the is 262 Etc so
+[431s] you notice here that the space is part
+[432s] of that uh token
+[435s] chunk now so this is kind of like how
+[438s] our English sentence broke up and that
+[441s] seems all well and good now now here I
+[444s] put in some arithmetic so we see that uh
+[446s] the token 127 Plus and then token six
+[451s] space 6 followed by 77 so what's
+[454s] happening here is that 127 is feeding in
+[456s] as a single token into the large
+[458s] language model but the um number 677
+[462s] will actually feed in as two separate
+[464s] tokens and so the large language model
+[467s] has to sort of um take account of that
+[470s] and process it correctly in its Network
+[473s] and see here 804 will be broken up into
+[476s] two tokens and it's is all completely
+[477s] arbitrary and here I have another
+[479s] example of four-digit numbers and they
+[482s] break up in a way that they break up and
+[483s] it's totally arbitrary sometimes you
+[485s] have um multiple digits single token
+[488s] sometimes you have individual digits as
+[490s] many tokens and it's all kind of pretty
+[492s] arbitrary and coming out of the
+[494s] tokenizer here's another example we have
+[497s] the string egg and you see here that
+[501s] this became two
+[502s] tokens but for some reason when I say I
+[504s] have an egg you see when it's a space
+[507s] egg it's two token it's sorry it's a
+[510s] single token so just egg by itself in
+[513s] the beginning of a sentence is two
+[514s] tokens but here as a space egg is
+[517s] suddenly a single token uh for the exact
+[520s] same string okay here lowercase egg
+[524s] turns out to be a single token and in
+[526s] particular notice that the color is
+[527s] different so this is a different token
+[529s] so this is case sensitive and of course
+[531s] a capital egg would also be different
+[534s] tokens and again um this would be two
+[537s] tokens arbitrarily so so for the same
+[540s] concept egg depending on if it's in the
+[542s] beginning of a sentence at the end of a
+[543s] sentence lowercase uppercase or mixed
+[546s] all this will be uh basically very
+[548s] different tokens and different IDs and
+[550s] the language model has to learn from raw
+[552s] data from all the internet text that
+[553s] it's going to be training on that these
+[555s] are actually all the exact same concept
+[557s] and it has to sort of group them in the
+[559s] parameters of the neural network and
+[561s] understand just based on the data
+[562s] patterns that these are all very similar
+[564s] but maybe not almost exactly similar but
+[567s] but very very similar
+[570s] um after the EG demonstration here I
+[572s] have um an introduction from open a eyes
+[575s] chbt in Korean so manaso Pang uh Etc uh
+[581s] so this is in Korean and the reason I
+[584s] put this here is because you'll notice
+[587s] that um non-english languages work
+[591s] slightly worse in Chachi part of this is
+[594s] because of course the training data set
+[595s] for Chachi is much larger for English
+[598s] and for everything else but the same is
+[599s] true not just for the large language
+[601s] model itself but also for the tokenizer
+[604s] so when we train the tokenizer we're
+[605s] going to see that there's a training set
+[607s] as well and there's a lot more English
+[609s] than non-english and what ends up
+[611s] happening is that we're going to have a
+[613s] lot more longer tokens for
+[616s] English so how do I put this if you have
+[619s] a single sentence in English and you
+[621s] tokenize it you might see that it's 10
+[623s] tokens or something like that but if you
+[625s] translate that sentence into say Korean
+[627s] or Japanese or something else you'll
+[629s] typically see that the number of tokens
+[630s] used is much larger and that's because
+[633s] the chunks here are a lot more broken up
+[636s] so we're using a lot more tokens for the
+[638s] exact same thing and what this does is
+[641s] it bloats up the sequence length of all
+[643s] the documents so you're using up more
+[646s] tokens and then in the attention of the
+[648s] Transformer when these tokens try to
+[649s] attend each other you are running out of
+[651s] context um in the maximum context length
+[655s] of that Transformer and so basically all
+[657s] the non-english text is stretched out
+[661s] from the perspective of the Transformer
+[663s] and this just has to do with the um
+[665s] trainings that used for the tokenizer
+[667s] and the tokenization itself so it will
+[670s] create a lot bigger tokens and a lot
+[672s] larger groups in English and it will
+[674s] have a lot of little boundaries for all
+[676s] the other non-english text um so if we
+[679s] translated this into English it would be
+[681s] significantly fewer
+[683s] tokens the final example I have here is
+[685s] a little snippet of python for doing FS
+[688s] buuz and what I'd like you to notice is
+[691s] look all these individual spaces are all
+[694s] separate tokens they are token
+[697s] 220 so uh 220 220 220 220 and then space
+[702s] if is a single token and so what's going
+[705s] on here is that when the Transformer is
+[706s] going to consume or try to uh create
+[709s] this text it needs to um handle all
+[712s] these spaces individually they all feed
+[714s] in one by one into the entire
+[716s] Transformer in the sequence and so this
+[719s] is being extremely wasteful tokenizing
+[721s] it in this way and so as a result of
+[724s] that gpt2 is not very good with python
+[727s] and it's not anything to do with coding
+[728s] or the language model itself it's just
+[730s] that if he use a lot of indentation
+[732s] using space in Python like we usually do
+[735s] uh you just end up bloating out all the
+[737s] text and it's separated across way too
+[739s] much of the sequence and we are running
+[741s] out of the context length in the
+[742s] sequence uh that's roughly speaking
+[744s] what's what's happening we're being way
+[745s] too wasteful we're taking up way too
+[747s] much token space now we can also scroll
+[749s] up here and we can change the tokenizer
+[751s] so note here that gpt2 tokenizer creates
+[754s] a token count of 300 for this string
+[756s] here we can change it to CL 100K base
+[759s] which is the GPT for tokenizer and we
+[761s] see that the token count drops to 185 so
+[764s] for the exact same string we are now
+[766s] roughly having the number of tokens and
+[769s] roughly speaking this is because uh the
+[771s] number of tokens in the GPT 4 tokenizer
+[774s] is roughly double that of the number of
+[776s] tokens in the gpt2 tokenizer so we went
+[778s] went from roughly 50k to roughly 100K
+[781s] now you can imagine that this is a good
+[783s] thing because the same text is now
+[786s] squished into half as many tokens so uh
+[790s] this is a lot denser input to the
+[792s] Transformer and in the Transformer every
+[795s] single token has a finite number of
+[797s] tokens before it that it's going to pay
+[798s] attention to and so what this is doing
+[800s] is we're roughly able to see twice as
+[803s] much text as a context for what token to
+[806s] predict next uh because of this change
+[809s] but of course just increasing the number
+[810s] of tokens is uh not strictly better
+[813s] infinitely uh because as you increase
+[815s] the number of tokens now your embedding
+[816s] table is um sort of getting a lot larger
+[819s] and also at the output we are trying to
+[821s] predict the next token and there's the
+[822s] soft Max there and that grows as well
+[825s] we're going to go into more detail later
+[826s] on this but there's some kind of a Sweet
+[828s] Spot somewhere where you have a just
+[831s] right number of tokens in your
+[832s] vocabulary where everything is
+[833s] appropriately dense and still fairly
+[836s] efficient now one thing I would like you
+[838s] to note specifically for the gp4
+[840s] tokenizer is that the handling of the
+[843s] white space for python has improved a
+[845s] lot you see that here these four spaces
+[848s] are represented as one single token for
+[850s] the three spaces here and then the token
+[853s] SPF and here seven spaces were all
+[856s] grouped into a single token so we're
+[858s] being a lot more efficient in how we
+[860s] represent Python and this was a
+[861s] deliberate Choice made by open aai when
+[863s] they designed the gp4 tokenizer and they
+[867s] group a lot more space into a single
+[869s] character what this does is this
+[872s] densifies Python and therefore we can
+[875s] attend to more code before it when we're
+[878s] trying to predict the next token in the
+[879s] sequence and so the Improvement in the
+[882s] python coding ability from gbt2 to gp4
+[885s] is not just a matter of the language
+[887s] model and the architecture and the
+[888s] details of the optimization but a lot of
+[890s] the Improvement here is also coming from
+[892s] the design of the tokenizer and how it
+[894s] groups characters into tokens okay so
+[896s] let's now start writing some code
+[899s] so remember what we want to do we want
+[901s] to take strings and feed them into
+[903s] language models for that we need to
+[905s] somehow tokenize strings into some
+[908s] integers in some fixed vocabulary and
+[912s] then we will use those integers to make
+[914s] a look up into a lookup table of vectors
+[916s] and feed those vectors into the
+[918s] Transformer as an input now the reason
+[921s] this gets a little bit tricky of course
+[922s] is that we don't just want to support
+[924s] the simple English alphabet we want to
+[926s] support different kinds of languages so
+[928s] this is anango in Korean which is hello
+[931s] and we also want to support many kinds
+[933s] of special characters that we might find
+[934s] on the internet for example
+[937s] Emoji so how do we feed this text into
+[941s] uh
+[942s] Transformers well how's the what is this
+[944s] text anyway in Python so if you go to
+[946s] the documentation of a string in Python
+[949s] you can see that strings are immutable
+[951s] sequences of Unicode code
+[954s] points okay what are Unicode code points
+[957s] we can go to PDF so Unicode code points
+[961s] are defined by the Unicode Consortium as
+[964s] part of the Unicode standard and what
+[967s] this is really is that it's just a
+[969s] definition of roughly 150,000 characters
+[971s] right now and roughly speaking what they
+[974s] look like and what integers um represent
+[977s] those characters so it says 150,000
+[979s] characters across 161 scripts as of
+[982s] right now so if you scroll down here you
+[984s] can see that the standard is very much
+[986s] alive the latest standard 15.1 in
+[988s] September
+[990s] 2023 and basically this is just a way to
+[993s] define lots of types of
+[996s] characters like for example all these
+[999s] characters across different scripts so
+[1001s] the way we can access the unic code code
+[1004s] Point given Single Character is by using
+[1005s] the or function in Python so for example
+[1008s] I can pass in Ord of H and I can see
+[1011s] that for the Single Character H the unic
+[1014s] code code point is
+[1016s] 104 okay um but this can be arbitr
+[1020s] complicated so we can take for example
+[1022s] our Emoji here and we can see that the
+[1024s] code point for this one is
+[1026s] 128,000 or we can take
+[1030s] un and this is 50,000 now keep in mind
+[1033s] you can't plug in strings here because
+[1036s] you uh this doesn't have a single code
+[1038s] point it only takes a single uni code
+[1040s] code Point character and tells you its
+[1043s] integer so in this way we can look
+[1046s] up all the um characters of this
+[1050s] specific string and their code points so
+[1052s] or of X forx in this string and we get
+[1056s] this encoding here now see here we've
+[1060s] already turned the raw code points
+[1062s] already have integers so why can't we
+[1064s] simply just use these integers and not
+[1066s] have any tokenization at all why can't
+[1068s] we just use this natively as is and just
+[1070s] use the code Point well one reason for
+[1072s] that of course is that the vocabulary in
+[1074s] that case would be quite long so in this
+[1076s] case for Unicode the this is a
+[1078s] vocabulary of
+[1079s] 150,000 different code points but more
+[1082s] worryingly than that I think the Unicode
+[1085s] standard is very much alive and it keeps
+[1087s] changing and so it's not kind of a
+[1089s] stable representation necessarily that
+[1091s] we may want to use directly so for those
+[1093s] reasons we need something a bit better
+[1095s] so to find something better we turn to
+[1097s] encodings so if we go to the Wikipedia
+[1099s] page here we see that the Unicode
+[1101s] consortion defines three types of
+[1103s] encodings utf8 UTF 16 and UTF 32 these
+[1107s] encoding are the way by which we can
+[1110s] take Unicode text and translate it into
+[1113s] binary data or by streams utf8 is by far
+[1117s] the most common uh so this is the utf8
+[1119s] page now this Wikipedia page is actually
+[1122s] quite long but what's important for our
+[1124s] purposes is that utf8 takes every single
+[1126s] Cod point and it translates it to a by
+[1129s] stream and this by stream is between one
+[1132s] to four bytes so it's a variable length
+[1134s] encoding so depending on the Unicode
+[1136s] Point according to the schema you're
+[1138s] going to end up with between 1 to four
+[1139s] bytes for each code point on top of that
+[1143s] there's utf8 uh
+[1145s] utf16 and UTF 32 UTF 32 is nice because
+[1148s] it is fixed length instead of variable
+[1150s] length but it has many other downsides
+[1152s] as well so the full kind of spectrum of
+[1157s] pros and cons of all these different
+[1158s] three encodings are beyond the scope of
+[1160s] this video I just like to point out that
+[1162s] I enjoyed this block post and this block
+[1165s] post at the end of it also has a number
+[1167s] of references that can be quite useful
+[1169s] uh one of them is uh utf8 everywhere
+[1172s] Manifesto um and this Manifesto
+[1174s] describes the reason why utf8 is
+[1176s] significantly preferred and a lot nicer
+[1179s] than the other encodings and why it is
+[1181s] used a lot more prominently um on the
+[1185s] internet one of the major advantages
+[1188s] just just to give you a sense is that
+[1189s] utf8 is the only one of these that is
+[1192s] backwards compatible to the much simpler
+[1194s] asky encoding of text um but I'm not
+[1197s] going to go into the full detail in this
+[1198s] video so suffice to say that we like the
+[1201s] utf8 encoding and uh let's try to take
+[1203s] the string and see what we get if we
+[1206s] encoded into
+[1208s] utf8 the string class in Python actually
+[1210s] has do encode and you can give it the
+[1212s] encoding which is say utf8 now we get
+[1215s] out of this is not very nice because
+[1217s] this is the bytes is a bytes object and
+[1220s] it's not very nice in the way that it's
+[1222s] printed so I personally like to take it
+[1225s] through list because then we actually
+[1226s] get the raw B
+[1228s] of this uh encoding so this is the raw
+[1232s] byes that represent this string
+[1235s] according to the utf8 en coding we can
+[1238s] also look at utf16 we get a slightly
+[1240s] different by stream and we here we start
+[1243s] to see one of the disadvantages of utf16
+[1245s] you see how we have zero Z something Z
+[1247s] something Z something we're starting to
+[1249s] get a sense that this is a bit of a
+[1250s] wasteful encoding and indeed for simple
+[1253s] asky characters or English characters
+[1256s] here uh we just have the structure of 0
+[1258s] something Z something and it's not
+[1260s] exactly nice same for UTF 32 when we
+[1264s] expand this we can start to get a sense
+[1266s] of the wastefulness of this encoding for
+[1268s] our purposes you see a lot of zeros
+[1270s] followed by
+[1271s] something and so uh this is not
+[1274s] desirable so suffice it to say that we
+[1277s] would like to stick with utf8 for our
+[1280s] purposes however if we just use utf8
+[1283s] naively these are by streams so that
+[1286s] would imply a vocabulary length of only
+[1289s] 256 possible tokens uh but this this
+[1293s] vocabulary size is very very small what
+[1295s] this is going to do if we just were to
+[1296s] use it naively is that all of our text
+[1299s] would be stretched out over very very
+[1301s] long sequences of bytes and so
+[1306s] um what what this does is that certainly
+[1309s] the embeding table is going to be tiny
+[1311s] and the prediction at the top at the
+[1312s] final layer is going to be very tiny but
+[1314s] our sequences are very long and remember
+[1316s] that we have pretty finite um context
+[1319s] length and the attention that we can
+[1321s] support in a transformer for
+[1322s] computational reasons and so we only
+[1325s] have as much context length but now we
+[1327s] have very very long sequences and this
+[1329s] is just inefficient and it's not going
+[1330s] to allow us to attend to sufficiently
+[1332s] long text uh before us for the purposes
+[1335s] of the next token prediction task so we
+[1338s] don't want to use the raw bytes of the
+[1341s] utf8 encoding we want to be able to
+[1344s] support larger vocabulary size that we
+[1346s] can tune as a hyper
+[1348s] but we want to stick with the utf8
+[1350s] encoding of these strings so what do we
+[1353s] do well the answer of course is we turn
+[1355s] to the bite pair encoding algorithm
+[1357s] which will allow us to compress these
+[1359s] bite sequences um to a variable amount
+[1362s] so we'll get to that in a bit but I just
+[1364s] want to briefly speak to the fact that I
+[1367s] would love nothing more than to be able
+[1369s] to feed raw bite sequences into uh
+[1372s] language models in fact there's a paper
+[1374s] about how this could potentially be done
+[1377s] uh from Summer last last year now the
+[1379s] problem is you actually have to go in
+[1380s] and you have to modify the Transformer
+[1382s] architecture because as I mentioned
+[1384s] you're going to have a problem where the
+[1386s] attention will start to become extremely
+[1388s] expensive because the sequences are so
+[1390s] long and so in this paper they propose
+[1393s] kind of a hierarchical structuring of
+[1395s] the Transformer that could allow you to
+[1397s] just feed in raw bites and so at the end
+[1400s] they say together these results
+[1401s] establish the viability of tokenization
+[1403s] free autor regressive sequence modeling
+[1405s] at scale so tokenization free would
+[1407s] indeed be amazing we would just feed B
+[1410s] streams directly into our models but
+[1412s] unfortunately I don't know that this has
+[1414s] really been proven out yet by
+[1416s] sufficiently many groups and a
+[1417s] sufficient scale uh but something like
+[1419s] this at one point would be amazing and I
+[1420s] hope someone comes up with it but for
+[1422s] now we have to come back and we can't
+[1424s] feed this directly into language models
+[1426s] and we have to compress it using the B
+[1428s] paare encoding algorithm so let's see
+[1429s] how that works so as I mentioned the B
+[1431s] paare encoding algorithm is not all that
+[1433s] complicated and the Wikipedia page is
+[1435s] actually quite instructive as far as the
+[1437s] basic idea goes go what we're doing is
+[1439s] we have some kind of a input sequence uh
+[1441s] like for example here we have only four
+[1443s] elements in our vocabulary a b c and d
+[1446s] and we have a sequence of them so
+[1448s] instead of bytes let's say we just have
+[1449s] four a vocab size of
+[1452s] four the sequence is too long and we'd
+[1454s] like to compress it so what we do is
+[1456s] that we iteratively find the pair of uh
+[1460s] tokens that occur the most
+[1463s] frequently and then once we've
+[1465s] identified that pair we repl replace
+[1468s] that pair with just a single new token
+[1470s] that we append to our vocabulary so for
+[1473s] example here the bite pair AA occurs
+[1476s] most often so we mint a new token let's
+[1478s] call it capital Z and we replace every
+[1481s] single occurrence of AA by Z so now we
+[1486s] have two Z's here so here we took a
+[1488s] sequence of 11 characters with
+[1491s] vocabulary size four and we've converted
+[1494s] it to a um sequence of only nine tokens
+[1498s] but now with a vocabulary of five
+[1500s] because we have a fifth vocabulary
+[1502s] element that we just created and it's Z
+[1504s] standing for concatination of AA and we
+[1507s] can again repeat this process so we
+[1510s] again look at the sequence and identify
+[1512s] the pair of tokens that are most
+[1515s] frequent let's say that that is now AB
+[1519s] well we are going to replace AB with a
+[1520s] new token that we meant call Y so y
+[1523s] becomes ab and then every single
+[1525s] occurrence of ab is now replaced with y
+[1528s] so we end up with this so now we only
+[1531s] have 1 2 3 4 5 6 seven characters in our
+[1535s] sequence but we have not just um four
+[1540s] vocabulary elements or five but now we
+[1542s] have six and for the final round we
+[1545s] again look through the sequence find
+[1547s] that the phrase zy or the pair zy is
+[1550s] most common and replace it one more time
+[1553s] with another um character let's say x so
+[1556s] X is z y and we replace all curses of zy
+[1559s] and we get this following sequence so
+[1562s] basically after we have gone through
+[1563s] this process instead of having a um
+[1568s] sequence of
+[1569s] 11 uh tokens with a vocabulary length of
+[1573s] four we now have a sequence of 1 2 3
+[1578s] four five tokens but our vocabulary
+[1581s] length now is seven and so in this way
+[1585s] we can iteratively compress our sequence
+[1587s] I we Mint new tokens so in the in the
+[1590s] exact same way we start we start out
+[1592s] with bite sequences so we have 256
+[1596s] vocabulary size but we're now going to
+[1598s] go through these and find the bite pairs
+[1600s] that occur the most and we're going to
+[1602s] iteratively start minting new tokens
+[1604s] appending them to our vocabulary and
+[1606s] replacing things and in this way we're
+[1608s] going to end up with a compressed
+[1610s] training data set and also an algorithm
+[1612s] for taking any arbitrary sequence and
+[1615s] encoding it using this uh vocabul
+[1618s] and also decoding it back to Strings so
+[1621s] let's now Implement all that so here's
+[1623s] what I did I went to this block post
+[1625s] that I enjoyed and I took the first
+[1627s] paragraph and I copy pasted it here into
+[1630s] text so this is one very long line
+[1633s] here now to get the tokens as I
+[1635s] mentioned we just take our text and we
+[1637s] encode it into utf8 the tokens here at
+[1640s] this point will be a raw bites single
+[1642s] stream of bytes and just so that it's
+[1645s] easier to work with instead of just a
+[1647s] bytes object I'm going to convert all
+[1649s] those bytes to integers and then create
+[1652s] a list of it just so it's easier for us
+[1654s] to manipulate and work with in Python
+[1655s] and visualize and here I'm printing all
+[1658s] of that so this is the original um this
+[1662s] is the original paragraph and its length
+[1665s] is
+[1665s] 533 uh code points and then here are the
+[1669s] bytes encoded in ut utf8 and we see that
+[1673s] this has a length of 616 bytes at this
+[1676s] point or 616 tokens and the reason this
+[1679s] is more is because a lot of these simple
+[1681s] asky characters or simple characters
+[1684s] they just become a single bite but a lot
+[1686s] of these Unicode more complex characters
+[1688s] become multiple bytes up to four and so
+[1691s] we are expanding that
+[1692s] size so now what we'd like to do as a
+[1694s] first step of the algorithm is we'd like
+[1696s] to iterate over here and find the pair
+[1698s] of bites that occur most frequently
+[1702s] because we're then going to merge it so
+[1704s] if you are working long on a notebook on
+[1705s] a side then I encourage you to basically
+[1707s] click on the link find this notebook and
+[1709s] try to write that function yourself
+[1711s] otherwise I'm going to come here and
+[1712s] Implement first the function that finds
+[1714s] the most common pair okay so here's what
+[1716s] I came up with there are many different
+[1718s] ways to implement this but I'm calling
+[1720s] the function get stats it expects a list
+[1722s] of integers I'm using a dictionary to
+[1724s] keep track of basically the counts and
+[1726s] then this is a pythonic way to iterate
+[1728s] consecutive elements of this list uh
+[1731s] which we covered in the previous video
+[1733s] and then here I'm just keeping track of
+[1735s] just incrementing by one um for all the
+[1738s] pairs so if I call this on all the
+[1740s] tokens here then the stats comes out
+[1743s] here so this is the dictionary the keys
+[1746s] are these topples of consecutive
+[1748s] elements and this is the count so just
+[1751s] to uh print it in a slightly better way
+[1754s] this is one way that I like to do that
+[1757s] where you it's a little bit compound
+[1760s] here so you can pause if you like but we
+[1762s] iterate all all the items the items
+[1765s] called on dictionary returns pairs of
+[1767s] key value and instead I create a list
+[1771s] here of value key because if it's a
+[1775s] value key list then I can call sort on
+[1777s] it and by default python will uh use the
+[1781s] first element which in this case will be
+[1783s] value to sort by if it's given tles and
+[1786s] then reverse so it's descending and
+[1788s] print that so basically it looks like
+[1790s] 101 comma 32 was the most commonly
+[1793s] occurring consecutive pair and it
+[1795s] occurred 20 times we can double check
+[1798s] that that makes reasonable sense so if I
+[1800s] just search
+[1802s] 10132 then you see that these are the 20
+[1805s] occurrences of that um pair and if we'd
+[1810s] like to take a look at what exactly that
+[1811s] pair is we can use Char which is the
+[1814s] opposite of or in Python so we give it a
+[1817s] um unic code Cod point so 101 and of 32
+[1822s] and we see that this is e and space so
+[1825s] basically there's a lot of E space here
+[1828s] meaning that a lot of these words seem
+[1829s] to end with e so here's eace as an
+[1832s] example so there's a lot of that going
+[1834s] on here and this is the most common pair
+[1836s] so now that we've identified the most
+[1838s] common pair we would like to iterate
+[1840s] over this sequence we're going to Mint a
+[1842s] new token with the ID of
+[1844s] 256 right because these tokens currently
+[1847s] go from Z to 255 so when we create a new
+[1850s] token it will have an ID of
+[1852s] 256 and we're going to iterate over this
+[1856s] entire um list and every every time we
+[1859s] see 101 comma 32 we're going to swap
+[1862s] that out for
+[1863s] 256 so let's Implement that now and feel
+[1867s] free to uh do that yourself as well so
+[1869s] first I commented uh this just so we
+[1871s] don't pollute uh the notebook too much
+[1874s] this is a nice way of in Python
+[1877s] obtaining the highest ranking pair so
+[1880s] we're basically calling the Max on this
+[1883s] dictionary stats and this will return
+[1886s] the maximum
+[1887s] key and then the question is how does it
+[1890s] rank keys so you can provide it with a
+[1892s] function that ranks keys and that
+[1895s] function is just stats. getet uh stats.
+[1898s] getet would basically return the value
+[1901s] and so we're ranking by the value and
+[1902s] getting the maximum key so it's 101
+[1905s] comma 32 as we saw now to actually merge
+[1909s] 10132 um this is the function that I
+[1911s] wrote but again there are many different
+[1913s] versions of it so we're going to take a
+[1915s] list of IDs and the the pair that we
+[1917s] want to replace and that pair will be
+[1919s] replaced with the new index
+[1922s] idx so iterating through IDs if we find
+[1925s] the pair swap it out for idx so we
+[1928s] create this new list and then we start
+[1930s] at zero and then we go through this
+[1932s] entire list sequentially from left to
+[1934s] right and here we are checking for
+[1937s] equality at the current position with
+[1939s] the
+[1940s] pair um so here we are checking that the
+[1943s] pair matches now here is a bit of a
+[1945s] tricky condition that you have to append
+[1947s] if you're trying to be careful and that
+[1949s] is that um you don't want this here to
+[1951s] be out of Bounds at the very last
+[1953s] position when you're on the rightmost
+[1955s] element of this list otherwise this
+[1957s] would uh give you an autof bounds error
+[1959s] so we have to make sure that we're not
+[1960s] at the very very last element so uh this
+[1964s] would be false for that so if we find a
+[1966s] match we append to this new list that
+[1971s] replacement index and we increment the
+[1973s] position by two so we skip over that
+[1974s] entire pair but otherwise if we we
+[1977s] haven't found a matching pair we just
+[1979s] sort of copy over the um element at that
+[1982s] position and increment by one then
+[1985s] return this so here's a very small toy
+[1987s] example if we have a list 566 791 and we
+[1990s] want to replace the occurrences of 67
+[1992s] with 99 then calling this on that will
+[1996s] give us what we're asking for so here
+[1998s] the 67 is replaced with
+[2001s] 99 so now I'm going to uncomment this
+[2003s] for our actual use case where we want to
+[2007s] take our tokens we want to take the top
+[2009s] pair here and replace it with 256 to get
+[2013s] tokens to if we run this we get the
+[2017s] following so recall that previously we
+[2020s] had a length 616 in this list and now we
+[2025s] have a length 596 right so this
+[2028s] decreased by 20 which makes sense
+[2030s] because there are 20 occurrences
+[2032s] moreover we can try to find 256 here and
+[2035s] we see plenty of occurrences on off it
+[2038s] and moreover just double check there
+[2039s] should be no occurrence of 10132 so this
+[2042s] is the original array plenty of them and
+[2045s] in the second array there are no
+[2046s] occurrences of 1032 so we've
+[2048s] successfully merged this single pair and
+[2051s] now we just uh iterate this so we are
+[2053s] going to go over the sequence again find
+[2055s] the most common pair and replace it so
+[2057s] let me now write a y Loop that uses
+[2059s] these functions to do this um sort of
+[2061s] iteratively and how many times do we do
+[2064s] it four well that's totally up to us as
+[2066s] a hyper parameter
+[2067s] the more um steps we take the larger
+[2070s] will be our vocabulary and the shorter
+[2073s] will be our sequence and there is some
+[2075s] sweet spot that we usually find works
+[2077s] the best in practice and so this is kind
+[2079s] of a hyperparameter and we tune it and
+[2081s] we find good vocabulary sizes as an
+[2084s] example gp4 currently uses roughly
+[2086s] 100,000 tokens and um bpark that those
+[2089s] are reasonable numbers currently instead
+[2091s] the are large language models so let me
+[2093s] now write uh putting putting it all
+[2095s] together and uh iterating these steps
+[2098s] okay now before we dive into the Y loop
+[2100s] I wanted to add one more cell here where
+[2103s] I went to the block post and instead of
+[2104s] grabbing just the first paragraph or two
+[2107s] I took the entire block post and I
+[2108s] stretched it out in a single line and
+[2110s] basically just using longer text will
+[2112s] allow us to have more representative
+[2113s] statistics for the bite Pairs and we'll
+[2116s] just get a more sensible results out of
+[2118s] it because it's longer text um so here
+[2121s] we have the raw text we encode it into
+[2124s] bytes using the utf8 encoding
+[2127s] and then here as before we are just
+[2130s] changing it into a list of integers in
+[2131s] Python just so it's easier to work with
+[2133s] instead of the raw byes objects and then
+[2136s] this is the code that I came up with uh
+[2140s] to actually do the merging in Loop these
+[2144s] two functions here are identical to what
+[2145s] we had above I only included them here
+[2148s] just so that you have the point of
+[2149s] reference here so uh these two are
+[2153s] identical and then this is the new code
+[2155s] that I added so the first first thing we
+[2157s] want to do is we want to decide on the
+[2158s] final vocabulary size that we want our
+[2161s] tokenizer to have and as I mentioned
+[2162s] this is a hyper parameter and you set it
+[2164s] in some way depending on your best
+[2166s] performance so let's say for us we're
+[2168s] going to use 276 because that way we're
+[2170s] going to be doing exactly 20
+[2173s] merges and uh 20 merges because we
+[2175s] already have
+[2176s] 256 tokens for the raw bytes and to
+[2180s] reach 276 we have to do 20 merges uh to
+[2183s] add 20 new
+[2185s] tokens here uh this is uh one way in
+[2188s] Python to just create a copy of a list
+[2191s] so I'm taking the tokens list and by
+[2193s] wrapping it in a list python will
+[2195s] construct a new list of all the
+[2197s] individual elements so this is just a
+[2198s] copy
+[2199s] operation then here I'm creating a
+[2202s] merges uh dictionary so this merges
+[2204s] dictionary is going to maintain
+[2206s] basically the child one child two
+[2209s] mapping to a new uh token and so what
+[2212s] we're going to be building up here is a
+[2213s] binary tree of merges but actually it's
+[2216s] not exactly a tree because a tree would
+[2219s] have a single root node with a bunch of
+[2221s] leaves for us we're starting with the
+[2223s] leaves on the bottom which are the
+[2225s] individual bites those are the starting
+[2226s] 256 tokens and then we're starting to
+[2229s] like merge two of them at a time and so
+[2231s] it's not a tree it's more like a forest
+[2234s] um uh as we merge these elements
+[2238s] so for 20 merges we're going to find the
+[2242s] most commonly occurring pair we're going
+[2245s] to Mint a new token integer for it so I
+[2248s] here will start at zero so we'll going
+[2250s] to start at 256 we're going to print
+[2252s] that we're merging it and we're going to
+[2254s] replace all of the occurrences of that
+[2256s] pair with the new new lied token and
+[2259s] we're going to record that this pair of
+[2262s] integers merged into this new
+[2265s] integer so running this gives us the
+[2269s] following
+[2271s] output so we did 20 merges and for
+[2274s] example the first merge was exactly as
+[2276s] before the
+[2278s] 10132 um tokens merging into a new token
+[2281s] 2556 now keep in mind that the
+[2284s] individual uh tokens 101 and 32 can
+[2286s] still occur in the sequence after
+[2288s] merging it's only when they occur
+[2290s] exactly consecutively that that becomes
+[2292s] 256
+[2293s] now um and in particular the other thing
+[2296s] to notice here is that the token 256
+[2299s] which is the newly minted token is also
+[2301s] eligible for merging so here on the
+[2303s] bottom the 20th merge was a merge of 25
+[2306s] and 259 becoming
+[2308s] 275 so every time we replace these
+[2311s] tokens they become eligible for merging
+[2313s] in the next round of data ration so
+[2315s] that's why we're building up a small
+[2317s] sort of binary Forest instead of a
+[2318s] single individual
+[2320s] tree one thing we can take a look at as
+[2322s] well is we can take a look at the
+[2324s] compression ratio that we've achieved so
+[2326s] in particular we started off with this
+[2328s] tokens list um so we started off with
+[2331s] 24,000 bytes and after merging 20 times
+[2336s] uh we now have only
+[2338s] 19,000 um tokens and so therefore the
+[2341s] compression ratio simply just dividing
+[2343s] the two is roughly 1.27 so that's the
+[2346s] amount of compression we were able to
+[2347s] achieve of this text with only 20
+[2350s] merges um and of course the more
+[2353s] vocabulary elements you add uh the
+[2355s] greater the compression ratio here would
+[2359s] be finally so that's kind of like um the
+[2363s] training of the tokenizer if you will
+[2365s] now 1 Point I wanted to make is that and
+[2368s] maybe this is a diagram that can help um
+[2371s] kind of illustrate is that tokenizer is
+[2373s] a completely separate object from the
+[2374s] large language model itself so
+[2377s] everything in this lecture we're not
+[2378s] really touching the llm itself uh we're
+[2380s] just training the tokenizer this is a
+[2381s] completely separate pre-processing stage
+[2383s] usually so the tokenizer will have its
+[2386s] own training set just like a large
+[2387s] language model has a potentially
+[2389s] different training set so the tokenizer
+[2392s] has a training set of documents on which
+[2393s] you're going to train the
+[2394s] tokenizer and then and um we're
+[2397s] performing The Bite pair encoding
+[2398s] algorithm as we saw above to train the
+[2401s] vocabulary of this
+[2402s] tokenizer so it has its own training set
+[2404s] it is a pre-processing stage that you
+[2406s] would run a single time in the beginning
+[2409s] um and the tokenizer is trained using
+[2411s] bipar coding algorithm once you have the
+[2414s] tokenizer once it's trained and you have
+[2416s] the vocabulary and you have the merges
+[2419s] uh we can do both encoding and decoding
+[2422s] so these two arrows here so the
+[2424s] tokenizer is a translation layer between
+[2427s] raw text which is as we saw the sequence
+[2430s] of Unicode code points it can take raw
+[2432s] text and turn it into a token sequence
+[2435s] and vice versa it can take a token
+[2437s] sequence and translate it back into raw
+[2440s] text so now that we have trained uh
+[2443s] tokenizer and we have these merges we
+[2445s] are going to turn to how we can do the
+[2447s] encoding and the decoding step if you
+[2449s] give me text here are the tokens and
+[2451s] vice versa if you give me tokens here's
+[2453s] the text once we have that we can
+[2455s] translate between these two Realms and
+[2457s] then the language model is going to be
+[2458s] trained as a step two afterwards and
+[2461s] typically in a in a sort of a
+[2463s] state-of-the-art application you might
+[2465s] take all of your training data for the
+[2466s] language model and you might run it
+[2468s] through the tokenizer and sort of
+[2470s] translate everything into a massive
+[2471s] token sequence and then you can throw
+[2473s] away the raw text you're just left with
+[2475s] the tokens themselves and those are
+[2477s] stored on disk and that is what the
+[2479s] large language model is actually reading
+[2481s] when it's training on them so this one
+[2483s] approach that you can take as a single
+[2484s] massive pre-processing step a
+[2486s] stage um so yeah basically I think the
+[2490s] most important thing I want to get
+[2491s] across is that this is completely
+[2492s] separate stage it usually has its own
+[2494s] entire uh training set you may want to
+[2496s] have those training sets be different
+[2498s] between the tokenizer and the logge
+[2499s] language model so for example when
+[2501s] you're training the tokenizer as I
+[2503s] mentioned we don't just care about the
+[2505s] performance of English text we care
+[2506s] about uh multi many different languages
+[2509s] and we also care about code or not code
+[2511s] so you may want to look into different
+[2513s] kinds of mixtures of different kinds of
+[2515s] languages and different amounts of code
+[2517s] and things like that because the amount
+[2520s] of different language that you have in
+[2521s] your tokenizer training set will
+[2523s] determine how many merges of it there
+[2526s] will be and therefore that determines
+[2528s] the density with which uh this type of
+[2531s] data is um sort of has in the token
+[2535s] space and so roughly speaking
+[2537s] intuitively if you add some amount of
+[2539s] data like say you have a ton of Japanese
+[2541s] data in your uh tokenizer training set
+[2544s] then that means that more Japanese
+[2545s] tokens will get merged
+[2546s] and therefore Japanese will have shorter
+[2548s] sequences uh and that's going to be
+[2550s] beneficial for the large language model
+[2552s] which has a finite context length on
+[2554s] which it can work on in in the token
+[2556s] space uh so hopefully that makes sense
+[2559s] so we're now going to turn to encoding
+[2561s] and decoding now that we have trained a
+[2563s] tokenizer so we have our merges and now
+[2566s] how do we do encoding and decoding okay
+[2568s] so let's begin with decoding which is
+[2570s] this Arrow over here so given a token
+[2572s] sequence let's go through the tokenizer
+[2574s] to get back a python string object so
+[2577s] the raw text so this is the function
+[2579s] that we' like to implement um we're
+[2581s] given the list of integers and we want
+[2583s] to return a python string if you'd like
+[2585s] uh try to implement this function
+[2586s] yourself it's a fun exercise otherwise
+[2588s] I'm going to start uh pasting in my own
+[2591s] solution so there are many different
+[2593s] ways to do it um here's one way I will
+[2596s] create an uh kind of pre-processing
+[2598s] variable that I will call
+[2601s] vocab and vocab is a mapping or a
+[2604s] dictionary in Python for from the token
+[2607s] uh ID to the bytes object for that token
+[2611s] so we begin with the raw bytes for
+[2613s] tokens from 0 to 255 and then we go in
+[2616s] order of all the merges and we sort of
+[2619s] uh populate this vocab list by doing an
+[2622s] addition here so this is the basically
+[2625s] the bytes representation of the first
+[2627s] child followed by the second one and
+[2630s] remember these are bytes objects so this
+[2632s] addition here is an addition of two
+[2634s] bytes objects just concatenation
+[2637s] so that's what we get
+[2638s] here one tricky thing to be careful with
+[2641s] by the way is that I'm iterating a
+[2642s] dictionary in Python using a DOT items
+[2646s] and uh it really matters that this runs
+[2648s] in the order in which we inserted items
+[2651s] into the merous dictionary luckily
+[2653s] starting with python 3.7 this is
+[2655s] guaranteed to be the case but before
+[2657s] python 3.7 this iteration may have been
+[2659s] out of order with respect to how we
+[2660s] inserted elements into merges and this
+[2663s] may not have worked but we are using an
+[2665s] um modern python so we're okay and then
+[2668s] here uh given the IDS the first thing
+[2671s] we're going to do is get the
+[2675s] tokens so the way I implemented this
+[2677s] here is I'm taking I'm iterating over
+[2679s] all the IDS I'm using vocap to look up
+[2681s] their bytes and then here this is one
+[2684s] way in Python to concatenate all these
+[2686s] bytes together to create our tokens and
+[2689s] then these tokens here at this point are
+[2691s] raw bytes so I have to decode using UTF
+[2696s] F now back into python strings so
+[2699s] previously we called that encode on a
+[2701s] string object to get the bytes and now
+[2703s] we're doing it Opposite we're taking the
+[2705s] bytes and calling a decode on the bytes
+[2707s] object to get a string in Python and
+[2711s] then we can return
+[2713s] text so um this is how we can do it now
+[2716s] this actually has a um issue um in the
+[2720s] way I implemented it and this could
+[2722s] actually throw an error so try to think
+[2724s] figure out why this code could actually
+[2726s] result in an error if we plug in um uh
+[2730s] some sequence of IDs that is
+[2732s] unlucky so let me demonstrate the issue
+[2735s] when I try to decode just something like
+[2737s] 97 I am going to get letter A here back
+[2741s] so nothing too crazy happening but when
+[2744s] I try to decode 128 as a single element
+[2748s] the token 128 is what in string or in
+[2751s] Python object uni Cod decoder utfa can't
+[2755s] Decode by um 0x8 which is this in HEX in
+[2760s] position zero invalid start bite what
+[2761s] does that mean well to understand what
+[2763s] this means we have to go back to our
+[2764s] utf8 page uh that I briefly showed
+[2767s] earlier and this is Wikipedia utf8 and
+[2770s] basically there's a specific schema that
+[2773s] utfa bytes take so in particular if you
+[2776s] have a multi-te object for some of the
+[2779s] Unicode characters they have to have
+[2781s] this special sort of envelope in how the
+[2784s] encoding works and so what's happening
+[2786s] here is that invalid start pite that's
+[2790s] because
+[2791s] 128 the binary representation of it is
+[2793s] one followed by all zeros so we have one
+[2797s] and then all zero and we see here that
+[2799s] that doesn't conform to the format
+[2801s] because one followed by all zero just
+[2802s] doesn't fit any of these rules so to
+[2804s] speak so it's an invalid start bite
+[2807s] which is byte one this one must have a
+[2810s] one following it and then a zero
+[2812s] following it and then the content of
+[2814s] your uni codee in x here so basically we
+[2817s] don't um exactly follow the utf8
+[2819s] standard and this cannot be decoded and
+[2822s] so the way to fix this um is to
+[2826s] use this errors equals in bytes. decode
+[2831s] function of python and by default errors
+[2833s] is strict so we will throw an error if
+[2837s] um it's not valid utf8 bytes encoding
+[2840s] but there are many different things that
+[2841s] you could put here on error handling
+[2843s] this is the full list of all the errors
+[2845s] that you can use and in particular
+[2847s] instead of strict let's change it to
+[2849s] replace and that will replace uh with
+[2852s] this special marker this replacement
+[2855s] character so errors equals replace and
+[2860s] now we just get that character
+[2863s] back so basically not every single by
+[2866s] sequence is valid
+[2868s] utf8 and if it happens that your large
+[2871s] language model for example predicts your
+[2873s] tokens in a bad manner then they might
+[2876s] not fall into valid utf8 and then we
+[2880s] won't be able to decode them so the
+[2882s] standard practice is to basically uh use
+[2885s] errors equals replace and this is what
+[2887s] you will also find in the openai um code
+[2890s] that they released as well but basically
+[2892s] whenever you see um this kind of a
+[2894s] character in your output in that case uh
+[2896s] something went wrong and the LM output
+[2898s] not was not valid uh sort of sequence of
+[2901s] tokens okay and now we're going to go
+[2903s] the other way so we are going to
+[2905s] implement
+[2906s] this Arrow right here where we are going
+[2907s] to be given a string and we want to
+[2909s] encode it into
+[2911s] tokens so this is the signature of the
+[2913s] function that we're interested in and um
+[2916s] this should basically print a list of
+[2918s] integers of the tokens so again uh try
+[2921s] to maybe implement this yourself if
+[2923s] you'd like a fun exercise uh and pause
+[2925s] here otherwise I'm going to start
+[2926s] putting in my
+[2927s] solution so again there are many ways to
+[2930s] do this so um this is one of the ways
+[2933s] that sort of I came came up with so the
+[2937s] first thing we're going to do is we are
+[2939s] going
+[2940s] to uh take our text encode it into utf8
+[2943s] to get the raw bytes and then as before
+[2945s] we're going to call list on the bytes
+[2947s] object to get a list of integers of
+[2950s] those bytes so those are the starting
+[2952s] tokens those are the raw bytes of our
+[2954s] sequence but now of course according to
+[2956s] the merges dictionary above and recall
+[2959s] this was the
+[2961s] merges some of the bytes may be merged
+[2963s] according to this lookup in addition to
+[2966s] that remember that the merges was built
+[2968s] from top to bottom and this is sort of
+[2969s] the order in which we inserted stuff
+[2971s] into merges and so we prefer to do all
+[2974s] these merges in the beginning before we
+[2976s] do these merges later because um for
+[2979s] example this merge over here relies on
+[2980s] the 256 which got merged here so we have
+[2984s] to go in the order from top to bottom
+[2986s] sort of if we are going to be merging
+[2988s] anything now we expect to be doing a few
+[2991s] merges so we're going to be doing W
+[2994s] true um and now we want to find a pair
+[2998s] of byes that is consecutive that we are
+[3000s] allowed to merge according to this in
+[3003s] order to reuse some of the functionality
+[3005s] that we've already written I'm going to
+[3006s] reuse the function uh get
+[3009s] stats so recall that get stats uh will
+[3012s] give us the we'll basically count up how
+[3014s] many times every single pair occurs in
+[3016s] our sequence of tokens and return that
+[3018s] as a dictionary and the dictionary was a
+[3022s] mapping from all the different uh by
+[3025s] pairs to the number of times that they
+[3027s] occur right um at this point we don't
+[3030s] actually care how many times they occur
+[3032s] in the sequence we only care what the
+[3034s] raw pairs are in that sequence and so
+[3036s] I'm only going to be using basically the
+[3038s] keys of the dictionary I only care about
+[3040s] the set of possible merge candidates if
+[3042s] that makes
+[3043s] sense now we want to identify the pair
+[3046s] that we're going to be merging at this
+[3047s] stage of the loop so what do we want we
+[3050s] want to find the pair or like the a key
+[3053s] inside stats that has the lowest index
+[3057s] in the merges uh dictionary because we
+[3059s] want to do all the early merges before
+[3061s] we work our way to the late
+[3063s] merges so again there are many different
+[3065s] ways to implement this but I'm going to
+[3067s] do something a little bit fancy
+[3071s] here so I'm going to be using the Min
+[3074s] over an iterator in Python when you call
+[3076s] Min on an iterator and stats here as a
+[3078s] dictionary we're going to be iterating
+[3080s] the keys of this dictionary in Python so
+[3084s] we're looking at all the pairs inside
+[3087s] stats um which are all the consecutive
+[3089s] Pairs and we're going to be taking the
+[3092s] consecutive pair inside tokens that has
+[3094s] the minimum what the Min takes a key
+[3098s] which gives us the function that is
+[3100s] going to return a value over which we're
+[3102s] going to do the Min and the one we care
+[3104s] about is we're we care about taking
+[3106s] merges and basically getting um that
+[3110s] pairs
+[3112s] index so basically for any pair inside
+[3117s] stats we are going to be looking into
+[3119s] merges at what index it has and we want
+[3123s] to get the pair with the Min number so
+[3125s] as an example if there's a pair 101 and
+[3127s] 32 we definitely want to get that pair
+[3130s] uh we want to identify it here and
+[3131s] return it and pair would become 10132 if
+[3135s] it
+[3135s] occurs and the reason that I'm putting a
+[3137s] float INF here as a fall back is that in
+[3141s] the get function when we call uh when we
+[3144s] basically consider a pair that doesn't
+[3146s] occur in the merges then that pair is
+[3149s] not eligible to be merged right so if in
+[3151s] the token sequence there's some pair
+[3153s] that is not a merging pair it cannot be
+[3155s] merged then uh it doesn't actually occur
+[3158s] here and it doesn't have an index and uh
+[3160s] it cannot be merged which we will denote
+[3162s] as float INF and the reason Infinity is
+[3165s] nice here is because for sure we're
+[3166s] guaranteed that it's not going to
+[3168s] participate in the list of candidates
+[3170s] when we do the men so uh so this is one
+[3173s] way to do it so B basically long story
+[3175s] short this Returns the most eligible
+[3178s] merging candidate pair uh that occurs in
+[3181s] the tokens now one thing to be careful
+[3184s] with here is this uh function here might
+[3187s] fail in the following way if there's
+[3189s] nothing to merge then uh uh then there's
+[3193s] nothing in merges um that satisfi that
+[3196s] is satisfied anymore there's nothing to
+[3198s] merge everything just returns float imps
+[3201s] and then the pair I think will just
+[3203s] become the very first element of stats
+[3206s] um but this pair is not actually a
+[3208s] mergeable pair it just becomes the first
+[3211s] pair inside stats arbitrarily because
+[3213s] all of these pairs evaluate to float in
+[3216s] for the merging Criterion so basically
+[3218s] it could be that this this doesn't look
+[3220s] succeed because there's no more merging
+[3221s] pairs so if this pair is not in merges
+[3224s] that was returned then this is a signal
+[3226s] for us that actually there was nothing
+[3228s] to merge no single pair can be merged
+[3230s] anymore in that case we will break
+[3233s] out um nothing else can be
+[3237s] merged you may come up with a different
+[3239s] implementation by the way this is kind
+[3241s] of like really trying hard in
+[3243s] Python um but really we're just trying
+[3245s] to find a pair that can be merged with
+[3247s] the lowest index
+[3249s] here now if we did find a pair that is
+[3253s] inside merges with the lowest index then
+[3256s] we can merge it
+[3259s] so we're going to look into the merger
+[3262s] dictionary for that pair to look up the
+[3264s] index and we're going to now merge that
+[3267s] into that index so we're going to do
+[3269s] tokens equals and we're going to
+[3272s] replace the original tokens we're going
+[3274s] to be replacing the pair pair and we're
+[3276s] going to be replacing it with index idx
+[3278s] and this returns a new list of tokens
+[3281s] where every occurrence of pair is
+[3283s] replaced with idx so we're doing a merge
+[3286s] and we're going to be continuing this
+[3287s] until eventually nothing can be merged
+[3289s] we'll come out here and we'll break out
+[3291s] and here we just return
+[3293s] tokens and so that that's the
+[3295s] implementation I think so hopefully this
+[3297s] runs okay cool um yeah and this looks uh
+[3302s] reasonable so for example 32 is a space
+[3304s] in asky so that's here um so this looks
+[3309s] like it worked great okay so let's wrap
+[3311s] up this section of the video at least I
+[3313s] wanted to point out that this is not
+[3314s] quite the right implementation just yet
+[3316s] because we are leaving out a special
+[3317s] case so in particular if uh we try to do
+[3320s] this this would give us an error and the
+[3323s] issue is that um if we only have a
+[3325s] single character or an empty string then
+[3328s] stats is empty and that causes an issue
+[3329s] inside Min so one way to fight this is
+[3332s] if L of tokens is at least two because
+[3336s] if it's less than two it's just a single
+[3337s] token or no tokens then let's just uh
+[3340s] there's nothing to merge so we just
+[3341s] return so that would fix uh that
+[3344s] case Okay and then second I have a few
+[3348s] test cases here for us as well so first
+[3350s] let's make sure uh about or let's note
+[3353s] the following if we take a string and we
+[3356s] try to encode it and then decode it back
+[3358s] you'd expect to get the same string back
+[3360s] right is that true for all
+[3364s] strings so I think uh so here it is the
+[3367s] case and I think in general this is
+[3368s] probably the case um but notice that
+[3372s] going backwards is not is not you're not
+[3374s] going to have an identity going
+[3375s] backwards because as I mentioned us not
+[3379s] all token sequences are valid utf8 uh
+[3382s] sort of by streams and so so therefore
+[3385s] you're some of them can't even be
+[3387s] decodable um so this only goes in One
+[3390s] Direction but for that one direction we
+[3392s] can check uh here if we take the
+[3394s] training text which is the text that we
+[3396s] train to tokenizer around we can make
+[3398s] sure that when we encode and decode we
+[3399s] get the same thing back which is true
+[3401s] and here I took some validation data so
+[3403s] I went to I think this web page and I
+[3405s] grabbed some text so this is text that
+[3407s] the tokenizer has not seen and we can
+[3409s] make sure that this also works um okay
+[3412s] so that gives us some confidence that
+[3413s] this was correctly implemented
+[3416s] so those are the basics of the bite pair
+[3418s] encoding algorithm we saw how we can uh
+[3420s] take some training set train a tokenizer
+[3423s] the parameters of this tokenizer really
+[3425s] are just this dictionary of merges and
+[3428s] that basically creates the little binary
+[3429s] Forest on top of raw
+[3431s] bites once we have this the merges table
+[3434s] we can both encode and decode between
+[3436s] raw text and token sequences so that's
+[3439s] the the simplest setting of The
+[3441s] tokenizer what we're going to do now
+[3443s] though is we're going to look at some of
+[3444s] the St the art lar language models and
+[3446s] the kinds of tokenizers that they use
+[3448s] and we're going to see that this picture
+[3449s] complexifies very quickly so we're going
+[3451s] to go through the details of this comp
+[3454s] complexification one at a time so let's
+[3457s] kick things off by looking at the GPD
+[3459s] Series so in particular I have the gpt2
+[3461s] paper here um and this paper is from
+[3464s] 2019 or so so 5 years ago and let's
+[3468s] scroll down to input representation this
+[3471s] is where they talk about the tokenizer
+[3472s] that they're using for gpd2 now this is
+[3475s] all fairly readable so I encourage you
+[3477s] to pause and um read this yourself but
+[3480s] this is where they motivate the use of
+[3482s] the bite pair encoding algorithm on the
+[3484s] bite level representation of utf8
+[3487s] encoding so this is where they motivate
+[3489s] it and they talk about the vocabulary
+[3491s] sizes and everything now everything here
+[3493s] is exactly as we've covered it so far
+[3495s] but things start to depart around here
+[3498s] so what they mention is that they don't
+[3500s] just apply the naive algorithm as we
+[3502s] have done it and in particular here's a
+[3505s] example suppose that you have common
+[3507s] words like dog what will happen is that
+[3509s] dog of course occurs very frequently in
+[3511s] the text and it occurs right next to all
+[3514s] kinds of punctuation as an example so
+[3516s] doc dot dog exclamation mark dog
+[3519s] question mark Etc and naively you might
+[3522s] imagine that the BP algorithm could
+[3523s] merge these to be single tokens and then
+[3525s] you end up with lots of tokens that are
+[3527s] just like dog with a slightly different
+[3529s] punctuation and so it feels like you're
+[3530s] clustering things that shouldn't be
+[3532s] clustered you're combining kind of
+[3533s] semantics with
+[3535s] uation and this uh feels suboptimal and
+[3538s] indeed they also say that this is
+[3540s] suboptimal according to some of the
+[3542s] experiments so what they want to do is
+[3544s] they want to top down in a manual way
+[3546s] enforce that some types of um characters
+[3549s] should never be merged together um so
+[3552s] they want to enforce these merging rules
+[3554s] on top of the bite PA encoding algorithm
+[3557s] so let's take a look um at their code
+[3559s] and see how they actually enforce this
+[3561s] and what kinds of mergy they actually do
+[3563s] perform so I have to to tab open here
+[3565s] for gpt2 under open AI on GitHub and
+[3569s] when we go to
+[3570s] Source there is an encoder thatp now I
+[3574s] don't personally love that they call it
+[3575s] encoder dopy because this is the
+[3577s] tokenizer and the tokenizer can do both
+[3579s] encode and decode uh so it feels kind of
+[3581s] awkward to me that it's called encoder
+[3583s] but that is the tokenizer and there's a
+[3585s] lot going on here and we're going to
+[3587s] step through it in detail at one point
+[3589s] for now I just want to focus on this
+[3591s] part here the create a rigix pattern
+[3594s] here that looks very complicated and
+[3596s] we're going to go through it in a bit uh
+[3598s] but this is the core part that allows
+[3600s] them to enforce rules uh for what parts
+[3604s] of the text Will Never Be merged for
+[3605s] sure now notice that re. compile here is
+[3608s] a little bit misleading because we're
+[3610s] not just doing import re which is the
+[3612s] python re module we're doing import reex
+[3614s] as re and reex is a python package that
+[3617s] you can install P install r x and it's
+[3620s] basically an extension of re so it's a
+[3622s] bit more powerful
+[3623s] re um
+[3626s] so let's take a look at this pattern and
+[3628s] what it's doing and why this is actually
+[3630s] doing the separation that they are
+[3632s] looking for okay so I've copy pasted the
+[3634s] pattern here to our jupit notebook where
+[3637s] we left off and let's take this pattern
+[3639s] for a spin so in the exact same way that
+[3642s] their code does we're going to call an
+[3644s] re. findall for this pattern on any
+[3647s] arbitrary string that we are interested
+[3649s] so this is the string that we want to
+[3650s] encode into tokens um to feed into n llm
+[3655s] like gpt2 so what exactly is this doing
+[3659s] well re. findall will take this pattern
+[3661s] and try to match it against a
+[3662s] string um the way this works is that you
+[3666s] are going from left to right in the
+[3667s] string and you're trying to match the
+[3670s] pattern and R.F find all will get all
+[3673s] the occurrences and organize them into a
+[3676s] list now when you look at the um when
+[3679s] you look at this pattern first of all
+[3680s] notice that this is a raw string um and
+[3683s] then these are three double quotes just
+[3686s] to start the string so really the string
+[3688s] itself this is the pattern itself
+[3691s] right and notice that it's made up of a
+[3694s] lot of ores so see these vertical bars
+[3696s] those are ores in reg X and so you go
+[3700s] from left to right in this pattern and
+[3701s] try to match it against the string
+[3703s] wherever you are so we have hello and
+[3706s] we're going to try to match it well it's
+[3708s] not apostrophe s it's not apostrophe t
+[3710s] or any of these but it is an optional
+[3713s] space followed by- P of uh sorry SL P of
+[3718s] L one or more times what is/ P of L it
+[3722s] is coming to some documentation that I
+[3724s] found um there might be other sources as
+[3728s] well uh SLP is a letter any kind of
+[3731s] letter from any language and hello is
+[3735s] made up of letters h e l Etc so optional
+[3739s] space followed by a bunch of letters one
+[3741s] or more letters is going to match hello
+[3744s] but then the match ends because a white
+[3747s] space is not a letter so from there on
+[3751s] begins a new sort of attempt to match
+[3753s] against the string again and starting in
+[3756s] here we're going to skip over all of
+[3758s] these again until we get to the exact
+[3760s] same Point again and we see that there's
+[3762s] an optional space this is the optional
+[3764s] space followed by a bunch of letters one
+[3766s] or more of them and so that matches so
+[3768s] when we run this we get a list of two
+[3772s] elements hello and then space world
+[3775s] so how are you if we add more letters we
+[3778s] would just get them like this now what
+[3781s] is this doing and why is this important
+[3783s] we are taking our string and instead of
+[3785s] directly encoding it um for
+[3789s] tokenization we are first splitting it
+[3791s] up and when you actually step through
+[3793s] the code and we'll do that in a bit more
+[3795s] detail what really is doing on a high
+[3797s] level is that it first splits your text
+[3800s] into a list of texts just like this one
+[3804s] and all these elements of this list are
+[3806s] processed independently by the tokenizer
+[3809s] and all of the results of that
+[3810s] processing are simply
+[3812s] concatenated so hello world oh I I
+[3815s] missed how hello world how are you we
+[3819s] have five elements of list all of these
+[3821s] will independent
+[3824s] independently go from text to a token
+[3827s] sequence and then that token sequence is
+[3829s] going to be concatenated it's all going
+[3830s] to be joined up and roughly speaking
+[3834s] what that does is you're only ever
+[3836s] finding merges between the elements of
+[3838s] this list so you can only ever consider
+[3840s] merges within every one of these
+[3841s] elements in
+[3843s] individually and um after you've done
+[3846s] all the possible merging for all of
+[3847s] these elements individually the results
+[3849s] of all that will be joined um by
+[3853s] concatenation and so you are basically
+[3856s] what what you're doing effectively is
+[3858s] you are never going to be merging this e
+[3861s] with this space because they are now
+[3863s] parts of the separate elements of this
+[3865s] list and so you are saying we are never
+[3867s] going to merge
+[3868s] eace um because we're breaking it up in
+[3872s] this way so basically using this regx
+[3875s] pattern to Chunk Up the text is just one
+[3877s] way of enforcing that some merges are
+[3881s] not to happen and we're going to go into
+[3883s] more of this text and we'll see that
+[3885s] what this is trying to do on a high
+[3886s] level is we're trying to not merge
+[3888s] across letters across numbers across
+[3890s] punctuation and so on so let's see in
+[3893s] more detail how that works so let's
+[3894s] continue now we have/ P ofn if you go to
+[3898s] the documentation SLP of n is any kind
+[3901s] of numeric character in any script so
+[3904s] it's numbers so we have an optional
+[3906s] space followed by numbers and those
+[3908s] would be separated out so letters and
+[3910s] numbers are being separated so if I do
+[3912s] Hello World 123 how are you then world
+[3915s] will stop matching here because one is
+[3917s] not a letter anymore but one is a number
+[3920s] so this group will match for that and
+[3922s] we'll get it as a separate entity
+[3926s] uh let's see how these apostrophes work
+[3928s] so here if we have
+[3931s] um uh Slash V or I mean apostrophe V as
+[3935s] an example then apostrophe here is not a
+[3938s] letter or a
+[3939s] number so hello will stop matching and
+[3942s] then we will exactly match this with
+[3944s] that so that will come out as a separate
+[3948s] thing so why are they doing the
+[3950s] apostrophes here honestly I think that
+[3952s] these are just like very common
+[3953s] apostrophes p uh that are used um
+[3956s] typically I don't love that they've done
+[3959s] this
+[3960s] because uh let me show you what happens
+[3963s] when you have uh some Unicode
+[3965s] apostrophes like for example you can
+[3967s] have if you have house then this will be
+[3970s] separated out because of this matching
+[3973s] but if you use the Unicode apostrophe
+[3975s] like
+[3976s] this then suddenly this does not work
+[3979s] and so this apostrophe will actually
+[3981s] become its own thing now and so so um
+[3984s] it's basically hardcoded for this
+[3986s] specific kind of apostrophe and uh
+[3989s] otherwise they become completely
+[3991s] separate tokens in addition to this you
+[3994s] can go to the gpt2 docs and here when
+[3998s] they Define the pattern they say should
+[4000s] have added re. ignore case so BP merges
+[4003s] can happen for capitalized versions of
+[4004s] contractions so what they're pointing
+[4006s] out is that you see how this is
+[4007s] apostrophe and then lowercase letters
+[4010s] well because they didn't do re. ignore
+[4012s] case then then um these rules will not
+[4016s] separate out the apostrophes if it's
+[4018s] uppercase so
+[4021s] house would be like this but if I did
+[4026s] house if I'm uppercase then notice
+[4030s] suddenly the apostrophe comes by
+[4032s] itself so the tokenization will work
+[4035s] differently in uppercase and lower case
+[4037s] inconsistently separating out these
+[4039s] apostrophes so it feels extremely gnarly
+[4041s] and slightly gross um but that's that's
+[4044s] how that works okay so let's come back
+[4047s] after trying to match a bunch of
+[4048s] apostrophe Expressions by the way the
+[4050s] other issue here is that these are quite
+[4052s] language specific probably so I don't
+[4054s] know that all the languages for example
+[4055s] use or don't use apostrophes but that
+[4057s] would be inconsistently tokenized as a
+[4059s] result then we try to match letters then
+[4062s] we try to match numbers and then if that
+[4064s] doesn't work we fall back to here and
+[4067s] what this is saying is again optional
+[4069s] space followed by something that is not
+[4070s] a letter number or a space in one or
+[4073s] more of that so what this is doing
+[4075s] effectively is this is trying to match
+[4077s] punctuation roughly speaking not letters
+[4079s] and not numbers so this group will try
+[4082s] to trigger for that so if I do something
+[4084s] like this then these parts here are not
+[4088s] letters or numbers but they will
+[4089s] actually they are uh they will actually
+[4092s] get caught here and so they become its
+[4094s] own group so we've separated out the
+[4097s] punctuation and finally this um this is
+[4100s] also a little bit confusing so this is
+[4102s] matching white space but this is using a
+[4105s] negative look ahead assertion in regex
+[4109s] so what this is doing is it's matching
+[4110s] wh space up to but not including the
+[4113s] last Whit space
+[4115s] character why is this important um this
+[4117s] is pretty subtle I think so you see how
+[4120s] the white space is always included at
+[4121s] the beginning of the word so um space r
+[4125s] space u Etc suppose we have a lot of
+[4128s] spaces
+[4129s] here what's going to happen here is that
+[4132s] these spaces up to not including the
+[4134s] last character will get caught by this
+[4137s] and what that will do is it will
+[4139s] separate out the spaces up to but not
+[4141s] including the last character so that the
+[4143s] last character can come here and join
+[4145s] with the um space you and the reason
+[4149s] that's nice is because space you is the
+[4151s] common token so if I didn't have these
+[4153s] Extra Spaces here you would just have
+[4155s] space you and if I add tokens if I add
+[4158s] spaces we still have a space view but
+[4160s] now we have all this extra white space
+[4162s] so basically the GB to tokenizer really
+[4164s] likes to have a space letters or numbers
+[4167s] um and it it preens these spaces and
+[4170s] this is just something that it is
+[4171s] consistent about so that's what that is
+[4173s] for and then finally we have all the the
+[4176s] last fallback is um whites space
+[4178s] characters uh so um that would be
+[4182s] just um if that doesn't get caught then
+[4186s] this thing will catch any trailing
+[4188s] spaces and so on I wanted to show one
+[4190s] more real world example here so if we
+[4193s] have this string which is a piece of
+[4194s] python code and then we try to split it
+[4196s] up then this is the kind of output we
+[4198s] get so you'll notice that the list has
+[4200s] many elements here and that's because we
+[4202s] are splitting up fairly often uh every
+[4205s] time sort of a category
+[4207s] changes um so there will never be any
+[4209s] merges Within These
+[4210s] elements and um that's what you are
+[4213s] seeing here now you might think that in
+[4216s] order to train the
+[4217s] tokenizer uh open AI has used this to
+[4221s] split up text into chunks and then run
+[4223s] just a BP algorithm within all the
+[4225s] chunks but that is not exactly what
+[4227s] happened and the reason is the following
+[4230s] notice that we have the spaces here uh
+[4233s] those Spaces end up being entire
+[4235s] elements but these spaces never actually
+[4238s] end up being merged by by open Ai and
+[4240s] the way you can tell is that if you copy
+[4242s] paste the exact same chunk here into Tik
+[4244s] token U Tik tokenizer you see that all
+[4247s] the spaces are kept independent and
+[4249s] they're all token
+[4251s] 220 so I think opena at some point Point
+[4253s] en Force some rule that these spaces
+[4256s] would never be merged and so um there's
+[4259s] some additional rules on top of just
+[4261s] chunking and bpe that open ey is not uh
+[4264s] clear about now the training code for
+[4266s] the gpt2 tokenizer was never released so
+[4268s] all we have is uh the code that I've
+[4270s] already shown you but this code here
+[4273s] that they've released is only the
+[4274s] inference code for the tokens so this is
+[4277s] not the training code you can't give it
+[4279s] a piece of text and training tokenizer
+[4281s] this is just the inference code which
+[4283s] Tak takes the merges that we have up
+[4285s] above and applies them to a new piece of
+[4288s] text and so we don't know exactly how
+[4290s] opening ey trained um train the
+[4292s] tokenizer but it wasn't as simple as
+[4294s] chunk it up and BP it uh whatever it was
+[4298s] next I wanted to introduce you to the
+[4300s] Tik token library from openai which is
+[4302s] the official library for tokenization
+[4304s] from openai so this is Tik token bip
+[4308s] install P to Tik token and then um you
+[4311s] can do the tokenization in inference
+[4314s] this is again not training code this is
+[4315s] only inference code for
+[4317s] tokenization um I wanted to show you how
+[4320s] you would use it quite simple and
+[4322s] running this just gives us the gpt2
+[4324s] tokens or the GPT 4 tokens so this is
+[4326s] the tokenizer use for GPT 4 and so in
+[4329s] particular we see that the Whit space in
+[4331s] gpt2 remains unmerged but in GPT 4 uh
+[4334s] these Whit spaces merge as we also saw
+[4337s] in this one where here they're all
+[4339s] unmerged but if we go down to GPT 4 uh
+[4342s] they become merged
+[4345s] um now in the
+[4347s] gp4 uh tokenizer they changed the
+[4351s] regular expression that they use to
+[4353s] Chunk Up text so the way to see this is
+[4355s] that if you come to your the Tik token
+[4358s] uh library and then you go to this file
+[4361s] Tik token X openi public this is where
+[4364s] sort of like the definition of all these
+[4365s] different tokenizers that openi
+[4366s] maintains is and so uh necessarily to do
+[4370s] the inference they had to publish some
+[4371s] of the details about the strings
+[4373s] so this is the string that we already
+[4375s] saw for gpt2 it is slightly different
+[4378s] but it is actually equivalent uh to what
+[4380s] we discussed here so this pattern that
+[4382s] we discussed is equivalent to this
+[4384s] pattern this one just executes a little
+[4387s] bit faster so here you see a little bit
+[4389s] of a slightly different definition but
+[4390s] otherwise it's the same we're going to
+[4392s] go into special tokens in a bit and then
+[4395s] if you scroll down to CL 100k this is
+[4398s] the GPT 4 tokenizer you see that the
+[4400s] pattern has changed um and this is kind
+[4403s] of like the main the major change in
+[4406s] addition to a bunch of other special
+[4407s] tokens which I'll go into in a bit again
+[4410s] now some I'm not going to actually go
+[4411s] into the full detail of the pattern
+[4413s] change because honestly this is my
+[4415s] numbing uh I would just advise that you
+[4417s] pull out chat GPT and the regex
+[4419s] documentation and just step through it
+[4422s] but really the major changes are number
+[4424s] one you see this eye here that means
+[4428s] that the um case sensitivity this is
+[4431s] case insensitive match and so the
+[4433s] comment that we saw earlier on oh we
+[4436s] should have used re. uppercase uh
+[4438s] basically we're now going to be matching
+[4441s] these apostrophe s apostrophe D
+[4444s] apostrophe M Etc uh we're going to be
+[4446s] matching them both in lowercase and in
+[4448s] uppercase so that's fixed there's a
+[4451s] bunch of different like handling of the
+[4452s] whites space that I'm not going to go
+[4454s] into the full details of and then one
+[4456s] more thing here is you will notice that
+[4458s] when they match the numbers they only
+[4460s] match one to three numbers so so they
+[4463s] will never merge
+[4466s] numbers that are in low in more than
+[4468s] three digits only up to three digits of
+[4471s] numbers will ever be merged and uh
+[4474s] that's one change that they made as well
+[4476s] to prevent uh tokens that are very very
+[4478s] long number
+[4480s] sequences uh but again we don't really
+[4482s] know why they do any of this stuff uh
+[4484s] because none of this is documented and
+[4486s] uh it's just we just get the pattern so
+[4489s] um yeah it is what it is but those are
+[4491s] some of the changes that gp4 has made
+[4494s] and of course the vocabulary size went
+[4496s] from roughly 50k to roughly
+[4498s] 100K the next thing I would like to do
+[4500s] very briefly is to take you through the
+[4502s] gpt2 encoder dopy that openi has
+[4505s] released uh this is the file that I
+[4507s] already mentioned to you briefly now
+[4509s] this file is uh fairly short and should
+[4512s] be relatively understandable to you at
+[4514s] this point um starting at the bottom
+[4517s] here they are loading two files encoder
+[4521s] Json and vocab bpe and they do some
+[4524s] light processing on it and then they
+[4525s] call this encoder object which is the
+[4527s] tokenizer now if you'd like to inspect
+[4530s] these two files which together
+[4531s] constitute their saved tokenizer then
+[4534s] you can do that with a piece of code
+[4536s] like
+[4536s] this um this is where you can download
+[4539s] these two files and you can inspect them
+[4540s] if you'd like and what you will find is
+[4542s] that this encoder as they call it in
+[4545s] their code is exactly equivalent to our
+[4547s] vocab so remember here where we have
+[4551s] this vocab object which allowed us us to
+[4553s] decode very efficiently and basically it
+[4556s] took us from the integer to the byes uh
+[4560s] for that integer so our vocab is exactly
+[4563s] their encoder and then their vocab bpe
+[4567s] confusingly is actually are merges so
+[4571s] their BP merges which is based on the
+[4574s] data inside vocab bpe ends up being
+[4576s] equivalent to our merges so uh basically
+[4580s] they are saving and loading the two uh
+[4584s] variables that for us are also critical
+[4586s] the merges variable and the vocab
+[4588s] variable using just these two variables
+[4591s] you can represent a tokenizer and you
+[4592s] can both do encoding and decoding once
+[4594s] you've trained this
+[4596s] tokenizer now the only thing that um is
+[4600s] actually slightly confusing inside what
+[4602s] opening ey does here is that in addition
+[4604s] to this encoder and a decoder they also
+[4606s] have something called a bite encoder and
+[4608s] a bite decoder and this is actually
+[4611s] unfortunately just
+[4613s] kind of a spirous implementation detail
+[4615s] and isn't actually deep or interesting
+[4617s] in any way so I'm going to skip the
+[4619s] discussion of it but what opening ey
+[4621s] does here for reasons that I don't fully
+[4622s] understand is that not only have they
+[4625s] this tokenizer which can encode and
+[4626s] decode but they have a whole separate
+[4628s] layer here in addition that is used
+[4630s] serially with the tokenizer and so you
+[4632s] first do um bite encode and then encode
+[4636s] and then you do decode and then bite
+[4637s] decode so that's the loop and they are
+[4640s] just stacked serial on top of each other
+[4642s] and and it's not that interesting so I
+[4644s] won't cover it and you can step through
+[4645s] it if you'd like otherwise this file if
+[4648s] you ignore the bite encoder and the bite
+[4650s] decoder will be algorithmically very
+[4651s] familiar with you and the meat of it
+[4653s] here is the what they call bpe function
+[4657s] and you should recognize this Loop here
+[4659s] which is very similar to our own y Loop
+[4661s] where they're trying to identify the
+[4663s] Byram uh a pair that they should be
+[4666s] merging next and then here just like we
+[4669s] had they have a for Loop trying to merge
+[4670s] this pair uh so they will go over all of
+[4673s] the sequence and they will merge the
+[4675s] pair whenever they find it and they keep
+[4677s] repeating that until they run out of
+[4679s] possible merges in the in the text so
+[4682s] that's the meat of this file and uh
+[4684s] there's an encode and a decode function
+[4686s] just like we have implemented it so long
+[4688s] story short what I want you to take away
+[4689s] at this point is that unfortunately it's
+[4691s] a little bit of a messy code that they
+[4693s] have but algorithmically it is identical
+[4695s] to what we've built up above and what
+[4697s] we've built up above if you understand
+[4699s] it is algorithmically what is necessary
+[4701s] to actually build a BP to organizer
+[4703s] train it and then both encode and decode
+[4706s] the next topic I would like to turn to
+[4708s] is that of special tokens so in addition
+[4710s] to tokens that are coming from you know
+[4712s] raw bytes and the BP merges we can
+[4715s] insert all kinds of tokens that we are
+[4716s] going to use to delimit different parts
+[4718s] of the data or introduced to create a
+[4721s] special structure of the token streams
+[4724s] so in uh if you look at this encoder
+[4727s] object from open AIS gpd2 right here we
+[4730s] mentioned this is very similar to our
+[4732s] vocab you'll notice that the length of
+[4734s] this is
+[4738s] 50257 and as I mentioned it's mapping uh
+[4741s] and it's inverted from the mapping of
+[4743s] our vocab our vocab goes from integer to
+[4746s] string and they go the other way around
+[4748s] for no amazing reason um but the thing
+[4751s] to note here is that this the mapping
+[4753s] table here is
+[4755s] 50257 where does that number come from
+[4758s] where what are the tokens as I mentioned
+[4760s] there are 256 raw bite token
+[4764s] tokens and then opena actually did
+[4767s] 50,000
+[4768s] merges so those become the other tokens
+[4772s] but this would have been
+[4774s] 50256 so what is the 57th token and
+[4777s] there is basically one special
+[4780s] token and that one special token you can
+[4783s] see is called end of text so this is a
+[4787s] special token and it's the very last
+[4789s] token and this token is used to delimit
+[4792s] documents ments in the training set so
+[4795s] when we're creating the training data we
+[4797s] have all these documents and we tokenize
+[4799s] them and we get a stream of tokens those
+[4801s] tokens only range from Z to
+[4805s] 50256 and then in between those
+[4807s] documents we put special end of text
+[4810s] token and we insert that token in
+[4812s] between documents and we are using this
+[4815s] as a signal to the language model that
+[4818s] the document has ended and what follows
+[4820s] is going to be unrelated to the document
+[4823s] previously that said the language model
+[4825s] has to learn this from data it it needs
+[4827s] to learn that this token usually means
+[4829s] that it should wipe its sort of memory
+[4831s] of what came before and what came before
+[4834s] this token is not actually informative
+[4835s] to what comes next but we are expecting
+[4837s] the language model to just like learn
+[4839s] this but we're giving it the Special
+[4840s] sort of the limiter of these documents
+[4844s] we can go here to Tech tokenizer and um
+[4846s] this the gpt2 tokenizer uh our code that
+[4849s] we've been playing with before so we can
+[4851s] add here right hello world world how are
+[4853s] you and we're getting different tokens
+[4855s] but now you can see what if what happens
+[4858s] if I put end of text you see how until I
+[4862s] finished it these are all different
+[4863s] tokens end of
+[4866s] text still set different tokens and now
+[4868s] when I finish it suddenly we get token
+[4873s] 50256 and the reason this works is
+[4875s] because this didn't actually go through
+[4878s] the bpe merges instead the code that
+[4881s] actually outposted tokens has special
+[4885s] case instructions for handling special
+[4888s] tokens um we did not see these special
+[4890s] instructions for handling special tokens
+[4892s] in the encoder dopy it's absent there
+[4896s] but if you go to Tech token Library
+[4898s] which is uh implemented in Rust you will
+[4900s] find all kinds of special case handling
+[4902s] for these special tokens that you can
+[4904s] register uh create adds to the
+[4907s] vocabulary and then it looks for them
+[4909s] and it uh whenever it sees these special
+[4910s] tokens like this it will actually come
+[4913s] in and swap in that special token so
+[4916s] these things are outside of the typical
+[4918s] algorithm of uh B PA en
+[4920s] coding so these special tokens are used
+[4922s] pervasively uh not just in uh basically
+[4925s] base language modeling of predicting the
+[4927s] next token in the sequence but
+[4929s] especially when it gets to later to the
+[4930s] fine tuning stage and all of the chat uh
+[4933s] gbt sort of aspects of it uh because we
+[4935s] don't just want to Del limit documents
+[4936s] we want to delimit entire conversations
+[4938s] between an assistant and a user so if I
+[4941s] refresh this sck tokenizer page the
+[4944s] default example that they have here is
+[4946s] using not sort of base model encoders
+[4950s] but ftuned model uh sort of tokenizers
+[4953s] um so for example using the GPT 3.5
+[4955s] turbo scheme these here are all special
+[4958s] tokens I am start I end Etc uh this is
+[4963s] short for Imaginary mcore start by the
+[4966s] way but you can see here that there's a
+[4969s] sort of start and end of every single
+[4971s] message and there can be many other
+[4972s] other tokens lots of tokens um in use to
+[4976s] delimit these conversations and kind of
+[4978s] keep track of the flow of the messages
+[4980s] here now we can go back to the Tik token
+[4983s] library and here when you scroll to the
+[4986s] bottom they talk about how you can
+[4988s] extend tick token and I can you can
+[4990s] create basically you can Fork uh the um
+[4993s] CL 100K base tokenizers in gp4 and for
+[4997s] example you can extend it by adding more
+[4998s] special tokens and these are totally up
+[5000s] to you you can come up with any
+[5001s] arbitrary tokens and add them with the
+[5003s] new ID afterwards and the tikken library
+[5006s] will uh correctly swap them out uh when
+[5009s] it sees this in the
+[5011s] strings now we can also go back to this
+[5014s] file which we've looked at previously
+[5017s] and I mentioned that the gpt2 in Tik
+[5019s] toen open
+[5021s] I.P we have the vocabulary we have the
+[5024s] pattern for splitting and then here we
+[5026s] are registering the single special token
+[5028s] in gpd2 which was the end of text token
+[5030s] and we saw that it has this ID
+[5033s] in GPT 4 when they defy this here you
+[5036s] see that the pattern has changed as
+[5037s] we've discussed but also the special
+[5039s] tokens have changed in this tokenizer so
+[5041s] we of course have the end of text just
+[5043s] like in gpd2 but we also see three sorry
+[5046s] four additional tokens here Thim prefix
+[5049s] middle and suffix what is fim fim is
+[5052s] short for fill in the middle and if
+[5054s] you'd like to learn more about this idea
+[5057s] it comes from this paper um and I'm not
+[5060s] going to go into detail in this video
+[5061s] it's beyond this video and then there's
+[5063s] one additional uh serve token here so
+[5067s] that's that encoding as well so it's
+[5069s] very common basically to train a
+[5071s] language model and then if you'd like uh
+[5074s] you can add special tokens now when you
+[5077s] add special tokens you of course have to
+[5079s] um do some model surgery to the
+[5081s] Transformer and all the parameters
+[5083s] involved in that Transformer because you
+[5085s] are basically adding an integer and you
+[5087s] want to make sure that for example your
+[5088s] embedding Matrix for the vocabulary
+[5090s] tokens has to be extended by adding a
+[5093s] row and typically this row would be
+[5094s] initialized uh with small random numbers
+[5096s] or something like that because we need
+[5098s] to have a vector that now stands for
+[5101s] that token in addition to that you have
+[5103s] to go to the final layer of the
+[5104s] Transformer and you have to make sure
+[5105s] that that projection at the very end
+[5107s] into the classifier uh is extended by
+[5109s] one as well so basically there's some
+[5111s] model surgery involved that you have to
+[5113s] couple with the tokenization changes if
+[5116s] you are going to add special tokens but
+[5118s] this is a very common operation that
+[5120s] people do especially if they'd like to
+[5121s] fine tune the model for example taking
+[5123s] it from a base model to a chat model
+[5126s] like chat
+[5127s] GPT okay so at this point you should
+[5129s] have everything you need in order to
+[5131s] build your own gp4 tokenizer now in the
+[5133s] process of developing this lecture I've
+[5135s] done that and I published the code under
+[5137s] this repository
+[5138s] MBP so MBP looks like this right now as
+[5142s] I'm recording but uh the MBP repository
+[5145s] will probably change quite a bit because
+[5146s] I intend to continue working on it um in
+[5149s] addition to the MBP repository I've
+[5151s] published the this uh exercise
+[5153s] progression that you can follow so if
+[5155s] you go to exercise. MD here uh this is
+[5158s] sort of me breaking up the task ahead of
+[5161s] you into four steps that sort of uh
+[5163s] build up to what can be a gp4 tokenizer
+[5166s] and so feel free to follow these steps
+[5168s] exactly and follow a little bit of the
+[5170s] guidance that I've laid out here and
+[5172s] anytime you feel stuck just reference
+[5174s] the MBP repository here so either the
+[5177s] tests could be useful or the MBP
+[5180s] repository itself I try to keep the code
+[5182s] fairly clean and understandable and so
+[5186s] um feel free to reference it whenever um
+[5188s] you get
+[5190s] stuck uh in addition to that basically
+[5192s] once you write it you should be able to
+[5194s] reproduce this behavior from Tech token
+[5196s] so getting the gb4 tokenizer you can
+[5199s] take uh you can encode the string and
+[5201s] you should get these tokens and then you
+[5203s] can encode and decode the exact same
+[5204s] string to recover it and in addition to
+[5207s] all that you should be able to implement
+[5208s] your own train function uh which Tik
+[5210s] token Library does not provide it's it's
+[5212s] again only inference code but you could
+[5214s] write your own train MBP does it as well
+[5217s] and that will allow you to train your
+[5219s] own token
+[5220s] vocabularies so here are some of the
+[5222s] code inside M be mean bpe uh shows the
+[5226s] token vocabularies that you might obtain
+[5228s] so on the left uh here we have the GPT 4
+[5232s] merges uh so the first 256 are raw
+[5235s] individual bytes and then here I am
+[5237s] visualizing the merges that gp4
+[5239s] performed during its training so the
+[5241s] very first merge that gp4 did was merge
+[5244s] two spaces into a single token for you
+[5247s] know two spaces and that is a token 256
+[5250s] and so this is the order in which things
+[5252s] merged during gb4 training and this is
+[5254s] the merge order that um we obtain in MBP
+[5259s] by training a tokenizer and in this case
+[5261s] I trained it on a Wikipedia page of
+[5263s] Taylor Swift uh not because I'm a Swifty
+[5265s] but because that is one of the longest
+[5267s] um Wikipedia Pages apparently that's
+[5269s] available but she is pretty cool and
+[5274s] um what was I going to say yeah so you
+[5276s] can compare these two uh vocabularies
+[5279s] and so as an example um here GPT for
+[5284s] merged I in to become in and we've done
+[5286s] the exact same thing on this token 259
+[5290s] here space t becomes space t and that
+[5293s] happened for us a little bit later as
+[5294s] well so the difference here is again to
+[5296s] my understanding only a difference of
+[5298s] the training set so as an example
+[5300s] because I see a lot of white space I
+[5302s] supect that gp4 probably had a lot of
+[5303s] python code in its training set I'm not
+[5305s] sure uh for the
+[5307s] tokenizer and uh here we see much less
+[5310s] of that of course in the Wikipedia page
+[5312s] so roughly speaking they look the same
+[5314s] and they look the same because they're
+[5315s] running the same algorithm and when you
+[5318s] train your own you're probably going to
+[5319s] get something similar depending on what
+[5321s] you train it on okay so we are now going
+[5323s] to move on from tick token and the way
+[5325s] that open AI tokenizes its strings and
+[5327s] we're going to discuss one more very
+[5329s] commonly used library for working with
+[5331s] tokenization inlm
+[5332s] and that is sentence piece so sentence
+[5335s] piece is very commonly used in language
+[5338s] models because unlike Tik token it can
+[5340s] do both training and inference and is
+[5342s] quite efficient at both it supports a
+[5344s] number of algorithms for training uh
+[5346s] vocabularies but one of them is the B
+[5349s] pair en coding algorithm that we've been
+[5350s] looking at so it supports it now
+[5353s] sentence piece is used both by llama and
+[5355s] mistal series and many other models as
+[5358s] well it is on GitHub under Google
+[5360s] sentence piece
+[5362s] and the big difference with sentence
+[5364s] piece and we're going to look at example
+[5366s] because this is kind of hard and subtle
+[5367s] to explain is that they think different
+[5371s] about the order of operations here so in
+[5375s] the case of Tik token we first take our
+[5378s] code points in the string we encode them
+[5381s] using mutf to bytes and then we're
+[5382s] merging bytes it's fairly
+[5384s] straightforward for sentence piece um it
+[5388s] works directly on the level of the code
+[5390s] points themselves so so it looks at
+[5392s] whatever code points are available in
+[5393s] your training set and then it starts
+[5395s] merging those code points and um the bpe
+[5399s] is running on the level of code
+[5401s] points and if you happen to run out of
+[5404s] code points so there are maybe some rare
+[5406s] uh code points that just don't come up
+[5408s] too often and the Rarity is determined
+[5409s] by this character coverage hyper
+[5411s] parameter then these uh code points will
+[5414s] either get mapped to a special unknown
+[5416s] token like ank or if you have the bite
+[5419s] foldback option turned on then that will
+[5422s] take those rare Cod points it will
+[5423s] encode them using utf8 and then the
+[5426s] individual bytes of that encoding will
+[5427s] be translated into tokens and there are
+[5430s] these special bite tokens that basically
+[5432s] get added to the vocabulary so it uses
+[5435s] BP on on the code points and then it
+[5438s] falls back to bytes for rare Cod points
+[5441s] um and so that's kind of like difference
+[5444s] personally I find the Tik token we
+[5445s] significantly cleaner uh but it's kind
+[5447s] of like a subtle but pretty major
+[5448s] difference between the way they approach
+[5450s] tokenization let's work with with a
+[5452s] concrete example because otherwise this
+[5454s] is kind of hard to um to get your head
+[5456s] around so let's work with a concrete
+[5459s] example this is how we can import
+[5461s] sentence piece and then here we're going
+[5463s] to take I think I took like the
+[5465s] description of sentence piece and I just
+[5466s] created like a little toy data set it
+[5468s] really likes to have a file so I created
+[5470s] a toy. txt file with this
+[5473s] content now what's kind of a little bit
+[5475s] crazy about sentence piece is that
+[5476s] there's a ton of options and
+[5478s] configurations and the reason this is so
+[5480s] is because sentence piece has been
+[5482s] around I think for a while and it really
+[5483s] tries to handle a large diversity of
+[5485s] things and um because it's been around I
+[5488s] think it has quite a bit of accumulated
+[5490s] historical baggage uh as well and so in
+[5493s] particular there's like a ton of
+[5495s] configuration arguments this is not even
+[5496s] all of it you can go to here to see all
+[5499s] the training
+[5500s] options um and uh there's also quite
+[5504s] useful documentation when you look at
+[5505s] the raw Proto buff uh that is used to
+[5508s] represent the trainer spec and so on um
+[5512s] many of these options are irrelevant to
+[5514s] us so maybe to point out one example Das
+[5516s] Das shrinking Factor uh this shrinking
+[5519s] factor is not used in the B pair en
+[5521s] coding algorithm so this is just an
+[5523s] argument that is irrelevant to us um it
+[5525s] applies to a different training
+[5529s] algorithm now what I tried to do here is
+[5531s] I tried to set up sentence piece in a
+[5533s] way that is very very similar as far as
+[5535s] I can tell to maybe identical hopefully
+[5538s] to the way that llama 2 was strained so
+[5542s] the way they trained their own um their
+[5545s] own tokenizer and the way I did this was
+[5547s] basically you can take the tokenizer
+[5548s] model file that meta released and you
+[5551s] can um open it using the Proto protuff
+[5555s] uh sort of file that you can generate
+[5558s] and then you can inspect all the options
+[5559s] and I tried to copy over all the options
+[5561s] that looked relevant so here we set up
+[5563s] the input it's raw text in this file
+[5566s] here's going to be the output so it's
+[5568s] going to be for talk 400. model and
+[5570s] vocab
+[5572s] we're saying that we're going to use the
+[5573s] BP algorithm and we want to Bap size of
+[5576s] 400 then there's a ton of configurations
+[5578s] here
+[5581s] for um for basically pre-processing and
+[5585s] normalization rules as they're called
+[5587s] normalization used to be very prevalent
+[5589s] I would say before llms in natural
+[5591s] language processing so in machine
+[5592s] translation and uh text classification
+[5594s] and so on you want to normalize and
+[5596s] simplify the text and you want to turn
+[5598s] it all lowercase and you want to remove
+[5599s] all double whites space Etc
+[5602s] and in language models we prefer not to
+[5603s] do any of it or at least that is my
+[5605s] preference as a deep learning person you
+[5606s] want to not touch your data you want to
+[5608s] keep the raw data as much as possible um
+[5611s] in a raw
+[5613s] form so you're basically trying to turn
+[5615s] off a lot of this if you can the other
+[5618s] thing that sentence piece does is that
+[5619s] it has this concept of sentences so
+[5623s] sentence piece it's back it's kind of
+[5625s] like was developed I think early in the
+[5626s] days where there was um an idea that
+[5630s] they you're training a tokenizer on a
+[5631s] bunch of independent sentences so it has
+[5634s] a lot of like how many sentences you're
+[5636s] going to train on what is the maximum
+[5638s] sentence length
+[5640s] um shuffling sentences and so for it
+[5643s] sentences are kind of like the
+[5644s] individual training examples but again
+[5646s] in the context of llms I find that this
+[5648s] is like a very spous and weird
+[5650s] distinction like sentences are just like
+[5653s] don't touch the raw data sentences
+[5655s] happen to exist but in raw data sets
+[5658s] there are a lot of like inet like what
+[5660s] exactly is a sentence what isn't a
+[5662s] sentence um and so I think like it's
+[5665s] really hard to Define what an actual
+[5666s] sentence is if you really like dig into
+[5668s] it and there could be different concepts
+[5670s] of it in different languages or
+[5672s] something like that so why even
+[5673s] introduce the concept it it doesn't
+[5675s] honestly make sense to me I would just
+[5676s] prefer to treat a file as a giant uh
+[5679s] stream of
+[5680s] bytes it has a lot of treatment around
+[5682s] rare word characters and when I say word
+[5685s] I mean code points we're going to come
+[5686s] back to this in a second and it has a
+[5688s] lot of other rules for um basically
+[5691s] splitting digits splitting white space
+[5694s] and numbers and how you deal with that
+[5696s] so these are some kind of like merge
+[5698s] rules so I think this is a little bit
+[5700s] equivalent to tick token using the
+[5702s] regular expression to split up
+[5704s] categories there's like kind of
+[5707s] equivalence of it if you squint T it in
+[5709s] sentence piece where you can also for
+[5710s] example split up split up the digits uh
+[5714s] and uh so
+[5715s] on there's a few more things here that
+[5718s] I'll come back to in a bit and then
+[5719s] there are some special tokens that you
+[5720s] can indicate and it hardcodes the UN
+[5723s] token the beginning of sentence end of
+[5725s] sentence and a pad token um and the UN
+[5729s] token must exist for my understanding
+[5732s] and then some some things so we can
+[5734s] train and when when I press train it's
+[5737s] going to create this file talk 400.
+[5740s] model and talk 400. wab I can then load
+[5743s] the model file and I can inspect the
+[5745s] vocabulary off it and so we trained
+[5748s] vocab size 400 on this text here and
+[5753s] these are the individual pieces the
+[5755s] individual tokens that sentence piece
+[5756s] will create so in the beginning we see
+[5758s] that we have the an token uh with the ID
+[5762s] zero then we have the beginning of
+[5764s] sequence end of sequence one and two and
+[5767s] then we said that the pad ID is negative
+[5769s] 1 so we chose not to use it so there's
+[5772s] no pad ID
+[5773s] here then these are individual bite
+[5776s] tokens so here we saw that bite fallback
+[5780s] in llama was turned on so it's true so
+[5783s] what follows are going to be the 256
+[5786s] bite
+[5787s] tokens and these are their
+[5791s] IDs and then at the bottom after the
+[5795s] bite tokens come the
+[5797s] merges and these are the parent nodes in
+[5800s] the merges so we're not seeing the
+[5802s] children we're just seeing the parents
+[5803s] and their
+[5804s] ID and then after the
+[5807s] merges comes eventually the individual
+[5810s] tokens and their IDs and so these are
+[5813s] the individual tokens so these are the
+[5815s] individual code Point tokens if you will
+[5818s] and they come at the end so that is the
+[5820s] ordering with which sentence piece sort
+[5821s] of like represents its vocabularies it
+[5823s] starts with special tokens then the bike
+[5826s] tokens then the merge tokens and then
+[5828s] the individual codo tokens and all these
+[5831s] raw codepoint to tokens are the ones
+[5834s] that it encountered in the training
+[5836s] set so those individual code points are
+[5839s] all the the entire set of code points
+[5842s] that occurred
+[5844s] here so those all get put in there and
+[5847s] then those that are extremely rare as
+[5849s] determined by character coverage so if a
+[5851s] code Point occurred only a single time
+[5852s] out of like a million um sentences or
+[5855s] something like that then it would be
+[5857s] ignored and it would not be added to our
+[5860s] uh
+[5861s] vocabulary once we have a vocabulary we
+[5863s] can encode into IDs and we can um sort
+[5866s] of get a
+[5867s] list and then here I am also decoding
+[5870s] the indiv idual tokens back into little
+[5874s] pieces as they call it so let's take a
+[5876s] look at what happened here hello space
+[5881s] on so these are the token IDs we got
+[5884s] back and when we look here uh a few
+[5887s] things sort of uh jump to mind number
+[5891s] one take a look at these characters the
+[5894s] Korean characters of course were not
+[5895s] part of the training set so sentence
+[5898s] piece is encountering code points that
+[5899s] it has not seen during training time and
+[5902s] those code points do not have a token
+[5904s] associated with them so suddenly these
+[5906s] are un tokens unknown tokens but because
+[5910s] bite fall back as true instead sentence
+[5913s] piece falls back to bytes and so it
+[5916s] takes this it encodes it with utf8 and
+[5919s] then it uses these tokens to represent
+[5923s] uh those bytes and that's what we are
+[5925s] getting sort of here this is the utf8 uh
+[5929s] encoding and in this shifted by three uh
+[5932s] because of these um special tokens here
+[5936s] that have IDs earlier on so that's what
+[5938s] happened here now one more thing that um
+[5942s] well first before I go on with respect
+[5945s] to the bitef back let me remove bite
+[5948s] foldback if this is false what's going
+[5950s] to happen let's
+[5952s] retrain so the first thing that happened
+[5954s] is all the bite tokens disappeared right
+[5957s] and now we just have the merges and we
+[5959s] have a lot more merges now because we
+[5960s] have a lot more space because we're not
+[5961s] taking up space in the wab size uh with
+[5965s] all the
+[5965s] bytes and now if we encode
+[5969s] this we get a zero so this entire string
+[5973s] here suddenly there's no bitef back so
+[5975s] this is unknown and unknown is an and so
+[5979s] this is zero because the an token is
+[5982s] token zero and you have to keep in mind
+[5984s] that this would feed into your uh
+[5986s] language model so what is a language
+[5988s] model supposed to do when all kinds of
+[5989s] different things that are unrecognized
+[5992s] because they're rare just end up mapping
+[5994s] into Unk it's not exactly the property
+[5996s] that you want so that's why I think
+[5997s] llama correctly uh used by fallback true
+[6002s] uh because we definitely want to feed
+[6003s] these um unknown or rare code points
+[6006s] into the model and some uh some manner
+[6008s] the next thing I want to show you is the
+[6010s] following notice here when we are
+[6012s] decoding all the individual tokens you
+[6014s] see how spaces uh space here ends up
+[6018s] being this um bold underline I'm not
+[6021s] 100% sure by the way why sentence piece
+[6023s] switches whites space into these bold
+[6025s] underscore characters maybe it's for
+[6027s] visualization I'm not 100% sure why that
+[6029s] happens uh but notice this why do we
+[6032s] have an extra space in the front of
+[6037s] hello um what where is this coming from
+[6040s] well it's coming from this option
+[6043s] here
+[6045s] um add dummy prefix is true and when you
+[6048s] go to the
+[6049s] documentation add D whites space at the
+[6051s] beginning of text in order to treat
+[6053s] World in world and hello world in the
+[6055s] exact same way so what this is trying to
+[6057s] do is the
+[6059s] following if we go back to our tick
+[6062s] tokenizer world as uh token by itself
+[6066s] has a different ID than space world so
+[6070s] we have this is 1917 but this is 14 Etc
+[6074s] so these are two different tokens for
+[6076s] the language model and the language
+[6077s] model has to learn from data that they
+[6078s] are actually kind of like a very similar
+[6080s] concept so to the language model in the
+[6083s] Tik token World um basically words in
+[6086s] the beginning of sentences and words in
+[6087s] the middle of sentences actually look
+[6089s] completely different um and it has to
+[6092s] learned that they are roughly the same
+[6094s] so this add dami prefix is trying to
+[6096s] fight that a little bit and the way that
+[6098s] works is that it basically
+[6101s] uh adds a dummy prefix so for as a as a
+[6106s] part of pre-processing it will take the
+[6109s] string and it will add a space it will
+[6111s] do this and that's done in an effort to
+[6114s] make this world and that world the same
+[6117s] they will both be space world so that's
+[6120s] one other kind of pre-processing option
+[6122s] that is turned on and llama 2 also uh
+[6125s] uses this option and that's I think
+[6127s] everything that I want to say for my
+[6128s] preview of sentence piece and how it is
+[6130s] different um maybe here what I've done
+[6133s] is I just uh put in the Raw protocol
+[6136s] buffer representation basically of the
+[6139s] tokenizer the too trained so feel free
+[6142s] to sort of Step through this and if you
+[6144s] would like uh your tokenization to look
+[6147s] identical to that of the meta uh llama 2
+[6150s] then you would be copy pasting these
+[6151s] settings as I tried to do up above and
+[6154s] uh yeah that's I think that's it for
+[6156s] this section I think my summary for
+[6158s] sentence piece from all of this is
+[6160s] number one I think that there's a lot of
+[6162s] historical baggage in sentence piece a
+[6164s] lot of Concepts that I think are
+[6165s] slightly confusing and I think
+[6167s] potentially um contain foot guns like
+[6169s] this concept of a sentence and it's
+[6170s] maximum length and stuff like that um
+[6173s] otherwise it is fairly commonly used in
+[6175s] the industry um because it is efficient
+[6178s] and can do both training and inference
+[6181s] uh it has a few quirks like for example
+[6182s] un token must exist and the way the bite
+[6185s] fallbacks are done and so on I don't
+[6186s] find particularly elegant and
+[6188s] unfortunately I have to say it's not
+[6189s] very well documented so it took me a lot
+[6191s] of time working with this myself um and
+[6194s] just visualizing things and trying to
+[6196s] really understand what is happening here
+[6197s] because uh the documentation
+[6199s] unfortunately is in my opion not not
+[6201s] super amazing but it is a very nice repo
+[6204s] that is available to you if you'd like
+[6206s] to train your own tokenizer right now
+[6208s] okay let me now switch gears again as
+[6209s] we're starting to slowly wrap up here I
+[6211s] want to revisit this issue in a bit more
+[6213s] detail of how we should set the vocap
+[6215s] size and what are some of the
+[6216s] considerations around it so for this I'd
+[6219s] like to go back to the model
+[6220s] architecture that we developed in the
+[6222s] last video when we built the GPT from
+[6224s] scratch so this here was uh the file
+[6227s] that we built in the previous video and
+[6229s] we defined the Transformer model and and
+[6231s] let's specifically look at Bap size and
+[6232s] where it appears in this file so here we
+[6235s] Define the voap size uh at this time it
+[6238s] was 65 or something like that extremely
+[6239s] small number so this will grow much
+[6242s] larger you'll see that Bap size doesn't
+[6244s] come up too much in most of these layers
+[6246s] the only place that it comes up to is in
+[6248s] exactly these two places here so when we
+[6251s] Define the language model there's the
+[6253s] token embedding table which is this
+[6255s] two-dimensional array where the vocap
+[6258s] size is basically the number of rows and
+[6261s] uh each vocabulary element each token
+[6263s] has a vector that we're going to train
+[6265s] using back propagation that Vector is of
+[6267s] size and embed which is number of
+[6269s] channels in the Transformer and
+[6271s] basically as voap size increases this
+[6273s] embedding table as I mentioned earlier
+[6275s] is going to also grow we're going to be
+[6277s] adding rows in addition to that at the
+[6279s] end of the Transformer there's this LM
+[6281s] head layer which is a linear layer and
+[6284s] you'll notice that that layer is used at
+[6286s] the very end to produce the logits uh
+[6288s] which become the probabilities for the
+[6289s] next token in sequence and so
+[6291s] intuitively we're trying to produce a
+[6293s] probability for every single token that
+[6296s] might come next at every point in time
+[6298s] of that Transformer and if we have more
+[6301s] and more tokens we need to produce more
+[6302s] and more probabilities so every single
+[6304s] token is going to introduce an
+[6306s] additional dot product that we have to
+[6308s] do here in this linear layer for this
+[6310s] final layer in a
+[6311s] Transformer so why can't vocap size be
+[6314s] infinite why can't we grow to Infinity
+[6316s] well number one your token embedding
+[6318s] table is going to grow uh your linear
+[6321s] layer is going to grow so we're going to
+[6323s] be doing a lot more computation here
+[6325s] because this LM head layer will become
+[6326s] more computational expensive number two
+[6329s] because we have more parameters we could
+[6330s] be worried that we are going to be under
+[6333s] trining some of these
+[6335s] parameters so intuitively if you have a
+[6337s] very large vocabulary size say we have a
+[6338s] million uh tokens then every one of
+[6341s] these tokens is going to come up more
+[6342s] and more rarely in the training data
+[6345s] because there's a lot more other tokens
+[6346s] all over the place and so we're going to
+[6348s] be seeing fewer and fewer examples uh
+[6351s] for each individual token and you might
+[6353s] be worried that basically the vectors
+[6355s] associated with every token will be
+[6356s] undertrained as a result because they
+[6358s] just don't come up too often and they
+[6359s] don't participate in the forward
+[6360s] backward pass in addition to that as
+[6363s] your vocab size grows you're going to
+[6364s] start shrinking your sequences a lot
+[6367s] right and that's really nice because
+[6369s] that means that we're going to be
+[6370s] attending to more and more text so
+[6372s] that's nice but also you might be
+[6373s] worrying that two large of chunks are
+[6375s] being squished into single tokens and so
+[6378s] the model just doesn't have as much of
+[6380s] time to think per sort of um some number
+[6385s] of characters in the text or you can
+[6386s] think about it that way right so
+[6388s] basically we're squishing too much
+[6389s] information into a single token and then
+[6391s] the forward pass of the Transformer is
+[6393s] not enough to actually process that
+[6394s] information appropriately and so these
+[6396s] are some of the considerations you're
+[6397s] thinking about when you're designing the
+[6398s] vocab size as I mentioned this is mostly
+[6400s] an empirical hyperparameter and it seems
+[6402s] like in state-of-the-art architectures
+[6404s] today this is usually in the high 10,000
+[6406s] or somewhere around 100,000 today and
+[6409s] the next consideration I want to briefly
+[6410s] talk about is what if we want to take a
+[6413s] pre-trained model and we want to extend
+[6415s] the vocap size and this is done fairly
+[6417s] commonly actually so for example when
+[6418s] you're doing fine-tuning for cha GPT um
+[6422s] a lot more new special tokens get
+[6423s] introduced on top of the base model to
+[6425s] maintain the metadata and all the
+[6428s] structure of conversation objects
+[6429s] between a user and an assistant so that
+[6431s] takes a lot of special tokens you might
+[6434s] also try to throw in more special tokens
+[6435s] for example for using the browser or any
+[6437s] other tool and so it's very tempting to
+[6440s] add a lot of tokens for all kinds of
+[6442s] special functionality so if you want to
+[6444s] be adding a token that's totally
+[6445s] possible Right all we have to do is we
+[6447s] have to resize this embedding so we have
+[6449s] to add rows we would initialize these uh
+[6452s] parameters from scratch to be small
+[6454s] random numbers and then we have to
+[6456s] extend the weight inside this linear uh
+[6459s] so we have to start making dot products
+[6461s] um with the associated parameters as
+[6463s] well to basically calculate the
+[6464s] probabilities for these new tokens so
+[6466s] both of these are just a resizing
+[6468s] operation it's a very mild
+[6470s] model surgery and can be done fairly
+[6472s] easily and it's quite common that
+[6474s] basically you would freeze the base
+[6475s] model you introduce these new parameters
+[6477s] and then you only train these new
+[6478s] parameters to introduce new tokens into
+[6480s] the architecture um and so you can
+[6483s] freeze arbitrary parts of it or you can
+[6484s] train arbitrary parts of it and that's
+[6486s] totally up to you but basically minor
+[6488s] surgery required if you'd like to
+[6490s] introduce new tokens and finally I'd
+[6491s] like to mention that actually there's an
+[6493s] entire design space of applications in
+[6495s] terms of introducing new tokens into a
+[6497s] vocabulary that go Way Beyond just
+[6499s] adding special tokens and special new
+[6501s] functionality so just to give you a
+[6503s] sense of the design space but this could
+[6504s] be an entire video just by itself uh
+[6506s] this is a paper on learning to compress
+[6508s] prompts with what they called uh gist
+[6511s] tokens and the rough idea is suppose
+[6513s] that you're using language models in a
+[6514s] setting that requires very long prompts
+[6517s] while these long prompts just slow
+[6518s] everything down because you have to
+[6519s] encode them and then you have to use
+[6521s] them and then you're tending over them
+[6523s] and it's just um you know heavy to have
+[6525s] very large prompts so instead what they
+[6527s] do here in this paper is they introduce
+[6530s] new tokens and um imagine basically
+[6534s] having a few new tokens you put them in
+[6536s] a sequence and then you train the model
+[6539s] by distillation so you are keeping the
+[6541s] entire model Frozen and you're only
+[6543s] training the representations of the new
+[6545s] tokens their embeddings and you're
+[6546s] optimizing over the new tokens such that
+[6549s] the behavior of the language model is
+[6551s] identical uh to the model that has a
+[6555s] very long prompt that works for you and
+[6557s] so it's a compression technique of
+[6559s] compressing that very long prompt into
+[6560s] those few new gist tokens and so you can
+[6563s] train this and then at test time you can
+[6565s] discard your old prompt and just swap in
+[6566s] those tokens and they sort of like uh
+[6568s] stand in for that very long prompt and
+[6571s] have an almost identical performance and
+[6573s] so this is one um technique and a class
+[6576s] of parameter efficient fine-tuning
+[6578s] techniques where most of the model is
+[6579s] basically fixed and there's no training
+[6581s] of the model weights there's no training
+[6583s] of Laura or anything like that of new
+[6585s] parameters the the parameters that
+[6587s] you're training are now just the uh
+[6589s] token embeddings so that's just one
+[6591s] example but this could again be like an
+[6592s] entire video but just to give you a
+[6594s] sense that there's a whole design space
+[6595s] here that is potentially worth exploring
+[6597s] in the future the next thing I want to
+[6599s] briefly address is that I think recently
+[6601s] there's a lot of momentum in how you
+[6603s] actually could construct Transformers
+[6605s] that can simultaneously process not just
+[6606s] text as the input modality but a lot of
+[6608s] other modalities so be it images videos
+[6611s] audio Etc and how do you feed in all
+[6614s] these modalities and potentially predict
+[6616s] these modalities from a Transformer uh
+[6618s] do you have to change the architecture
+[6619s] in some fundamental way and I think what
+[6621s] a lot of people are starting to converge
+[6623s] towards is that you're not changing the
+[6624s] architecture you stick with the
+[6625s] Transformer you just kind of tokenize
+[6627s] your input domains and then call the day
+[6629s] and pretend it's just text tokens and
+[6631s] just do everything else identical in an
+[6633s] identical manner so here for example
+[6636s] there was a early paper that has nice
+[6637s] graphic for how you can take an image
+[6639s] and you can chunc at it into
+[6642s] integers um and these sometimes uh so
+[6645s] these will basically become the tokens
+[6646s] of images as an example and uh these
+[6649s] tokens can be uh hard tokens where you
+[6652s] force them to be integers they can also
+[6653s] be soft tokens where you uh sort of
+[6657s] don't require uh these to be discrete
+[6660s] but you do Force these representations
+[6662s] to go through bottlenecks like in Auto
+[6664s] encoders uh also in this paper that came
+[6666s] out from open a SORA which I think
+[6668s] really um uh blew the mind of many
+[6671s] people and inspired a lot of people in
+[6673s] terms of what's possible they have a
+[6675s] Graphic here and they talk briefly about
+[6676s] how llms have text tokens Sora has
+[6680s] visual patches so again they came up
+[6682s] with a way to chunc a videos into
+[6684s] basically tokens when they own
+[6686s] vocabularies and then you can either
+[6688s] process discrete tokens say with autog
+[6690s] regressive models or even soft tokens
+[6692s] with diffusion models and uh all of that
+[6695s] is sort of uh being actively worked on
+[6698s] designed on and is beyond the scope of
+[6699s] this video but just something I wanted
+[6700s] to mention briefly okay now that we have
+[6702s] come quite deep into the tokenization
+[6705s] algorithm and we understand a lot more
+[6706s] about how it works let's loop back
+[6708s] around to the beginning of this video
+[6710s] and go through some of these bullet
+[6711s] points and really see why they happen so
+[6714s] first of all why can't my llm spell
+[6716s] words very well or do other spell
+[6718s] related
+[6720s] tasks so fundamentally this is because
+[6722s] as we saw these characters are chunked
+[6725s] up into tokens and some of these tokens
+[6727s] are actually fairly long so as an
+[6730s] example I went to the gp4 vocabulary and
+[6732s] I looked at uh one of the longer tokens
+[6735s] so that default style turns out to be a
+[6737s] single individual token so that's a lot
+[6739s] of characters for a single token so my
+[6742s] suspicion is that there's just too much
+[6743s] crammed into this single token and my
+[6746s] suspicion was that the model should not
+[6747s] be very good at tasks related to
+[6750s] spelling of this uh single token so I
+[6754s] asked how many letters L are there in
+[6757s] the word default style and of course my
+[6761s] prompt is intentionally done that way
+[6764s] and you see how default style will be a
+[6765s] single token so this is what the model
+[6767s] sees so my suspicion is that it wouldn't
+[6769s] be very good at this and indeed it is
+[6771s] not it doesn't actually know how many
+[6773s] L's are in there it thinks there are
+[6774s] three and actually there are four if I'm
+[6777s] not getting this wrong myself so that
+[6779s] didn't go extremely well let's look look
+[6782s] at another kind of uh character level
+[6784s] task so for example here I asked uh gp4
+[6788s] to reverse the string default style and
+[6791s] they tried to use a code interpreter and
+[6793s] I stopped it and I said just do it just
+[6795s] try it and uh it gave me jumble so it
+[6799s] doesn't actually really know how to
+[6801s] reverse this string going from right to
+[6803s] left uh so it gave a wrong result so
+[6806s] again like working with this working
+[6808s] hypothesis that maybe this is due to the
+[6810s] tokenization I tried a different
+[6811s] approach I said okay let's reverse the
+[6814s] exact same string but take the following
+[6816s] approach step one just print out every
+[6818s] single character separated by spaces and
+[6820s] then as a step two reverse that list and
+[6823s] it again Tred to use a tool but when I
+[6824s] stopped it it uh first uh produced all
+[6827s] the characters and that was actually
+[6828s] correct and then It reversed them and
+[6830s] that was correct once it had this so
+[6833s] somehow it can't reverse it directly but
+[6834s] when you go just first uh you know
+[6837s] listing it out in order it can do that
+[6839s] somehow and then it can once it's uh
+[6841s] broken up this way this becomes all
+[6843s] these individual characters and so now
+[6846s] this is much easier for it to see these
+[6847s] individual tokens and reverse them and
+[6850s] print them out so that is kind of
+[6853s] interesting so let's continue now why
+[6856s] are llms worse at uh non-english langu
+[6860s] and I briefly covered this already but
+[6862s] basically um it's not only that the
+[6864s] language model sees less non-english
+[6867s] data during training of the model
+[6868s] parameters but also the tokenizer is not
+[6871s] um is not sufficiently trained on
+[6874s] non-english data and so here for example
+[6877s] hello how are you is five tokens and its
+[6880s] translation is 15 tokens so this is a
+[6882s] three times blow up and so for example
+[6885s] anang is uh just hello basically in
+[6888s] Korean and that end up being three
+[6890s] tokens I'm actually kind of surprised by
+[6891s] that because that is a very common
+[6893s] phrase there just the typical greeting
+[6895s] of like hello and that ends up being
+[6897s] three tokens whereas our hello is a
+[6898s] single token and so basically everything
+[6900s] is a lot more bloated and diffuse and
+[6902s] this is I think partly the reason that
+[6904s] the model Works worse on other
+[6907s] languages uh coming back why is LM bad
+[6910s] at simple arithmetic um that has to do
+[6913s] with the tokenization of numbers and so
+[6917s] um you'll notice that for example
+[6919s] addition is very sort of
+[6920s] like uh there's an algorithm that is
+[6923s] like character level for doing addition
+[6925s] so for example here we would first add
+[6927s] the ones and then the tens and then the
+[6929s] hundreds you have to refer to specific
+[6931s] parts of these digits but uh these
+[6934s] numbers are represented completely
+[6936s] arbitrarily based on whatever happened
+[6937s] to merge or not merge during the
+[6939s] tokenization process there's an entire
+[6941s] blog post about this that I think is
+[6942s] quite good integer tokenization is
+[6944s] insane and this person basically
+[6946s] systematically explores the tokenization
+[6948s] of numbers in I believe this is gpt2 and
+[6952s] so they notice that for example for the
+[6953s] for um four-digit numbers you can take a
+[6957s] look at whether it is uh a single token
+[6960s] or whether it is two tokens that is a 1
+[6962s] three or a 2 two or a 31 combination and
+[6964s] so all the different numbers are all the
+[6966s] different combinations and you can
+[6968s] imagine this is all completely
+[6969s] arbitrarily so and the model
+[6971s] unfortunately sometimes sees uh four um
+[6974s] a token for for all four digits
+[6976s] sometimes for three sometimes for two
+[6978s] sometimes for one and it's in an
+[6980s] arbitrary uh Manner and so this is
+[6982s] definitely a headwind if you will for
+[6985s] the language model and it's kind of
+[6986s] incredible that it can kind of do it and
+[6987s] deal with it but it's also kind of not
+[6990s] ideal and so that's why for example we
+[6992s] saw that meta when they train the Llama
+[6994s] 2 algorithm and they use sentence piece
+[6996s] they make sure to split up all the um
+[6999s] all the digits as an example for uh
+[7002s] llama 2 and this is partly to improve a
+[7004s] simple arithmetic kind of
+[7006s] performance and finally why is gpt2 not
+[7010s] as good in Python again this is partly a
+[7012s] modeling issue on in the architecture
+[7014s] and the data set and the strength of the
+[7016s] model but it's also partially
+[7018s] tokenization because as we saw here with
+[7020s] the simple python example the encoding
+[7023s] efficiency of the tokenizer for handling
+[7025s] spaces in Python is terrible and every
+[7027s] single space is an individual token and
+[7029s] this dramatically reduces the context
+[7031s] length that the model can attend to
+[7032s] cross so that's almost like a
+[7034s] tokenization bug for gpd2 and that was
+[7036s] later fixed with gp4 okay so here's
+[7040s] another fun one my llm abruptly halts
+[7042s] when it sees the string end of text so
+[7045s] here's um here's a very strange Behavior
+[7048s] print a string end of text is what I
+[7050s] told jt4 and it says could you please
+[7052s] specify the string and I'm I'm telling
+[7055s] it give me end of text and it seems like
+[7057s] there's an issue it's not seeing end of
+[7059s] text and then I give it end of text is
+[7061s] the string and then here's a string and
+[7064s] then it just doesn't print it so
+[7065s] obviously something is breaking here
+[7067s] with respect to the handling of the
+[7068s] special token and I don't actually know
+[7070s] what open ey is doing under the hood
+[7072s] here and whether they are potentially
+[7074s] parsing this as an um as an actual token
+[7078s] instead of this just being uh end of
+[7081s] text um as like individual sort of
+[7084s] pieces of it without the special token
+[7086s] handling logic and so it might be that
+[7089s] someone when they're calling do encode
+[7091s] uh they are passing in the allowed
+[7093s] special and they are allowing end of
+[7096s] text as a special character in the user
+[7098s] prompt but the user prompt of course is
+[7100s] is a sort of um attacker controlled text
+[7103s] so you would hope that they don't really
+[7105s] parse or use special tokens or you know
+[7108s] from that kind of input but it appears
+[7110s] that there's something definitely going
+[7111s] wrong here and um so your knowledge of
+[7114s] these special tokens ends up being in a
+[7116s] tax surface potentially and so if you'd
+[7118s] like to confuse llms then just um try to
+[7123s] give them some special tokens and see if
+[7124s] you're breaking something by chance okay
+[7126s] so this next one is a really fun one uh
+[7129s] the trailing whites space issue so if
+[7132s] you come to playground and uh we come
+[7136s] here to GPT 3.5 turbo instruct so this
+[7138s] is not a chat model this is a completion
+[7140s] model so think of it more like it's a
+[7142s] lot more closer to a base model it does
+[7145s] completion it will continue the token
+[7147s] sequence so here's a tagline for ice
+[7149s] cream shop and we want to continue the
+[7151s] sequence and so we can submit and get a
+[7154s] bunch of tokens okay no problem but now
+[7158s] suppose I do this but instead of
+[7160s] pressing submit here I do here's a
+[7163s] tagline for ice cream shop space so I
+[7166s] have a space here before I click
+[7168s] submit we get a warning your text ends
+[7171s] in a trail Ling space which causes worse
+[7173s] performance due to how API splits text
+[7175s] into tokens so what's happening here it
+[7178s] still gave us a uh sort of completion
+[7180s] here but let's take a look at what's
+[7182s] happening so here's a tagline for an ice
+[7184s] cream shop and then what does this look
+[7188s] like in the actual actual training data
+[7190s] suppose you found the completion in the
+[7192s] training document somewhere on the
+[7193s] internet and the llm trained on this
+[7195s] data so maybe it's something like oh
+[7198s] yeah maybe that's the tagline that's a
+[7200s] terrible tagline but notice here that
+[7202s] when I create o you see that because
+[7205s] there's the the space character is
+[7207s] always a prefix to these tokens in GPT
+[7211s] so it's not an O token it's a space o
+[7213s] token the space is part of the O and
+[7216s] together they are token 8840 that's
+[7219s] that's space o so what's What's
+[7221s] Happening Here is that when I just have
+[7224s] it like this and I let it complete the
+[7227s] next token it can sample the space o
+[7230s] token but instead if I have this and I
+[7232s] add my space then what I'm doing here
+[7234s] when I incode this string is I have
+[7237s] basically here's a t line for an ice
+[7239s] cream uh shop and this space at the very
+[7242s] end becomes a token
+[7244s] 220 and so we've added token 220 and
+[7247s] this token otherwise would be part of
+[7249s] the tagline because if there actually is
+[7251s] a tagline here so space o is the token
+[7255s] and so this is suddenly a of
+[7257s] distribution for the model because this
+[7259s] space is part of the next token but
+[7261s] we're putting it here like this and the
+[7264s] model has seen very very little data of
+[7267s] actual Space by itself and we're asking
+[7270s] it to complete the sequence like add in
+[7271s] more tokens but the problem is that
+[7273s] we've sort of begun the first token and
+[7276s] now it's been split up and now we're out
+[7278s] of this distribution and now arbitrary
+[7280s] bad things happen and it's just a very
+[7283s] rare example for it to see something
+[7284s] like that and uh that's why we get the
+[7286s] warning so the fundamental issue here is
+[7289s] of course that um the llm is on top of
+[7292s] these tokens and these tokens are text
+[7294s] chunks they're not characters in a way
+[7296s] you and I would think of them they are
+[7298s] these are the atoms of what the LM is
+[7300s] seeing and there's a bunch of weird
+[7301s] stuff that comes out of it let's go back
+[7303s] to our default cell style I bet you that
+[7308s] the model has never in its training set
+[7309s] seen default cell sta without Le in
+[7314s] there it's always seen this as a single
+[7316s] group because uh this is some kind of a
+[7319s] function in um I'm guess I don't
+[7322s] actually know what this is part of this
+[7323s] is some kind of API but I bet you that
+[7325s] it's never seen this combination of
+[7327s] tokens uh in its training data because
+[7330s] or I think it would be extremely rare so
+[7332s] I took this and I copy pasted it here
+[7334s] and I had I tried to complete from it
+[7337s] and the it immediately gave me a big
+[7339s] error and it said the model predicted to
+[7341s] completion that begins with a stop
+[7342s] sequence resulting in no output consider
+[7344s] adjusting your prompt or stop sequences
+[7346s] so what happened here when I clicked
+[7347s] submit is that immediately the model
+[7350s] emitted and sort of like end of text
+[7352s] token I think or something like that it
+[7354s] basically predicted the stop sequence
+[7356s] immediately so it had no completion and
+[7358s] so this is why I'm getting a warning
+[7360s] again because we're off the data
+[7362s] distribution and the model is just uh
+[7365s] predicting just totally arbitrary things
+[7367s] it's just really confused basically this
+[7369s] is uh this is giving it brain damage
+[7370s] it's never seen this before it's shocked
+[7373s] and it's predicting end of text or
+[7374s] something I tried it again here and it
+[7377s] in this case it completed it but then
+[7379s] for some reason this request May violate
+[7381s] our usage policies this was
+[7383s] flagged um basically something just like
+[7386s] goes wrong and there's something like
+[7387s] Jank you can just feel the Jank because
+[7389s] the model is like extremely unhappy with
+[7391s] just this and it doesn't know how to
+[7392s] complete it because it's never occurred
+[7394s] in training set in a training set it
+[7396s] always appears like this and becomes a
+[7398s] single token
+[7400s] so these kinds of issues where tokens
+[7401s] are either you sort of like complete the
+[7404s] first character of the next token or you
+[7406s] are sort of you have long tokens that
+[7408s] you then have just some of the
+[7409s] characters off all of these are kind of
+[7412s] like issues with partial tokens is how I
+[7415s] would describe it and if you actually
+[7417s] dig into the T token
+[7419s] repository go to the rust code and
+[7421s] search for
+[7424s] unstable and you'll see um en code
+[7427s] unstable native unstable token tokens
+[7429s] and a lot of like special case handling
+[7431s] none of this stuff about unstable tokens
+[7433s] is documented anywhere but there's a ton
+[7435s] of code dealing with unstable tokens and
+[7438s] unstable tokens is exactly kind of like
+[7440s] what I'm describing here what you would
+[7442s] like out of a completion API is
+[7445s] something a lot more fancy like if we're
+[7446s] putting in default cell sta if we're
+[7448s] asking for the next token sequence we're
+[7450s] not actually trying to append the next
+[7452s] token exactly after this list we're
+[7454s] actually trying to append we're trying
+[7456s] to consider lots of tokens um
+[7459s] that if we were or I guess like we're
+[7462s] trying to search over characters that if
+[7465s] we retened would be of high probability
+[7468s] if that makes sense um so that we can
+[7470s] actually add a single individual
+[7472s] character uh instead of just like adding
+[7474s] the next full token that comes after
+[7476s] this partial token list so I this is
+[7479s] very tricky to describe and I invite you
+[7481s] to maybe like look through this it ends
+[7483s] up being extremely gnarly and hairy kind
+[7484s] of topic it and it comes from
+[7486s] tokenization fundamentally so um maybe I
+[7489s] can even spend an entire video talking
+[7490s] about unstable tokens sometime in the
+[7492s] future okay and I'm really saving the
+[7494s] best for last my favorite one by far is
+[7496s] the solid gold
+[7499s] Magikarp and it just okay so this comes
+[7501s] from this blog post uh solid gold
+[7503s] Magikarp and uh this is um internet
+[7507s] famous now for those of us in llms and
+[7510s] basically I I would advise you to uh
+[7511s] read this block Post in full but
+[7513s] basically what this person was doing is
+[7516s] this person went to the um
+[7519s] token embedding stable and clustered the
+[7522s] tokens based on their embedding
+[7524s] representation and this person noticed
+[7527s] that there's a cluster of tokens that
+[7529s] look really strange so there's a cluster
+[7531s] here at rot e stream Fame solid gold
+[7534s] Magikarp Signet message like really
+[7536s] weird tokens in uh basically in this
+[7539s] embedding cluster and so what are these
+[7542s] tokens and where do they even come from
+[7543s] like what is solid gold magikarpet makes
+[7545s] no sense and then they found bunch of
+[7548s] these
+[7550s] tokens and then they notice that
+[7552s] actually the plot thickens here because
+[7553s] if you ask the model about these tokens
+[7556s] like you ask it uh some very benign
+[7558s] question like please can you repeat back
+[7560s] to me the string sold gold Magikarp uh
+[7562s] then you get a variety of basically
+[7564s] totally broken llm Behavior so either
+[7567s] you get evasion so I'm sorry I can't
+[7569s] hear you or you get a bunch of
+[7571s] hallucinations as a response um you can
+[7574s] even get back like insults so you ask it
+[7577s] uh about streamer bot it uh tells the
+[7580s] and the model actually just calls you
+[7582s] names uh or it kind of comes up with
+[7584s] like weird humor like you're actually
+[7586s] breaking the model by asking about these
+[7588s] very simple strings like at Roth and
+[7590s] sold gold Magikarp so like what the hell
+[7592s] is happening and there's a variety of
+[7594s] here documented behaviors uh there's a
+[7597s] bunch of tokens not just so good
+[7598s] Magikarp that have that kind of a
+[7600s] behavior and so basically there's a
+[7602s] bunch of like trigger words and if you
+[7604s] ask the model about these trigger words
+[7606s] or you just include them in your prompt
+[7608s] the model goes haywire and has all kinds
+[7610s] of uh really Strange Behaviors including
+[7612s] sort of ones that violate typical safety
+[7614s] guidelines uh and the alignment of the
+[7617s] model like it's swearing back at you so
+[7619s] what is happening here and how can this
+[7621s] possibly be true well this again comes
+[7624s] down to tokenization so what's happening
+[7626s] here is that sold gold Magikarp if you
+[7628s] actually dig into it is a Reddit user so
+[7631s] there's a u Sol gold
+[7634s] Magikarp and probably what happened here
+[7636s] even though I I don't know that this has
+[7638s] been like really definitively explored
+[7640s] but what is thought to have happened is
+[7643s] that the tokenization data set was very
+[7645s] different from the training data set for
+[7648s] the actual language model so in the
+[7649s] tokenization data set there was a ton of
+[7651s] redded data potentially where the user
+[7654s] solid gold Magikarp was mentioned in the
+[7656s] text because solid gold Magikarp was a
+[7659s] very common um sort of uh person who
+[7661s] would post a lot uh this would be a
+[7663s] string that occurs many times in a
+[7665s] tokenization data set because it occurs
+[7668s] many times in a tokenization data set
+[7670s] these tokens would end up getting merged
+[7671s] to the single individual token for that
+[7673s] single Reddit user sold gold Magikarp so
+[7676s] they would have a dedicated token in a
+[7678s] vocabulary of was it 50,000 tokens in
+[7680s] gpd2 that is devoted to that Reddit user
+[7684s] and then what happens is the
+[7685s] tokenization data set has those strings
+[7688s] but then later when you train the model
+[7690s] the language model itself um this data
+[7693s] from Reddit was not present and so
+[7696s] therefore in the entire training set for
+[7698s] the language model sold gold Magikarp
+[7701s] never occurs that token never appears in
+[7704s] the training set for the actual language
+[7705s] model later so this token never gets
+[7708s] activated it's initialized at random in
+[7711s] the beginning of optimization then you
+[7712s] have forward backward passes and updates
+[7714s] to the model and this token is just
+[7716s] never updated in the embedding table
+[7717s] that row Vector never gets sampled it
+[7720s] never gets used so it never gets trained
+[7722s] and it's completely untrained it's kind
+[7723s] of like unallocated memory in a typical
+[7726s] binary program written in C or something
+[7728s] like that that so it's unallocated
+[7730s] memory and then at test time if you
+[7731s] evoke this token then you're basically
+[7734s] plucking out a row of the embedding
+[7735s] table that is completely untrained and
+[7737s] that feeds into a Transformer and
+[7738s] creates undefined behavior and that's
+[7740s] what we're seeing here this completely
+[7742s] undefined never before seen in a
+[7743s] training behavior and so any of these
+[7746s] kind of like weird tokens would evoke
+[7748s] this Behavior because fundamentally the
+[7749s] model is um is uh uh out of sample out
+[7754s] of distribution okay and the very last
+[7756s] thing I wanted to just briefly mention
+[7758s] point out although I think a lot of
+[7759s] people are quite aware of this is that
+[7761s] different kinds of formats and different
+[7763s] representations and different languages
+[7765s] and so on might be more or less
+[7766s] efficient with GPD tokenizers uh or any
+[7769s] tokenizers for any other L for that
+[7771s] matter so for example Json is actually
+[7773s] really dense in tokens and yaml is a lot
+[7776s] more efficient in tokens um so for
+[7779s] example this are these are the same in
+[7781s] Json and in yaml the Json is
+[7784s] 116 and the yaml is 99 so quite a bit of
+[7788s] an Improvement and so in the token
+[7791s] economy where we are paying uh per token
+[7793s] in many ways and you are paying in the
+[7795s] context length and you're paying in um
+[7797s] dollar amount for uh the cost of
+[7799s] processing all this kind of structured
+[7801s] data when you have to um so prefer to
+[7803s] use theal over Json and in general kind
+[7806s] of like the tokenization density is
+[7807s] something that you have to um sort of
+[7809s] care about and worry about at all times
+[7811s] and try to find efficient encoding
+[7813s] schemes and spend a lot of time in tick
+[7815s] tokenizer and measure the different
+[7816s] token efficiencies of different formats
+[7818s] and settings and so on okay so that
+[7821s] concludes my fairly long video on
+[7823s] tokenization I know it's a try I know
+[7825s] it's annoying I know it's irritating I
+[7828s] personally really dislike the stage what
+[7830s] I do have to say at this point is don't
+[7832s] brush it off there's a lot of foot guns
+[7834s] sharp edges here security issues uh AI
+[7838s] safety issues as we saw plugging in
+[7839s] unallocated memory into uh language
+[7842s] models so um it's worth understanding
+[7845s] this stage um that said I will say that
+[7848s] eternal glory goes to anyone who can get
+[7850s] rid of it uh I showed you one possible
+[7852s] paper that tried to uh do that and I
+[7854s] think I hope a lot more can follow over
+[7857s] time and my final recommendations for
+[7859s] the application right now are if you can
+[7861s] reuse the GPT 4 tokens and the
+[7863s] vocabulary uh in your application then
+[7865s] that's something you should consider and
+[7866s] just use Tech token because it is very
+[7867s] efficient and nice library for inference
+[7871s] for bpe I also really like the bite
+[7873s] level BP that uh Tik toen and openi uses
+[7877s] uh if you for some reason want to train
+[7879s] your own vocabulary from scratch um then
+[7882s] I would use uh the bpe with sentence
+[7885s] piece um oops as I mentioned I'm not a
+[7888s] huge fan of sentence piece I don't like
+[7890s] its uh bite fallback and I don't like
+[7893s] that it's doing BP on unic code code
+[7895s] points I think it's uh it also has like
+[7897s] a million settings and I think there's a
+[7899s] lot of foot gonss here and I think it's
+[7900s] really easy to Mis calibrate them and
+[7902s] you end up cropping your sentences or
+[7903s] something like that uh because of some
+[7905s] type of parameter that you don't fully
+[7907s] understand so so be very careful with
+[7909s] the settings try to copy paste exactly
+[7911s] maybe where what meta did or basically
+[7914s] spend a lot of time looking at all the
+[7916s] hyper parameters and go through the code
+[7917s] of sentence piece and make sure that you
+[7919s] have this correct um but even if you
+[7922s] have all the settings correct I still
+[7923s] think that the algorithm is kind of
+[7924s] inferior to what's happening here and
+[7927s] maybe the best if you really need to
+[7929s] train your vocabulary maybe the best
+[7931s] thing is to just wait for M bpe to
+[7933s] becomes as efficient as possible and uh
+[7936s] that's something that maybe I hope to
+[7938s] work on and at some point maybe we can
+[7940s] be training basically really what we
+[7942s] want is we want tick token but training
+[7944s] code and that is the ideal thing that
+[7947s] currently does not exist and MBP is um
+[7951s] is in implementation of it but currently
+[7953s] it's in Python so that's currently what
+[7955s] I have to say for uh tokenization there
+[7958s] might be an advanced video that has even
+[7960s] drier and even more detailed in the
+[7961s] future but for now I think we're going
+[7963s] to leave things off here and uh I hope
+[7966s] that was helpful bye
+[7974s] and uh they increase this contact size
+[7976s] from gpt1 of 512 uh to 1024 and GPT 4
+[7982s] two the
+[7985s] next okay next I would like us to
+[7987s] briefly walk through the code from open
+[7989s] AI on the gpt2 encoded
+[7995s] ATP I'm sorry I'm gonna sneeze
+[7999s] and then what's Happening Here
+[8001s] is this is a spous layer that I will
+[8004s] explain in a
+[8006s] bit What's Happening Here
+[8013s] is

@@ -1,0 +1,33 @@
+{
+  "project": "nanoGPT",
+  "description": "A minimal, clean implementation of GPT-2 training in ~300 lines of PyTorch",
+  "github": "https://github.com/karpathy/nanoGPT",
+  "key_decisions": [
+    {
+      "decision": "Keep it under 300 lines",
+      "reasoning": "Abstractions hide understanding. If you can read the whole thing in one sitting, you actually know what's happening."
+    },
+    {
+      "decision": "No framework abstractions like HuggingFace Trainer",
+      "reasoning": "Those abstractions are great for production but terrible for learning. I wanted every line to be intentional."
+    },
+    {
+      "decision": "Reproduce GPT-2 exactly before innovating",
+      "reasoning": "Get a known baseline working first. Verify it matches expected loss. Then you have a platform to experiment from."
+    },
+    {
+      "decision": "Use AdamW with cosine decay + warmup",
+      "reasoning": "This is what works. Don't reinvent the optimizer schedule, just use what the literature agrees on."
+    },
+    {
+      "decision": "6 layers, 6 heads, 384 embedding dim for the small model",
+      "reasoning": "Scaled down GPT-2 to fit on a single GPU while still being non-trivial. The architecture scales cleanly."
+    }
+  ],
+  "lessons": [
+    "A clean 300-line implementation teaches more than a 10,000-line framework",
+    "Always reproduce a known result before trying to improve on it",
+    "The training loop is not magic — it's just forward, loss, backward, step"
+  ],
+  "connected_concepts": ["transformers", "attention", "GPT", "language modeling", "tokenization"]
+}

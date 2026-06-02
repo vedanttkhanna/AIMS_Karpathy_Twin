@@ -1,0 +1,1561 @@
+SOURCE: https://www.youtube.com/watch?v=t3YJ5hKiMQ0
+
+[0s] hi everyone today we are continuing our
+[2s] implementation of make more our favorite
+[4s] character level language model
+[6s] now you'll notice that the background
+[7s] behind me is different that's because I
+[9s] am in Kyoto and it is awesome so I'm in
+[12s] a hotel room here
+[13s] now over the last few lectures we've
+[15s] built up to this architecture that is a
+[17s] multi-layer perceptron character level
+[19s] language model so we see that it
+[21s] receives three previous characters and
+[23s] tries to predict the fourth character in
+[24s] a sequence using a very simple multi
+[26s] perceptron using one hidden layer of
+[28s] neurons with 10ational neuralities
+[31s] so we'd like to do now in this lecture
+[33s] is I'd like to complexify this
+[34s] architecture in particular we would like
+[36s] to take more characters in a sequence as
+[38s] an input not just three and in addition
+[41s] to that we don't just want to feed them
+[42s] all into a single hidden layer because
+[45s] that squashes too much information too
+[46s] quickly instead we would like to make a
+[49s] deeper model that progressively fuses
+[51s] this information to make its guess about
+[53s] the next character in a sequence
+[55s] and so we'll see that as we make this
+[57s] architecture more complex we're actually
+[59s] going to arrive at something that looks
+[61s] very much like a wavenet
+[63s] the witness is this paper published by
+[65s] the point in 2016 and it is also a
+[69s] language model basically but it tries to
+[71s] predict audio sequences instead of
+[73s] character level sequences or Word level
+[75s] sequences but fundamentally the modeling
+[78s] setup is identical it is an auto
+[80s] aggressive model and it tries to predict
+[83s] next character in a sequence and the
+[85s] architecture actually takes this
+[86s] interesting hierarchical sort of
+[89s] approach to predicting the next
+[91s] character in a sequence uh with the
+[93s] street-like structure and this is the
+[95s] architecture and we're going to
+[96s] implement it in the course of this video
+[98s] so let's get started so the starter code
+[101s] for part five is very similar to where
+[103s] we ended up in in part three recall that
+[106s] part four was the manual black
+[107s] replication exercise that is kind of an
+[109s] aside so we are coming back to part
+[111s] three copy pasting chunks out of it and
+[113s] that is our starter code for part five
+[115s] I've changed very few things otherwise
+[117s] so a lot of this should look familiar to
+[119s] if you've gone through part three so in
+[121s] particular very briefly we are doing
+[123s] Imports we are reading our our data set
+[125s] of words and we are processing their set
+[129s] of words into individual examples and
+[131s] none of this data generation code has
+[133s] changed and basically we have lots and
+[135s] lots of examples in particular we have
+[137s] 182 000 examples of three characters try
+[141s] to predict the fourth one and we've
+[144s] broken up every one of these words into
+[145s] little problems of given three
+[147s] characters predict the fourth one so
+[149s] this is our data set and this is what
+[150s] we're trying to get the neural lot to do
+[152s] now in part three we started to develop
+[155s] our code around these layer modules
+[159s] um that are for example like class
+[160s] linear and we're doing this because we
+[162s] want to think of these modules as
+[164s] building blocks and like a Lego building
+[167s] block bricks that we can sort of like
+[169s] stack up into neural networks and we can
+[171s] feed data between these layers and stack
+[173s] them up into a sort of graphs
+[176s] now we also developed these layers to
+[179s] have apis and signatures very similar to
+[181s] those that are found in pytorch so we
+[184s] have torch.nn and it's got all these
+[185s] layer building blocks that you would use
+[187s] in practice and we were developing all
+[189s] of these to mimic the apis of these so
+[191s] for example we have linear so there will
+[193s] also be a torch.nn.linear and its
+[197s] signature will be very similar to our
+[198s] signature and the functionality will be
+[200s] also quite identical as far as I'm aware
+[202s] so we have the linear layer with the
+[204s] Bass from 1D layer and the 10h layer
+[207s] that we developed previously
+[209s] and linear just as a matrix multiply in
+[212s] the forward pass of this module batch
+[215s] number of course is this crazy layer
+[216s] that we developed in the previous
+[217s] lecture and what's crazy about it is
+[220s] well there's many things number one it
+[222s] has these running mean and variances
+[224s] that are trained outside of back
+[226s] propagation they are trained using
+[229s] exponential moving average inside this
+[232s] layer when we call the forward pass
+[234s] in addition to that
+[236s] there's this training plug because the
+[238s] behavior of bathroom is different during
+[239s] train time and evaluation time and so
+[242s] suddenly we have to be very careful that
+[243s] bash form is in its correct state that
+[245s] it's in the evaluation state or training
+[247s] state so that's something to now keep
+[248s] track of something that sometimes
+[250s] introduces bugs
+[251s] uh because you forget to put it into the
+[253s] right mode and finally we saw that
+[255s] Bachelor couples the statistics or the
+[258s] the activations across the examples in
+[260s] the batch so normally we thought of the
+[262s] bat as just an efficiency thing but now
+[265s] we are coupling the computation across
+[268s] batch elements and it's done for the
+[270s] purposes of controlling the automation
+[272s] statistics as we saw in the previous
+[273s] video
+[274s] so it's a very weird layer at least a
+[276s] lot of bugs
+[278s] partly for example because you have to
+[280s] modulate the training in eval phase and
+[282s] so on
+[284s] um in addition for example you have to
+[286s] wait for uh the mean and the variance to
+[289s] settle and to actually reach a steady
+[291s] state and so um you have to make sure
+[293s] that you basically there's state in this
+[295s] layer and state is harmful uh usually
+[299s] now I brought out the generator object
+[302s] previously we had a generator equals g
+[304s] and so on inside these layers I've
+[307s] discarded that in favor of just
+[308s] initializing the torch RNG outside here
+[312s] use it just once globally just for
+[315s] Simplicity
+[316s] and then here we are starting to build
+[318s] out some of the neural network elements
+[319s] this should look very familiar we are we
+[322s] have our embedding table C and then we
+[324s] have a list of players and uh it's a
+[327s] linear feeds to Bachelor feeds to 10h
+[329s] and then a linear output layer and its
+[332s] weights are scaled down so we are not
+[333s] confidently wrong at the initialization
+[336s] we see that this is about 12 000
+[338s] parameters we're telling pytorch that
+[340s] the parameters require gradients
+[342s] the optimization is as far as I'm aware
+[344s] identical and should look very very
+[346s] familiar
+[347s] nothing changed here
+[349s] uh loss function looks very crazy we
+[352s] should probably fix this and that's
+[354s] because 32 batch elements are too few
+[356s] and so you can get very lucky lucky or
+[359s] unlucky in any one of these batches and
+[361s] it creates a very thick loss function
+[364s] um so we're going to fix that soon
+[366s] now once we want to evaluate the trained
+[368s] neural network we need to remember
+[369s] because of the bathroom layers to set
+[371s] all the layers to be training equals
+[373s] false so this only matters for the
+[375s] bathroom layer so far
+[377s] and then we evaluate
+[379s] we see that currently we have validation
+[382s] loss of 2.10 which is fairly good but
+[385s] there's still ways to go but even at
+[388s] 2.10 we see that when we sample from the
+[390s] model we actually get relatively
+[391s] name-like results that do not exist in a
+[394s] training set so for example Yvonne kilo
+[397s] Pros
+[400s] Alaia Etc so certainly not
+[403s] reasonable not unreasonable I would say
+[406s] but not amazing and we can still push
+[408s] this validation loss even lower and get
+[410s] much better samples that are even more
+[412s] name-like
+[413s] so let's improve this model
+[416s] okay first let's fix this graph because
+[418s] it is daggers in my eyes and I just
+[420s] can't take it anymore
+[421s] um so last I if you recall is a python
+[425s] list of floats so for example the first
+[427s] 10 elements
+[430s] now what we'd like to do basically is we
+[432s] need to average up
+[434s] um some of these values to get a more
+[436s] sort of Representative uh value along
+[439s] the way so one way to do this is the
+[440s] following
+[441s] in part torch if I create for example
+[444s] a tensor of the first 10 numbers
+[447s] then this is currently a one-dimensional
+[449s] array but recall that I can view this
+[451s] array as two-dimensional so for example
+[453s] I can use it as a two by five array and
+[456s] this is a 2d tensor now two by five and
+[459s] you see what petroch has done is that
+[460s] the first row of this tensor is the
+[462s] first five elements and the second row
+[464s] is the second five elements
+[466s] I can also view it as a five by two as
+[468s] an example
+[470s] and then recall that I can also
+[472s] use negative one in place of one of
+[475s] these numbers
+[475s] and pytorch will calculate what that
+[478s] number must be in order to make the
+[479s] number of elements work out so this can
+[481s] be
+[483s] this or like that but it will work of
+[486s] course this would not work
+[489s] okay so this allows it to spread out
+[491s] some of the consecutive values into rows
+[493s] so that's very helpful because what we
+[495s] can do now is first of all we're going
+[497s] to create a torshot tensor out of the a
+[501s] list of floats
+[502s] and then we're going to view it as
+[504s] whatever it is but we're going to
+[506s] stretch it out into rows of 1000
+[509s] consecutive elements so the shape of
+[511s] this now becomes 200 by 1000. and each
+[515s] row is one thousand um consecutive
+[517s] elements in this list
+[519s] so that's very helpful because now we
+[521s] can do a mean along the rows
+[523s] and the shape of this will just be 200.
+[527s] and so we've taken basically the mean on
+[528s] every row so plt.plot of that should be
+[531s] something nicer
+[533s] much better
+[535s] so we see that we basically made a lot
+[536s] of progress and then here this is the
+[539s] learning rate Decay so here we see that
+[541s] the learning rate Decay subtracted a ton
+[543s] of energy out of the system and allowed
+[545s] us to settle into sort of the local
+[547s] minimum in this optimization
+[549s] so this is a much nicer plot let me come
+[552s] up and delete the monster and we're
+[555s] going to be using this going forward now
+[556s] next up what I'm bothered by is that you
+[559s] see our forward pass is a little bit
+[562s] gnarly and takes way too many lines of
+[564s] code
+[564s] so in particular we see that we've
+[566s] organized some of the layers inside the
+[568s] layers list but not all of them uh for
+[570s] no reason so in particular we see that
+[572s] we still have the embedding table a
+[574s] special case outside of the layers and
+[577s] in addition to that the viewing
+[579s] operation here is also outside of our
+[580s] layers so let's create layers for these
+[583s] and then we can add those layers to just
+[585s] our list
+[586s] so in particular the two things that we
+[588s] need is here we have this embedding
+[590s] table and we are indexing at the
+[593s] integers inside uh the batch XB uh
+[596s] inside the tensor xB
+[598s] so that's an embedding table lookup just
+[600s] done with indexing and then here we see
+[603s] that we have this view operation which
+[604s] if you recall from the previous video
+[606s] Simply rearranges the character
+[609s] embeddings and stretches them out into a
+[612s] row and effectively what print that does
+[614s] is the concatenation operation basically
+[616s] except it's free because viewing is very
+[619s] cheap in pytorch no no memory is being
+[622s] copied we're just re-representing how we
+[624s] view that tensor so let's create
+[627s] um
+[628s] modules for both of these operations the
+[631s] embedding operation and flattening
+[632s] operation
+[633s] so I actually wrote the code in just to
+[637s] save some time
+[638s] so we have a module embedding and a
+[640s] module pattern and both of them simply
+[643s] do the indexing operation in the forward
+[645s] pass and the flattening operation here
+[649s] and this C now will just become a salt
+[653s] dot weight inside an embedding module
+[656s] and I'm calling these layers
+[658s] specifically embedding a platinum
+[659s] because it turns out that both of them
+[661s] actually exist in pi torch so in
+[663s] phytorch we have n and Dot embedding and
+[666s] it also takes the number of embeddings
+[667s] and the dimensionality of the bedding
+[669s] just like we have here but in addition
+[671s] python takes in a lot of other keyword
+[673s] arguments that we are not using for our
+[675s] purposes yet
+[677s] and for flatten that also exists in
+[679s] pytorch and it also takes additional
+[681s] keyword arguments that we are not using
+[683s] so we have a very simple platform
+[686s] but both of them exist in pytorch
+[688s] they're just a bit more simpler and now
+[690s] that we have these we can simply take
+[693s] out some of these special cased
+[696s] um things so instead of C we're just
+[700s] going to have an embedding
+[701s] and of a cup size and N embed
+[705s] and then after the embedding we are
+[707s] going to flatten
+[708s] so let's construct those modules and now
+[711s] I can take out this the
+[713s] and here I don't have to special case
+[714s] anymore because now C is the embeddings
+[717s] weight and it's inside layers
+[721s] so this should just work
+[723s] and then here our forward pass
+[726s] simplifies substantially because we
+[728s] don't need to do these now outside of
+[730s] these layer outside and explicitly
+[733s] they're now inside layers
+[735s] so we can delete those
+[737s] but now to to kick things off we want
+[739s] this little X which in the beginning is
+[741s] just XB uh the tensor of integers
+[744s] specifying the identities of these
+[746s] characters at the input
+[747s] and so these characters can now directly
+[749s] feed into the first layer and this
+[751s] should just work
+[752s] so let me come here and insert a break
+[755s] because I just want to make sure that
+[756s] the first iteration of this runs and
+[758s] then there's no mistake so that ran
+[760s] properly and basically we substantially
+[762s] simplified the forward pass here okay
+[765s] I'm sorry I changed my microphone so
+[766s] hopefully the audio is a little bit
+[768s] better
+[769s] now one more thing that I would like to
+[771s] do in order to pytortify our code even
+[773s] further is that right now we are
+[774s] maintaining all of our modules in a
+[776s] naked list of layers and we can also
+[779s] simplify this uh because we can
+[781s] introduce the concept of Pi torch
+[783s] containers so in tors.nn which we are
+[785s] basically rebuilding from scratch here
+[787s] there's a concept of containers
+[789s] and these containers are basically a way
+[790s] of organizing layers into
+[793s] lists or dicts and so on so in
+[796s] particular there's a sequential which
+[798s] maintains a list of layers and is a
+[800s] module class in pytorch and it basically
+[803s] just passes a given input through all
+[805s] the layers sequentially exactly as we
+[807s] are doing here
+[808s] so let's write our own sequential
+[811s] I've written a code here and basically
+[813s] the code for sequential is quite
+[815s] straightforward we pass in a list of
+[817s] layers which we keep here and then given
+[819s] any input in a forward pass we just call
+[821s] all the layers sequentially and return
+[823s] the result in terms of the parameters
+[825s] it's just all the parameters of the
+[826s] child modules
+[828s] so we can run this and we can again
+[830s] simplify this substantially because we
+[832s] don't maintain this naked list of layers
+[834s] we now have a notion of a model which is
+[837s] a module and in particular is a
+[840s] sequential of all these layers
+[844s] and now parameters are simply just a
+[847s] model about parameters
+[849s] and so that list comprehension now lives
+[851s] here
+[853s] and then here we are press here we are
+[855s] doing all the things we used to do
+[857s] now here the code again simplifies
+[859s] substantially because we don't have to
+[862s] do this forwarding here instead of just
+[864s] call the model on the input data and the
+[866s] input data here are the integers inside
+[868s] xB so we can simply do logits which are
+[871s] the outputs of our model are simply the
+[873s] model called on xB
+[876s] and then the cross entropy here takes
+[878s] the logits and the targets
+[881s] so this simplifies substantially
+[883s] and then this looks good so let's just
+[886s] make sure this runs that looks good
+[889s] now here we actually have some work to
+[891s] do still here but I'm going to come back
+[892s] later for now there's no more layers
+[894s] there's a model that layers but it's not
+[897s] a to access attributes of these classes
+[900s] directly so we'll come back and fix this
+[901s] later
+[903s] and then here of course this simplifies
+[905s] substantially as well because logits are
+[907s] the model called on x
+[910s] and then these low Jets come here
+[914s] so we can evaluate the train and
+[915s] validation loss which currently is
+[917s] terrible because we just initialized the
+[919s] neural net and then we can also sample
+[921s] from the model and this simplifies
+[922s] dramatically as well
+[924s] because we just want to call the model
+[925s] onto the context and outcome logits
+[930s] and these logits go into softmax and get
+[932s] the probabilities Etc so we can sample
+[935s] from this model
+[937s] what did I screw up
+[942s] okay so I fixed the issue and we now get
+[944s] the result that we expect which is
+[946s] gibberish because the model is not
+[948s] trained because we re-initialize it from
+[949s] scratch
+[950s] the problem was that when I fixed this
+[952s] cell to be modeled out layers instead of
+[954s] just layers I did not actually run the
+[956s] cell and so our neural net was in a
+[958s] training mode and what caused the issue
+[961s] here is the bathroom layer as bathroom
+[963s] layer of the likes to do because
+[965s] Bachelor was in a training mode and here
+[967s] we are passing in an input which is a
+[969s] batch of just a single example made up
+[971s] of the context
+[972s] and so if you are trying to pass in a
+[975s] single example into a bash Norm that is
+[976s] in the training mode you're going to end
+[978s] up estimating the variance using the
+[980s] input and the variance of a single
+[981s] number is is not a number because it is
+[984s] a measure of a spread so for example the
+[986s] variance of just the single number five
+[988s] you can see is not a number and so
+[991s] that's what happened in the master
+[993s] basically caused an issue and then that
+[995s] polluted all of the further processing
+[997s] so all that we have to do was make sure
+[999s] that this runs and we basically made the
+[1003s] issue of
+[1005s] again we didn't actually see the issue
+[1006s] with the loss we could have evaluated
+[1008s] the loss but we got the wrong result
+[1009s] because basharm was in the training mode
+[1012s] and uh and so we still get a result it's
+[1014s] just the wrong result because it's using
+[1016s] the uh sample statistics of the batch
+[1019s] whereas we want to use the running mean
+[1020s] and running variants inside the bachelor
+[1022s] and so
+[1024s] again an example of introducing a bug
+[1026s] inline because we did not properly
+[1029s] maintain the state of what is training
+[1030s] or not okay so I Rewritten everything
+[1032s] and here's where we are as a reminder we
+[1035s] have the training loss of 2.05 and
+[1037s] validation 2.10
+[1038s] now because these losses are very
+[1041s] similar to each other we have a sense
+[1042s] that we are not overfitting too much on
+[1044s] this task and we can make additional
+[1046s] progress in our performance by scaling
+[1048s] up the size of the neural network and
+[1049s] making everything bigger and deeper
+[1052s] now currently we are using this
+[1053s] architecture here where we are taking in
+[1055s] some number of characters going into a
+[1057s] single hidden layer and then going to
+[1059s] the prediction of the next character
+[1061s] the problem here is we don't have a
+[1063s] naive way of making this bigger in a
+[1066s] productive way we could of course use
+[1068s] our layers sort of building blocks and
+[1071s] materials to introduce additional layers
+[1073s] here and make the network deeper but it
+[1075s] is still the case that we are crushing
+[1076s] all of the characters into a single
+[1078s] layer all the way at the beginning
+[1080s] and even if we make this a bigger layer
+[1082s] and add neurons it's still kind of like
+[1084s] silly to squash all that information so
+[1087s] fast in a single step
+[1089s] so we'd like to do instead is we'd like
+[1091s] our Network to look a lot more like this
+[1093s] in the wavenet case so you see in the
+[1095s] wavenet when we are trying to make the
+[1097s] prediction for the next character in the
+[1098s] sequence it is a function of the
+[1100s] previous characters that are feeding
+[1102s] that feed in but not all of these
+[1105s] different characters are not just
+[1106s] crushed to a single layer and then you
+[1108s] have a sandwich they are crushed slowly
+[1111s] so in particular we take two characters
+[1114s] and we fuse them into sort of like a
+[1116s] diagram representation and we do that
+[1118s] for all these characters consecutively
+[1120s] and then we take the bigrams and we fuse
+[1122s] those into four character level chunks
+[1126s] and then we fuse that again and so we do
+[1129s] that in this like tree-like hierarchical
+[1131s] manner so we fuse the information from
+[1133s] the previous context slowly into the
+[1136s] network as it gets deeper and so this is
+[1138s] the kind of architecture that we want to
+[1139s] implement
+[1140s] now in the wave Nets case this is a
+[1142s] visualization of a stack of dilated
+[1144s] causal convolution layers and this makes
+[1147s] it sound very scary but actually the
+[1148s] idea is very simple and the fact that
+[1150s] it's a dilated causal convolution layer
+[1152s] is really just an implementation detail
+[1154s] to make everything fast we're going to
+[1156s] see that later but for now let's just
+[1158s] keep the basic idea of it which is this
+[1160s] Progressive Fusion so we want to make
+[1162s] the network deeper and at each level we
+[1164s] want to fuse only two consecutive
+[1166s] elements two characters then two bigrams
+[1169s] then two four grams and so on so let's
+[1172s] unplant this okay so first up let me
+[1174s] scroll to where we built the data set
+[1175s] and let's change the block size from 3
+[1177s] to 8. so we're going to be taking eight
+[1179s] characters of context to predict the
+[1182s] ninth character so the data set now
+[1184s] looks like this we have a lot more
+[1185s] context feeding in to predict any next
+[1187s] character in a sequence and these eight
+[1189s] characters are going to be processed in
+[1191s] this tree like structure
+[1193s] now if we scroll here everything here
+[1196s] should just be able to work so we should
+[1198s] be able to redefine the network
+[1199s] you see the number of parameters has
+[1201s] increased by 10 000 and that's because
+[1203s] the block size has grown so this first
+[1206s] linear layer is much much bigger our
+[1208s] linear layer now takes eight characters
+[1210s] into this middle layer so there's a lot
+[1213s] more parameters there but this should
+[1215s] just run let me just break right after
+[1218s] the very first iteration so you see that
+[1220s] this runs just fine it's just that this
+[1222s] network doesn't make too much sense
+[1223s] we're crushing way too much information
+[1225s] way too fast
+[1226s] so let's now come in and see how we
+[1229s] could try to implement the hierarchical
+[1230s] scheme now before we dive into the
+[1233s] detail of the re-implementation here I
+[1235s] was just curious to actually run it and
+[1237s] see where we are in terms of the
+[1238s] Baseline performance of just lazily
+[1240s] scaling up the context length so I'll
+[1242s] let it run we get a nice loss curve and
+[1245s] then evaluating the loss we actually see
+[1246s] quite a bit of improvement just from
+[1248s] increasing the context line length so I
+[1251s] started a little bit of a performance
+[1252s] log here and previously where we were is
+[1254s] we were getting a performance of 2.10 on
+[1257s] the validation loss and now simply
+[1259s] scaling up the contact length from 3 to
+[1261s] 8 gives us a performance of 2.02 so
+[1265s] quite a bit of an improvement here and
+[1267s] also when you sample from the model you
+[1268s] see that the names are definitely
+[1270s] improving qualitatively as well
+[1273s] so we could of course spend a lot of
+[1274s] time here tuning
+[1276s] um uh tuning things and making it even
+[1278s] bigger and scaling up the network
+[1279s] further even with the simple
+[1281s] um sort of setup here but let's continue
+[1284s] and let's Implement here model and treat
+[1287s] this as just a rough Baseline
+[1288s] performance but there's a lot of
+[1290s] optimization like left on the table in
+[1292s] terms of some of the hyper parameters
+[1294s] that you're hopefully getting a sense of
+[1295s] now okay so let's scroll up now
+[1298s] and come back up and what I've done here
+[1301s] is I've created a bit of a scratch space
+[1302s] for us to just like look at the forward
+[1305s] pass of the neural net and inspect the
+[1307s] shape of the tensor along the way as the
+[1309s] neural net uh forwards so here I'm just
+[1313s] temporarily for debugging creating a
+[1315s] batch of just say four examples so four
+[1318s] random integers then I'm plucking out
+[1320s] those rows from our training set
+[1322s] and then I'm passing into the model the
+[1324s] input xB
+[1326s] now the shape of XB here because we have
+[1328s] only four examples is four by eight and
+[1331s] this eight is now the current block size
+[1334s] so uh inspecting XP we just see that we
+[1338s] have four examples each one of them is a
+[1339s] row of xB
+[1341s] and we have eight characters here and
+[1344s] this integer tensor just contains the
+[1346s] identities of those characters
+[1349s] so the first layer of our neural net is
+[1351s] the embedding layer so passing XB this
+[1353s] integer tensor through the embedding
+[1355s] layer creates an output that is four by
+[1357s] eight by ten
+[1359s] so our embedding table has for each
+[1362s] character a 10-dimensional vector that
+[1364s] we are trying to learn
+[1366s] and so what the embedding layer does
+[1368s] here is it plucks out the embedding
+[1370s] Vector for each one of these integers
+[1373s] and organizes it all in a four by eight
+[1376s] by ten tensor now
+[1378s] so all of these integers are translated
+[1380s] into 10 dimensional vectors inside this
+[1382s] three-dimensional tensor now
+[1384s] passing that through the flattened layer
+[1386s] as you recall what this does is it views
+[1389s] this tensor as just a 4 by 80 tensor and
+[1392s] what that effectively does is that all
+[1395s] these 10 dimensional embeddings for all
+[1396s] these eight characters just end up being
+[1398s] stretched out into a long row
+[1401s] and that looks kind of like a
+[1402s] concatenation operation basically so by
+[1405s] viewing the tensor differently we now
+[1407s] have a four by eighty and inside this 80
+[1409s] it's all the 10 dimensional uh
+[1412s] vectors just uh concatenate next to each
+[1415s] other
+[1416s] and then the linear layer of course
+[1417s] takes uh 80 and creates 200 channels
+[1420s] just via matrix multiplication
+[1423s] so so far so good now I'd like to show
+[1425s] you something surprising
+[1427s] let's look at the insides of the linear
+[1430s] layer and remind ourselves how it works
+[1432s] the linear layer here in the forward
+[1434s] pass takes the input X multiplies it
+[1436s] with a weight and then optionally adds
+[1438s] bias and the weight here is
+[1440s] two-dimensional as defined here and the
+[1442s] bias is one dimensional here
+[1444s] so effectively in terms of the shapes
+[1446s] involved what's happening inside this
+[1448s] linear layer looks like this right now
+[1450s] and I'm using random numbers here but
+[1452s] I'm just illustrating the shapes and
+[1455s] what happens
+[1456s] basically a 4 by 80 input comes into the
+[1458s] linear layer that's multiplied by this
+[1460s] 80 by 200 weight Matrix inside and
+[1463s] there's a plus 200 bias and the shape of
+[1465s] the whole thing that comes out of the
+[1466s] linear layer is four by two hundred as
+[1468s] we see here
+[1470s] now notice here by the way that this
+[1472s] here will create a 4x200 tensor and then
+[1476s] plus 200 there's a broadcasting
+[1478s] happening here about 4 by 200 broadcasts
+[1481s] with 200 uh so everything works here
+[1484s] so now the surprising thing that I'd
+[1486s] like to show you that you may not expect
+[1487s] is that this input here that is being
+[1489s] multiplied uh doesn't actually have to
+[1492s] be two-dimensional this Matrix multiply
+[1495s] operator in pytorch is quite powerful
+[1496s] and in fact you can actually pass in
+[1498s] higher dimensional arrays or tensors and
+[1500s] everything works fine so for example
+[1502s] this could be four by five by eighty and
+[1504s] the result in that case will become four
+[1506s] by five by two hundred
+[1508s] you can add as many dimensions as you
+[1509s] like on the left here
+[1511s] and so effectively what's happening is
+[1513s] that the matrix multiplication only
+[1515s] works on the last Dimension and the
+[1517s] dimensions before it in the input tensor
+[1519s] are left unchanged
+[1524s] so that is basically these um these
+[1527s] dimensions on the left are all treated
+[1529s] as just a batch Dimension so we can have
+[1532s] multiple batch dimensions and then in
+[1534s] parallel over all those Dimensions we
+[1536s] are doing the matrix multiplication on
+[1538s] the last dimension
+[1539s] so this is quite convenient because we
+[1541s] can use that in our Network now
+[1544s] because remember that we have these
+[1546s] eight characters coming in
+[1549s] and we don't want to now uh flatten all
+[1551s] of it out into a large eight-dimensional
+[1553s] vector
+[1554s] because we don't want to Matrix multiply
+[1557s] 80.
+[1559s] into a weight Matrix multiply
+[1561s] immediately instead we want to group
+[1563s] these
+[1564s] like this
+[1566s] so every consecutive two elements
+[1569s] one two and three and four and five and
+[1571s] six and seven and eight all of these
+[1572s] should be now
+[1574s] basically flattened out and multiplied
+[1577s] by weight Matrix but all of these four
+[1579s] groups here we'd like to process in
+[1581s] parallel so it's kind of like a batch
+[1583s] Dimension that we can introduce
+[1585s] and then we can in parallel basically
+[1588s] process all of these uh bigram groups in
+[1593s] the four batch dimensions of an
+[1594s] individual example and also over the
+[1597s] actual batch dimension of the you know
+[1599s] four examples in our example here so
+[1602s] let's see how that works effectively
+[1603s] what we want is right now we take a 4 by
+[1606s] 80
+[1607s] and multiply it by 80 by 200
+[1610s] to in the linear layer this is what
+[1612s] happens
+[1613s] but instead what we want is we don't
+[1616s] want 80 characters or 80 numbers to come
+[1618s] in we only want two characters to come
+[1620s] in on the very first layer and those two
+[1622s] characters should be fused
+[1624s] so in other words we just want 20 to
+[1627s] come in right 20 numbers would come in
+[1631s] and here we don't want a 4 by 80 to feed
+[1633s] into the linear layer we actually want
+[1635s] these groups of two to feed in so
+[1637s] instead of four by eighty we want this
+[1639s] to be a 4 by 4 by 20.
+[1643s] so these are the four groups of two and
+[1647s] each one of them is ten dimensional
+[1648s] vector
+[1649s] so what we want is now is we need to
+[1651s] change the flattened layer so it doesn't
+[1653s] output a four by eighty but it outputs a
+[1655s] four by four by Twenty where basically
+[1658s] these um
+[1659s] every two consecutive characters are uh
+[1663s] packed in on the very last Dimension and
+[1666s] then these four is the first batch
+[1668s] Dimension and this four is the second
+[1670s] batch Dimension referring to the four
+[1672s] groups inside every one of these
+[1674s] examples
+[1675s] and then this will just multiply like
+[1677s] this so this is what we want to get to
+[1679s] so we're going to have to change the
+[1681s] linear layer in terms of how many inputs
+[1682s] it expects it shouldn't expect 80 it
+[1685s] should just expect 20 numbers and we
+[1687s] have to change our flattened layer so it
+[1689s] doesn't just fully flatten out this
+[1691s] entire example it needs to create a 4x4
+[1694s] by 20 instead of four by eighty so let's
+[1697s] see how this could be implemented
+[1699s] basically right now we have an input
+[1701s] that is a four by eight by ten that
+[1703s] feeds into the flattened layer and
+[1705s] currently the flattened layer just
+[1707s] stretches it out so if you remember the
+[1709s] implementation of flatten
+[1711s] it takes RX and it just views it as
+[1714s] whatever the batch Dimension is and then
+[1715s] negative one
+[1717s] so effectively what it does right now is
+[1719s] it does e dot view of 4 negative one and
+[1722s] the shape of this of course is 4 by 80.
+[1725s] so that's what currently happens and we
+[1728s] instead want this to be a four by four
+[1729s] by Twenty where these consecutive
+[1731s] ten-dimensional vectors get concatenated
+[1734s] so you know how in Python you can take a
+[1737s] list of range of 10
+[1740s] so we have numbers from zero to nine and
+[1743s] we can index like this to get all the
+[1745s] even parts
+[1746s] and we can also index like starting at
+[1748s] one and going in steps up two to get all
+[1751s] the odd parts
+[1753s] so one way to implement this it would be
+[1755s] as follows we can take e and we can
+[1758s] index into it for all the batch elements
+[1761s] and then just even elements in this
+[1764s] Dimension so at indexes 0 2 4 and 8.
+[1769s] and then all the parts here from this
+[1771s] last dimension
+[1773s] and this gives us the even characters
+[1777s] and then here
+[1779s] this gives us all the odd characters and
+[1782s] basically what we want to do is we make
+[1783s] sure we want to make sure that these get
+[1784s] concatenated in pi torch and then we
+[1787s] want to concatenate these two tensors
+[1789s] along the second dimension
+[1793s] so this and the shape of it would be
+[1795s] four by four by Twenty this is
+[1797s] definitely the result we want we are
+[1798s] explicitly grabbing the even parts and
+[1801s] the odd parts and we're arranging those
+[1803s] four by four by ten right next to each
+[1806s] other and concatenate
+[1808s] so this works but it turns out that what
+[1810s] also works is you can simply use a view
+[1813s] again and just request the right shape
+[1816s] and it just so happens that in this case
+[1818s] those vectors will again end up being
+[1821s] arranged in exactly the way we want so
+[1823s] in particular if we take e and we just
+[1825s] view it as a four by four by Twenty
+[1827s] which is what we want
+[1828s] we can check that this is exactly equal
+[1830s] to but let me call this this is the
+[1833s] explicit concatenation I suppose
+[1836s] um
+[1836s] so explosives dot shape is 4x4 by 20. if
+[1840s] you just view it as 4x4 by 20 you can
+[1842s] check that when you compare to explicit
+[1846s] uh you got a big this is element wise
+[1848s] operation so making sure that all of
+[1849s] them are true that is the truth so
+[1853s] basically long story short we don't need
+[1854s] to make an explicit call to concatenate
+[1856s] Etc we can simply take this input tensor
+[1860s] to flatten and we can just view it in
+[1863s] whatever way we want
+[1864s] and in particular you don't want to
+[1867s] stretch things out with negative one we
+[1869s] want to actually create a
+[1870s] three-dimensional array and depending on
+[1872s] how many vectors that are consecutive we
+[1875s] want to
+[1876s] um fuse like for example two then we can
+[1880s] just simply ask for this Dimension to be
+[1881s] 20. and um
+[1884s] use a negative 1 here and python will
+[1886s] figure out how many groups it needs to
+[1887s] pack into this additional batch
+[1889s] dimension
+[1890s] so let's now go into flatten and
+[1892s] implement this okay so I scroll up here
+[1894s] to flatten and what we'd like to do is
+[1896s] we'd like to change it now so let me
+[1898s] create a Constructor and take the number
+[1900s] of elements that are consecutive that we
+[1902s] would like to concatenate now in the
+[1904s] last dimension of the output
+[1906s] so here we're just going to remember
+[1908s] solve.n equals n
+[1910s] and then I want to be careful here
+[1912s] because pipe pytorch actually has a
+[1914s] torch to flatten and its keyword
+[1916s] arguments are different and they kind of
+[1918s] like function differently so R flatten
+[1920s] is going to start to depart from patreon
+[1922s] flatten so let me call it flat flatten
+[1924s] consecutive or something like that just
+[1926s] to make sure that our apis are about
+[1928s] equal
+[1929s] so this uh basically flattens only some
+[1933s] n consecutive elements and puts them
+[1935s] into the last dimension
+[1937s] now here the shape of X is B by T by C
+[1941s] so let me
+[1943s] pop those out into variables and recall
+[1946s] that in our example down below B was 4 T
+[1948s] was 8 and C was 10.
+[1953s] now instead of doing x dot view of B by
+[1957s] negative one
+[1959s] right this is what we had before
+[1964s] we want this to be B by
+[1967s] um negative 1 by
+[1969s] and basically here we want c times n
+[1972s] that's how many consecutive elements we
+[1975s] want
+[1976s] and here instead of negative one I don't
+[1978s] super love the use of negative one
+[1980s] because I like to be very explicit so
+[1982s] that you get error messages when things
+[1983s] don't go according to your expectation
+[1984s] so what do we expect here we expect this
+[1987s] to become t
+[1989s] divide n using integer division here
+[1992s] so that's what I expect to happen
+[1994s] and then one more thing I want to do
+[1995s] here is remember previously all the way
+[1998s] in the beginning n was three and uh
+[2001s] basically we're concatenating
+[2003s] um all the three characters that existed
+[2005s] there
+[2006s] so we basically are concatenated
+[2008s] everything
+[2009s] and so sometimes I can create a spurious
+[2011s] dimension of one here so if it is the
+[2014s] case that x dot shape at one is one then
+[2017s] it's kind of like a spurious dimension
+[2019s] um so we don't want to return a
+[2021s] three-dimensional tensor with a one here
+[2024s] we just want to return a two-dimensional
+[2026s] tensor exactly as we did before
+[2028s] so in this case basically we will just
+[2030s] say x equals x dot squeeze that is a
+[2034s] pytorch function
+[2036s] and squeeze takes a dimension that it
+[2041s] either squeezes out all the dimensions
+[2042s] of a tensor that are one or you can
+[2045s] specify the exact Dimension that you
+[2048s] want to be squeezed and again I like to
+[2050s] be as explicit as possible always so I
+[2052s] expect to squeeze out the First
+[2053s] Dimension only
+[2055s] of this tensor
+[2057s] this three-dimensional tensor and if
+[2059s] this Dimension here is one then I just
+[2061s] want to return B by c times n
+[2064s] and so self dot out will be X and then
+[2066s] we return salt dot out
+[2068s] so that's the candidate implementation
+[2070s] and of course this should be self.n
+[2073s] instead of just n
+[2074s] so let's run
+[2076s] and let's come here now
+[2079s] and take it for a spin so flatten
+[2081s] consecutive
+[2084s] and in the beginning let's just use
+[2087s] eight so this should recover the
+[2089s] previous Behavior so flagging
+[2091s] consecutive of eight uh which is the
+[2093s] current block size
+[2095s] we can do this uh that should recover
+[2097s] the previous Behavior
+[2099s] so we should be able to run the model
+[2102s] and here we can inspect I have a little
+[2106s] code snippet here where I iterate over
+[2108s] all the layers I print the name of this
+[2111s] class and the shape
+[2114s] and so we see the shapes as we expect
+[2117s] them after every single layer in the top
+[2119s] bit so now let's try to restructure it
+[2122s] using our flattened consecutive and do
+[2125s] it hierarchically so in particular
+[2128s] we want to flatten consecutive not just
+[2130s] not block size but just two
+[2133s] and then we want to process this with
+[2134s] linear now then the number of inputs to
+[2137s] this linear will not be an embed times
+[2138s] block size it will now only be n embed
+[2141s] times two
+[2142s] 20.
+[2144s] this goes through the first layer and
+[2146s] now we can in principle just copy paste
+[2148s] this
+[2149s] now the next linear layer should expect
+[2151s] and hidden times two
+[2153s] and the last piece of it should expect
+[2158s] and it enters 2 again
+[2161s] so this is sort of like the naive
+[2163s] version of it
+[2164s] um
+[2165s] so running this we now have a much much
+[2167s] bigger model
+[2169s] and we should be able to basically just
+[2170s] forward the model
+[2173s] and now we can inspect uh the numbers in
+[2176s] between
+[2177s] so four byte by 20
+[2179s] was Platinum consecutively into four by
+[2181s] four by Twenty
+[2183s] this was projected into four by four by
+[2184s] two hundred
+[2186s] and then bash storm just worked out of
+[2189s] the box we have to verify that bastron
+[2191s] does the correct thing even though it
+[2193s] takes a three-dimensional impedance that
+[2194s] are two dimensional input
+[2196s] then we have 10h which is element wise
+[2198s] then we crushed it again so if we
+[2201s] flatten consecutively and ended up with
+[2202s] a four by two by 400 now
+[2205s] then linear brought it back down to 200
+[2207s] batch room 10h and lastly we get a 4 by
+[2210s] 400 and we see that the flattened
+[2212s] consecutive for the last flatten here uh
+[2214s] it squeezed out that dimension of one so
+[2217s] we only ended up with four by four
+[2218s] hundred and then linear Bachelor on 10h
+[2220s] and uh the last linear layer to get our
+[2224s] logents and so The Lodges end up in the
+[2226s] same shape as they were before but now
+[2228s] we actually have a nice three layer
+[2230s] neural nut and it basically corresponds
+[2232s] to whoops sorry it basically corresponds
+[2235s] exactly to this network now except only
+[2238s] this piece here because we only have
+[2240s] three layers whereas here in this
+[2242s] example there's uh four layers with the
+[2245s] total receptive field size of 16
+[2248s] characters instead of just eight
+[2249s] characters so the block size here is 16.
+[2252s] so this piece of it's basically
+[2254s] implemented here
+[2256s] um now we just have to kind of figure
+[2258s] out some good Channel numbers to use
+[2260s] here now in particular I changed the
+[2262s] number of hidden units to be 68 in this
+[2265s] architecture because when I use 68 the
+[2267s] number of parameters comes out to be 22
+[2269s] 000 so that's exactly the same that we
+[2272s] had before and we have the same amount
+[2274s] of capacity at this neural net in terms
+[2276s] of the number of parameters but the
+[2277s] question is whether we are utilizing
+[2279s] those parameters in a more efficient
+[2280s] architecture so what I did then is I got
+[2283s] rid of a lot of the debugging cells here
+[2285s] and I rerun the optimization and
+[2287s] scrolling down to the result we see that
+[2289s] we get the identical performance roughly
+[2292s] so our validation loss now is 2.029 and
+[2295s] previously it was 2.027 so controlling
+[2298s] for the number of parameters changing
+[2300s] from the flat to hierarchical is not
+[2301s] giving us anything yet
+[2303s] that said there are two things
+[2305s] um to point out number one we didn't
+[2307s] really torture the um architecture here
+[2309s] very much this is just my first guess
+[2311s] and there's a bunch of hyper parameters
+[2313s] search that we could do in order in
+[2315s] terms of how we allocate uh our budget
+[2317s] of parameters to what layers number two
+[2319s] we still may have a bug inside the
+[2322s] bachelor 1D layer so let's take a look
+[2324s] at
+[2325s] um uh that because it runs but does it
+[2329s] do the right thing
+[2330s] so I pulled up the layer inspector sort
+[2333s] of that we have here and printed out the
+[2335s] shape along the way and currently it
+[2337s] looks like the batch form is receiving
+[2338s] an input that is 32 by 4 by 68 right and
+[2343s] here on the right I have the current
+[2344s] implementation of Bachelor that we have
+[2345s] right now
+[2346s] now this bachelor assumed in the way we
+[2349s] wrote it and at the time that X is
+[2351s] two-dimensional so it was n by D where n
+[2355s] was the batch size so that's why we only
+[2357s] reduced uh the mean and the variance
+[2359s] over the zeroth dimension but now X will
+[2361s] basically become three-dimensional so
+[2363s] what's happening inside the bachelor
+[2364s] right now and how come it's working at
+[2366s] all and not giving any errors the reason
+[2368s] for that is basically because everything
+[2370s] broadcasts properly but the bachelor is
+[2372s] not doing what we need what we wanted to
+[2374s] do
+[2375s] so in particular let's basically think
+[2377s] through what's happening inside the
+[2378s] bathroom uh looking at what's what's do
+[2381s] What's Happening Here
+[2383s] I have the code here
+[2385s] so we're receiving an input of 32 by 4
+[2387s] by 68 and then we are doing uh here x
+[2392s] dot mean here I have e instead of X but
+[2394s] we're doing the mean over zero and
+[2397s] that's actually giving us 1 by 4 by 68.
+[2399s] so we're doing the mean only over the
+[2401s] very first Dimension and it's giving us
+[2403s] a mean and a variance that still
+[2405s] maintain this Dimension here
+[2407s] so these means are only taking over 32
+[2410s] numbers in the First Dimension and then
+[2412s] when we perform this everything
+[2414s] broadcasts correctly still
+[2416s] but basically what ends up happening is
+[2420s] when we also look at the running mean
+[2426s] the shape of it so I'm looking at the
+[2427s] model that layers at three which is the
+[2428s] first bathroom layer and they're looking
+[2430s] at whatever the running mean became and
+[2432s] its shape
+[2434s] the shape of this running mean now is 1
+[2435s] by 4 by 68.
+[2438s] right instead of it being
+[2439s] um you know just a size of dimension
+[2443s] because we have 68 channels we expect to
+[2445s] have 68 means and variances that we're
+[2447s] maintaining but actually we have an
+[2449s] array of 4 by 68 and so basically what
+[2451s] this is telling us is this bash Norm is
+[2454s] only
+[2455s] this bachelor is currently working in
+[2457s] parallel
+[2458s] over
+[2461s] 4 times 68 instead of just 68 channels
+[2466s] so basically we are maintaining
+[2468s] statistics for every one of these four
+[2470s] positions individually and independently
+[2473s] and instead what we want to do is we
+[2475s] want to treat this four as a batch
+[2476s] Dimension just like the zeroth dimension
+[2479s] so as far as the bachelor is concerned
+[2482s] it doesn't want to average we don't want
+[2484s] to average over 32 numbers we want to
+[2486s] now average over 32 times four numbers
+[2489s] for every single one of these 68
+[2491s] channels
+[2492s] and uh so let me now
+[2494s] remove this
+[2496s] it turns out that when you look at the
+[2498s] documentation of torch.mean
+[2502s] so let's go to torch.me
+[2509s] in one of its signatures when we specify
+[2511s] the dimension
+[2513s] we see that the dimension here is not
+[2514s] just it can be in or it can also be a
+[2516s] tuple of ins so we can reduce over
+[2519s] multiple integers at the same time over
+[2522s] multiple Dimensions at the same time so
+[2524s] instead of just reducing over zero we
+[2525s] can pass in a tuple 0 1.
+[2528s] and here zero one as well and then
+[2530s] what's going to happen is the output of
+[2532s] course is going to be the same
+[2533s] but now what's going to happen is
+[2535s] because we reduce over 0 and 1 if we
+[2537s] look at immin.shape
+[2540s] we see that now we've reduced we took
+[2542s] the mean over both the zeroth and the
+[2545s] First Dimension
+[2546s] so we're just getting 68 numbers and a
+[2548s] bunch of spurious Dimensions here
+[2550s] so now this becomes 1 by 1 by 68 and the
+[2554s] running mean and the running variance
+[2555s] analogously will become one by one by
+[2557s] 68. so even though there are the
+[2559s] spurious Dimensions uh the current the
+[2561s] current the correct thing will happen in
+[2563s] that we are only maintaining means and
+[2565s] variances for 64 sorry for 68 channels
+[2569s] and we're not calculating the mean
+[2570s] variance across 32 times 4 dimensions so
+[2574s] that's exactly what we want and let's
+[2576s] change the implementation of bash term
+[2578s] 1D that we have so that it can take in
+[2581s] two-dimensional or three-dimensional
+[2582s] inputs and perform accordingly so at the
+[2585s] end of the day the fix is relatively
+[2587s] straightforward basically the dimension
+[2589s] we want to reduce over is either 0 or
+[2592s] the Tuple zero and one depending on the
+[2594s] dimensionality of X so if x dot and dim
+[2596s] is two so it's a two dimensional tensor
+[2598s] then Dimension we want to reduce over is
+[2600s] just the integer zero
+[2602s] L if x dot ending is three so it's a
+[2604s] three-dimensional tensor then the dims
+[2606s] we're going to assume are zero and one
+[2609s] that we want to reduce over and then
+[2611s] here we just pass in dim
+[2613s] and if the dimensionality of X is
+[2615s] anything else we'll now get an error
+[2616s] which is good
+[2618s] um so that should be the fix now I want
+[2621s] to point out one more thing we're
+[2622s] actually departing from the API of Pi
+[2624s] torch here a little bit because when you
+[2626s] come to batch room 1D and pytorch you
+[2628s] can scroll down and you can see that the
+[2630s] input to this layer can either be n by C
+[2633s] where n is the batch size and C is the
+[2635s] number of features or channels or it
+[2637s] actually does accept three-dimensional
+[2639s] inputs but it expects it to be n by C by
+[2641s] L
+[2642s] where LSA like the sequence length or
+[2644s] something like that
+[2645s] so um
+[2647s] this is problem because you see how C is
+[2649s] nested here in the middle and so when it
+[2652s] gets three-dimensional inputs this bash
+[2654s] term layer will reduce over zero and two
+[2657s] instead of zero and one so it basically
+[2660s] Pi torch batch number one D layer
+[2662s] assumes that c will always be the First
+[2665s] Dimension whereas we'll we assume here
+[2668s] that c is the last Dimension and there
+[2670s] are some number of batch Dimensions
+[2672s] beforehand
+[2674s] um
+[2674s] and so
+[2676s] it expects n by C or M by C by all we
+[2679s] expect and by C or n by L by C
+[2682s] and so it's a deviation
+[2685s] um
+[2686s] I think it's okay I prefer it this way
+[2689s] honestly so this is the way that we will
+[2690s] keep it for our purposes
+[2692s] so I redefined the layers re-initialize
+[2694s] the neural net and did a single forward
+[2695s] pass with a break just for one step
+[2697s] looking at the shapes along the way
+[2699s] they're of course identical all the
+[2701s] shapes are the same but the way we see
+[2703s] that things are actually working as we
+[2705s] want them to now is that when we look at
+[2707s] the bathroom layer the running mean
+[2708s] shape is now one by one by 68. so we're
+[2711s] only maintaining 68 means for every one
+[2713s] of our channels and we're treating both
+[2715s] the zeroth and the First Dimension as a
+[2717s] batch Dimension which is exactly what we
+[2719s] want so let me retrain the neural lot
+[2721s] now okay so I retrained the neural net
+[2722s] with the bug fix we get a nice curve and
+[2725s] when we look at the validation
+[2725s] performance we do actually see a slight
+[2727s] Improvement so we went from 2.029 to
+[2730s] 2.022 so basically the bug inside the
+[2732s] bathroom was holding up us back like a
+[2735s] little bit it looks like and we are
+[2737s] getting a tiny Improvement now but it's
+[2739s] not clear if this is statistical
+[2740s] significant
+[2741s] um
+[2742s] and the reason we slightly expect an
+[2744s] improvement is because we're not
+[2746s] maintaining so many different means and
+[2747s] variances that are only estimated using
+[2749s] using 32 numbers effectively now we are
+[2752s] estimating them using 32 times 4 numbers
+[2754s] so you just have a lot more numbers that
+[2756s] go into any one estimate of the mean and
+[2758s] variance and it allows things to be a
+[2761s] bit more stable and less Wiggly inside
+[2763s] those estimates of those statistics so
+[2767s] pretty nice with this more General
+[2768s] architecture in place we are now set up
+[2770s] to push the performance further by
+[2772s] increasing the size of the network so
+[2774s] for example I bumped up the number of
+[2776s] embeddings to 24 instead of 10 and also
+[2779s] increased number of hidden units but
+[2781s] using the exact same architecture we now
+[2783s] have 76 000 parameters and the training
+[2785s] takes a lot longer but we do get a nice
+[2788s] curve and then when you actually
+[2789s] evaluate the performance we are now
+[2791s] getting validation performance of 1.993
+[2793s] so we've crossed over the 2.0 sort of
+[2796s] territory and right about 1.99 but we
+[2799s] are starting to have to wait quite a bit
+[2802s] longer and we're a little bit in the
+[2804s] dark with respect to the correct setting
+[2806s] of the hyper parameters here and the
+[2807s] learning rates and so on because the
+[2808s] experiments are starting to take longer
+[2810s] to train and so we are missing sort of
+[2812s] like an experimental harness on which we
+[2814s] could run a number of experiments and
+[2816s] really tune this architecture very well
+[2818s] so I'd like to conclude now with a few
+[2819s] notes we basically improved our
+[2822s] performance from a starting of 2.1 down
+[2824s] to 1.9 but I don't want that to be the
+[2826s] focus because honestly we're kind of in
+[2828s] the dark we have no experimental harness
+[2830s] we're just guessing and checking and
+[2832s] this whole thing is terrible we're just
+[2833s] looking at the training loss normally
+[2835s] you want to look at both the training
+[2837s] and the validation loss together and the
+[2839s] whole thing looks different if you're
+[2840s] actually trying to squeeze out numbers
+[2843s] that said we did implement this
+[2845s] architecture from the wavenet paper but
+[2848s] we did not implement this specific uh
+[2851s] forward pass of it where you have a more
+[2853s] complicated a linear layer sort of that
+[2855s] is this gated linear layer kind of and
+[2858s] there's residual connections and Skip
+[2860s] connections and so on so we did not
+[2862s] Implement that we just implemented this
+[2864s] structure I would like to briefly hint
+[2866s] or preview how what we've done here
+[2868s] relates to convolutional neural networks
+[2870s] as used in the wavenet paper and
+[2872s] basically the use of convolutions is
+[2874s] strictly for efficiency it doesn't
+[2876s] actually change the model we've
+[2877s] implemented
+[2878s] so here for example
+[2880s] let me look at a specific name to work
+[2882s] with an example so there's a name in our
+[2885s] training set and it's DeAndre and it has
+[2888s] seven letters so that is eight
+[2890s] independent examples in our model so all
+[2892s] these rows here are independent examples
+[2894s] of the Android
+[2896s] now you can forward of course any one of
+[2898s] these rows independently so I can take
+[2900s] my model and call call it on any
+[2904s] individual index notice by the way here
+[2906s] I'm being a little bit tricky
+[2908s] the reason for this is that extra at
+[2910s] seven that shape is just
+[2913s] um one dimensional array of eight so you
+[2916s] can't actually call the model on it
+[2917s] you're going to get an error because
+[2919s] there's no batch dimension
+[2921s] so when you do extra at
+[2925s] a list of seven then the shape of this
+[2927s] becomes one by eight so I get an extra
+[2929s] batch dimension of one and then we can
+[2932s] forward the model
+[2933s] so
+[2935s] that forwards a single example and you
+[2937s] might imagine that you actually may want
+[2939s] to forward all of these eight
+[2941s] um at the same time
+[2943s] so pre-allocating some memory and then
+[2945s] doing a for Loop eight times and
+[2947s] forwarding all of those eight here will
+[2950s] give us all the logits in all these
+[2951s] different cases
+[2953s] now for us with the model as we've
+[2954s] implemented it right now this is eight
+[2956s] independent calls to our model
+[2958s] but what convolutions allow you to do is
+[2960s] it allow you to basically slide this
+[2962s] model efficiently over the input
+[2964s] sequence and so this for Loop can be
+[2967s] done not outside in Python but inside of
+[2971s] kernels in Cuda and so this for Loop
+[2973s] gets hidden into the convolution
+[2975s] so the convolution basically you can
+[2977s] cover this it's a for Loop applying a
+[2980s] little linear filter over space of some
+[2983s] input sequence and in our case the space
+[2985s] we're interested in is one dimensional
+[2986s] and we're interested in sliding these
+[2988s] filters over the input data
+[2991s] so this diagram actually is fairly good
+[2994s] as well
+[2995s] basically what we've done is here they
+[2997s] are highlighting in Black one individ
+[2999s] one single sort of like tree of this
+[3001s] calculation so just calculating the
+[3003s] single output example here
+[3006s] um
+[3007s] and so this is basically what we've
+[3008s] implemented here we've implemented a
+[3010s] single this black structure we've
+[3013s] implemented that and calculated a single
+[3015s] output like a single example
+[3017s] but what collusions allow you to do is
+[3019s] it allows you to take this black
+[3020s] structure and kind of like slide it over
+[3023s] the input sequence here and calculate
+[3026s] all of these orange outputs at the same
+[3029s] time or here that corresponds to
+[3031s] calculating all of these outputs of
+[3034s] um at all the positions of DeAndre at
+[3037s] the same time
+[3038s] and the reason that this is much more
+[3041s] efficient is because number one as I
+[3043s] mentioned the for Loop is inside the
+[3045s] Cuda kernels in the sliding so that
+[3048s] makes it efficient but number two notice
+[3050s] the variable reuse here for example if
+[3052s] we look at this circle this node here
+[3054s] this node here is the right child of
+[3056s] this node but is also the left child of
+[3059s] the node here
+[3061s] and so basically this node and its value
+[3063s] is used twice
+[3065s] and so right now in this naive way we'd
+[3068s] have to recalculate it but here we are
+[3071s] allowed to reuse it
+[3072s] so in the convolutional neural network
+[3074s] you think of these linear layers that we
+[3076s] have up above as filters and we take
+[3079s] these filters and they're linear filters
+[3081s] and you slide them over input sequence
+[3083s] and we calculate the first layer and
+[3085s] then the second layer and then the third
+[3086s] layer and then the output layer of the
+[3088s] sandwich and it's all done very
+[3090s] efficiently using these convolutions
+[3092s] so we're going to cover that in a future
+[3094s] video the second thing I hope you took
+[3095s] away from this video is you've seen me
+[3097s] basically Implement all of these layer
+[3100s] Lego building blocks or module building
+[3102s] blocks and I'm implementing them over
+[3105s] here and we've implemented a number of
+[3106s] layers together and we've also
+[3108s] implemented these these containers and
+[3111s] we've overall pytorchified our code
+[3113s] quite a bit more
+[3114s] now basically what we're doing here is
+[3116s] we're re-implementing torch.nn which is
+[3119s] the neural networks library on top of
+[3122s] torch.tensor and it looks very much like
+[3124s] this except it is much better because
+[3127s] because it's in pi torch instead of
+[3128s] jingling my Jupiter notebook so I think
+[3131s] going forward I will probably have
+[3133s] considered us having unlocked
+[3135s] um torch.nn we understand roughly what's
+[3138s] in there how these modules work how
+[3139s] they're nested and what they're doing on
+[3141s] top of torture tensor so hopefully we'll
+[3144s] just uh we'll just switch over and
+[3145s] continue and start using torch.net
+[3147s] directly the next thing I hope you got a
+[3149s] bit of a sense of is what the
+[3151s] development process of building deep
+[3153s] neural networks looks like which I think
+[3155s] was relatively representative to some
+[3156s] extent so number one we are spending a
+[3159s] lot of time in the documentation page of
+[3161s] pytorch and we're reading through all
+[3164s] the layers looking at documentations
+[3165s] where the shapes of the inputs what can
+[3168s] they be what does the layer do and so on
+[3171s] unfortunately I have to say the
+[3173s] patreon's documentation is not are very
+[3175s] good they spend a ton of time on
+[3177s] Hardcore engineering of all kinds of
+[3179s] distributed Primitives Etc but as far as
+[3181s] I can tell no one is maintaining any
+[3183s] documentation it will lie to you it will
+[3186s] be wrong it will be incomplete it will
+[3188s] be unclear so unfortunately it is what
+[3192s] it is and you just kind of do your best
+[3194s] um with what they've given us
+[3198s] um number two
+[3200s] uh the other thing that I hope you got a
+[3202s] sense of is there's a ton of trying to
+[3204s] make the shapes work and there's a lot
+[3206s] of gymnastics around these
+[3207s] multi-dimensional arrays and are they
+[3209s] two-dimensional three-dimensional
+[3210s] four-dimensional uh what layers take
+[3212s] what shapes is it NCL or NLC and you're
+[3216s] promoting and viewing and it just can
+[3219s] get pretty messy and so that brings me
+[3220s] to number three I very often prototype
+[3223s] these layers and implementations in
+[3224s] jupyter notebooks and make sure that all
+[3226s] the shapes work out and I'm spending a
+[3228s] lot of time basically babysitting the
+[3230s] shapes and making sure everything is
+[3232s] correct and then once I'm satisfied with
+[3234s] the functionality in the Jupiter
+[3235s] notebook I will take that code and copy
+[3237s] paste it into my repository of actual
+[3239s] code that I'm training with and so then
+[3242s] I'm working with vs code on the side so
+[3244s] I usually have jupyter notebook and vs
+[3246s] code I develop in Jupiter notebook I
+[3247s] paste into vs code and then I kick off
+[3249s] experiments from from the reaper of
+[3251s] course from the code repository so
+[3254s] that's roughly some notes on the
+[3256s] development process of working with
+[3257s] neurons lastly I think this lecture
+[3259s] unlocks a lot of potential further
+[3261s] lectures because number one we have to
+[3263s] convert our neural network to actually
+[3265s] use these dilated causal convolutional
+[3267s] layers so implementing the comnet number
+[3270s] two potentially starting to get into
+[3272s] what this means whatever residual
+[3274s] connections and Skip connections and why
+[3276s] are they useful
+[3277s] number three we as I mentioned we don't
+[3280s] have any experimental harness so right
+[3282s] now I'm just guessing checking
+[3284s] everything this is not representative of
+[3285s] typical deep learning workflows you have
+[3287s] to set up your evaluation harness you
+[3289s] can kick off experiments you have lots
+[3291s] of arguments that your script can take
+[3293s] you're you're kicking off a lot of
+[3294s] experimentation you're looking at a lot
+[3296s] of plots of training and validation
+[3297s] losses and you're looking at what is
+[3299s] working and what is not working and
+[3301s] you're working on this like population
+[3302s] level and you're doing all these hyper
+[3304s] parameter searches and so we've done
+[3306s] none of that so far so how to set that
+[3309s] up and how to make it good I think as a
+[3311s] whole another topic number three we
+[3314s] should probably cover recurring neural
+[3316s] networks RNs lstm's grooves and of
+[3319s] course Transformers so many uh places to
+[3322s] go and we'll cover that in the future
+[3324s] for now bye sorry I forgot to say that
+[3327s] if you are interested I think it is kind
+[3330s] of interesting to try to beat this
+[3331s] number 1.993 because I really haven't
+[3334s] tried a lot of experimentation here and
+[3336s] there's quite a bit of fruit potentially
+[3337s] to still purchase further so I haven't
+[3340s] tried any other ways of allocating these
+[3342s] channels in this neural net maybe the
+[3344s] number of dimensions for the embedding
+[3347s] is all wrong maybe it's possible to
+[3349s] actually take the original network with
+[3350s] just one hidden layer and make it big
+[3353s] enough and actually beat my fancy
+[3354s] hierarchical Network it's not obvious
+[3356s] that would be kind of embarrassing if
+[3359s] this did not do better even once you
+[3361s] torture it a little bit maybe you can
+[3363s] read the weight net paper and try to
+[3364s] figure out how some of these layers work
+[3366s] and Implement them yourselves using what
+[3367s] we have
+[3368s] and of course you can always tune some
+[3370s] of the initialization or some of the
+[3372s] optimization and see if you can improve
+[3375s] it that way so I'd be curious if people
+[3376s] can come up with some ways to beat this
+[3378s] and yeah that's it for now bye

@@ -1,0 +1,29 @@
+{
+  "core_principles": [
+    {
+      "principle": "Start with the simplest possible baseline",
+      "explanation": "Before any fancy architecture, get the dumbest thing working. Bigram model, linear regression, whatever. Know your floor.",
+      "seen_in": ["makemore", "nanoGPT", "micrograd"]
+    },
+    {
+      "principle": "Measure before you optimize",
+      "explanation": "Look at your loss curves. Profile before optimizing speed. The data tells you where to spend effort.",
+      "seen_in": ["nanoGPT", "llm.c"]
+    },
+    {
+      "principle": "Distrust abstractions until you understand the primitives",
+      "explanation": "Use PyTorch, use HuggingFace — but first implement it yourself. Abstractions are fine once you know what they're hiding.",
+      "seen_in": ["micrograd", "nanoGPT", "minbpe"]
+    },
+    {
+      "principle": "Build the smallest thing that captures the core idea",
+      "explanation": "micrograd is 100 lines. nanoGPT is 300. The point is not the features, it's the idea in its purest form.",
+      "seen_in": ["micrograd", "nanoGPT", "minbpe"]
+    },
+    {
+      "principle": "Reproduce before you innovate",
+      "explanation": "Match a known result first. Verify your implementation is correct. Then you have a stable platform to experiment from.",
+      "seen_in": ["nanoGPT", "makemore"]
+    }
+  ]
+}

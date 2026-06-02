@@ -1,0 +1,25 @@
+{
+  "project": "micrograd",
+  "description": "A tiny scalar-valued autograd engine in ~100 lines + a neural net library on top",
+  "github": "https://github.com/karpathy/micrograd",
+  "key_decisions": [
+    {
+      "decision": "Scalar-level operations instead of tensor-level",
+      "reasoning": "Tensors are just batched scalars. If you understand the scalar case completely, tensors are just an efficiency detail."
+    },
+    {
+      "decision": "Build the backward pass manually for each operation",
+      "reasoning": "This forces you to derive every gradient yourself. There's no shortcut to understanding backprop — you have to do it."
+    },
+    {
+      "decision": "~100 lines total",
+      "reasoning": "PyTorch autograd is ~500k lines. But the core idea fits in 100. Separate the idea from the engineering."
+    }
+  ],
+  "lessons": [
+    "Backpropagation is just the chain rule applied recursively — nothing more",
+    "Build the smallest possible thing that captures the core idea",
+    "If you can implement it yourself you actually understand it"
+  ],
+  "connected_concepts": ["backpropagation", "autograd", "chain rule", "gradients", "neural networks"]
+}

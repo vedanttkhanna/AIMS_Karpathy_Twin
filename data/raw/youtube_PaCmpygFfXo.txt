@@ -1,0 +1,3367 @@
+SOURCE: https://www.youtube.com/watch?v=PaCmpygFfXo
+
+[0s] hi everyone hope you're well
+[2s] and next up what i'd like to do is i'd
+[4s] like to build out make more
+[6s] like micrograd before it make more is a
+[8s] repository that i have on my github
+[10s] webpage
+[11s] you can look at it
+[12s] but just like with micrograd i'm going
+[14s] to build it out step by step and i'm
+[16s] going to spell everything out so we're
+[17s] going to build it out slowly and
+[19s] together
+[20s] now what is make more
+[22s] make more as the name suggests
+[24s] makes more of things that you give it
+[27s] so here's an example
+[29s] names.txt is an example dataset to make
+[31s] more
+[32s] and when you look at names.txt you'll
+[34s] find that it's a very large data set of
+[36s] names
+[38s] so
+[40s] here's lots of different types of names
+[41s] in fact i believe there are 32 000 names
+[44s] that i've sort of found randomly on the
+[46s] government website
+[47s] and if you train make more on this data
+[50s] set it will learn to make more of things
+[53s] like this
+[55s] and in particular in this case that will
+[57s] mean more things that sound name-like
+[60s] but are actually unique names
+[62s] and maybe if you have a baby and you're
+[63s] trying to assign name maybe you're
+[65s] looking for a cool new sounding unique
+[67s] name make more might help you
+[69s] so here are some example generations
+[71s] from the neural network
+[73s] once we train it on our data set
+[76s] so here's some example
+[77s] unique names that it will generate
+[79s] dontel
+[81s] irot
+[83s] zhendi
+[84s] and so on and so all these are sound
+[86s] name like but they're not of course
+[88s] names
+[90s] so under the hood make more is a
+[92s] character level language model so what
+[95s] that means is that it is treating every
+[97s] single line here as an example and
+[99s] within each example it's treating them
+[102s] all as sequences of individual
+[104s] characters so r e e s e is this example
+[108s] and that's the sequence of characters
+[110s] and that's the level on which we are
+[111s] building out make more and what it means
+[114s] to be a character level language model
+[116s] then is that it's just uh sort of
+[118s] modeling those sequences of characters
+[119s] and it knows how to predict the next
+[121s] character in the sequence
+[123s] now we're actually going to implement a
+[125s] large number of character level language
+[127s] models in terms of the neural networks
+[129s] that are involved in predicting the next
+[130s] character in a sequence so very simple
+[133s] bi-gram and back of work models
+[135s] multilingual perceptrons recurrent
+[137s] neural networks all the way to modern
+[139s] transformers in fact the transformer
+[141s] that we will build will be basically the
+[143s] equivalent transformer to gpt2 if you
+[146s] have heard of gpt uh so that's kind of a
+[148s] big deal it's a modern network and by
+[150s] the end of the series you will actually
+[152s] understand how that works um on the
+[154s] level of characters now to give you a
+[156s] sense of the extensions here uh after
+[159s] characters we will probably spend some
+[161s] time on the word level so that we can
+[163s] generate documents of words not just
+[165s] little you know segments of characters
+[167s] but we can generate entire large much
+[169s] larger documents
+[170s] and then we're probably going to go into
+[172s] images and image text
+[174s] networks such as dolly stable diffusion
+[177s] and so on but for now we have to start
+[180s] here character level language modeling
+[182s] let's go
+[183s] so like before we are starting with a
+[184s] completely blank jupiter notebook page
+[186s] the first thing is i would like to
+[188s] basically load up the dataset names.txt
+[191s] so we're going to open up names.txt for
+[193s] reading
+[195s] and we're going to read in everything
+[197s] into a massive string
+[199s] and then because it's a massive string
+[201s] we'd only like the individual words and
+[203s] put them in the list
+[204s] so let's call split lines
+[206s] on that string
+[207s] to get all of our words as a python list
+[210s] of strings
+[212s] so basically we can look at for example
+[213s] the first 10 words
+[215s] and we have that it's a list of emma
+[219s] olivia eva and so on
+[221s] and if we look at
+[223s] the top of the page here that is indeed
+[225s] what we see
+[227s] um
+[228s] so that's good
+[229s] this list actually makes me feel that
+[232s] this is probably sorted by frequency
+[235s] but okay so
+[237s] these are the words now we'd like to
+[238s] actually like learn a little bit more
+[240s] about this data set let's look at the
+[242s] total number of words we expect this to
+[243s] be roughly 32 000
+[246s] and then what is the for example
+[247s] shortest word
+[249s] so min of
+[250s] length of each word for w inwards
+[253s] so the shortest word will be length
+[257s] two
+[258s] and max of one w for w in words so the
+[261s] longest word will be
+[263s] 15 characters
+[264s] so let's now think through our very
+[265s] first language model
+[267s] as i mentioned a character level
+[268s] language model is predicting the next
+[270s] character in a sequence given already
+[273s] some concrete sequence of characters
+[275s] before it
+[276s] now we have to realize here is that
+[278s] every single word here like isabella is
+[280s] actually quite a few examples packed in
+[283s] to that single word
+[285s] because what is an existence of a word
+[287s] like isabella in the data set telling us
+[288s] really it's saying that
+[291s] the character i is a very likely
+[293s] character to come first in the sequence
+[296s] of a name
+[298s] the character s is likely to come
+[301s] after i
+[304s] the character a is likely to come after
+[306s] is
+[307s] the character b is very likely to come
+[309s] after isa and so on all the way to a
+[312s] following isabel
+[314s] and then there's one more example
+[315s] actually packed in here
+[317s] and that is that
+[319s] after there's isabella
+[321s] the word is very likely to end
+[323s] so that's one more sort of explicit
+[325s] piece of information that we have here
+[327s] that we have to be careful with
+[329s] and so there's a lot backed into a
+[331s] single individual word in terms of the
+[333s] statistical structure of what's likely
+[335s] to follow in these character sequences
+[338s] and then of course we don't have just an
+[339s] individual word we actually have 32 000
+[341s] of these and so there's a lot of
+[342s] structure here to model
+[344s] now in the beginning what i'd like to
+[346s] start with is i'd like to start with
+[348s] building a bi-gram language model
+[351s] now in the bigram language model we're
+[353s] always working with just
+[354s] two characters at a time
+[356s] so we're only looking at one character
+[359s] that we are given and we're trying to
+[360s] predict the next character in the
+[362s] sequence
+[363s] so um what characters are likely to
+[366s] follow are what characters are likely to
+[368s] follow a and so on and we're just
+[370s] modeling that kind of a little local
+[371s] structure
+[372s] and we're forgetting the fact that we
+[374s] may have a lot more information we're
+[376s] always just looking at the previous
+[378s] character to predict the next one so
+[380s] it's a very simple and weak language
+[381s] model but i think it's a great place to
+[383s] start
+[384s] so now let's begin by looking at these
+[385s] bi-grams in our data set and what they
+[387s] look like and these bi-grams again are
+[389s] just two characters in a row
+[390s] so for w in words
+[393s] each w here is an individual word a
+[395s] string
+[396s] we want to iterate uh for
+[399s] we're going to iterate this word
+[401s] with consecutive characters so two
+[404s] characters at a time sliding it through
+[405s] the word now a interesting nice way cute
+[409s] way to do this in python by the way is
+[411s] doing something like this for character
+[413s] one character two in zip off
+[416s] w and w at one
+[420s] one column
+[421s] print
+[422s] character one character two
+[424s] and let's not do all the words let's
+[425s] just do the first three words and i'm
+[427s] going to show you in a second how this
+[429s] works
+[429s] but for now basically as an example
+[431s] let's just do the very first word alone
+[433s] emma
+[435s] you see how we have a emma and this will
+[438s] just print e m m m a
+[440s] and the reason this works is because w
+[443s] is the string emma w at one column is
+[446s] the string mma
+[448s] and zip
+[449s] takes two iterators and it pairs them up
+[453s] and then creates an iterator over the
+[455s] tuples of their consecutive entries
+[457s] and if any one of these lists is shorter
+[459s] than the other then it will just
+[461s] halt and return
+[463s] so basically that's why we return em mmm
+[468s] ma
+[469s] but then because this iterator second
+[472s] one here runs out of elements zip just
+[475s] ends and that's why we only get these
+[476s] tuples so pretty cute
+[479s] so these are the consecutive elements in
+[481s] the first word now we have to be careful
+[483s] because we actually have more
+[484s] information here than just these three
+[487s] examples as i mentioned we know that e
+[489s] is the is very likely to come first and
+[492s] we know that a in this case is coming
+[494s] last
+[495s] so one way to do this is basically we're
+[497s] going to create
+[499s] a special array here all
+[501s] characters
+[503s] and um we're going to hallucinate a
+[505s] special start token here
+[508s] i'm going to
+[509s] call it like special start
+[512s] so this is a list of one element
+[514s] plus
+[516s] w
+[517s] and then plus a special end character
+[521s] and the reason i'm wrapping the list of
+[522s] w here is because w is a string emma
+[525s] list of w will just have the individual
+[528s] characters in the list
+[530s] and then
+[531s] doing this again now but not iterating
+[534s] over w's but over the characters
+[538s] will give us something like this
+[540s] so e is likely so this is a bigram of
+[542s] the start character and e and this is a
+[545s] bigram of the
+[546s] a and the special end character
+[549s] and now we can look at for example what
+[550s] this looks like for
+[552s] olivia or eva
+[554s] and indeed we can actually
+[556s] potentially do this for the entire data
+[557s] set but we won't print that that's going
+[559s] to be too much
+[560s] but these are the individual character
+[562s] diagrams and we can print them
+[564s] now in order to learn the statistics
+[566s] about which characters are likely to
+[568s] follow other characters the simplest way
+[570s] in the bigram language models is to
+[572s] simply do it by counting
+[574s] so we're basically just going to count
+[576s] how often any one of these combinations
+[578s] occurs in the training set
+[580s] in these words
+[581s] so we're going to need some kind of a
+[583s] dictionary that's going to maintain some
+[584s] counts for every one of these diagrams
+[587s] so let's use a dictionary b
+[589s] and this will map these bi-grams so
+[592s] bi-gram is a tuple of character one
+[594s] character two
+[596s] and then b at bi-gram
+[598s] will be b dot get of bi-gram
+[601s] which is basically the same as b at
+[603s] bigram
+[604s] but in the case that bigram is not in
+[607s] the dictionary b we would like to by
+[609s] default return to zero
+[611s] plus one
+[613s] so this will basically add up all the
+[615s] bigrams and count how often they occur
+[618s] let's get rid of printing
+[620s] or rather
+[622s] let's keep the printing and let's just
+[624s] inspect what b is in this case
+[627s] and we see that many bi-grams occur just
+[629s] a single time this one allegedly
+[631s] occurred three times
+[632s] so a was an ending character three times
+[635s] and that's true for all of these words
+[637s] all of emma olivia and eva and with a
+[641s] so that's why this occurred three times
+[646s] now let's do it for all the words
+[651s] oops i should not have printed
+[655s] i'm going to erase that
+[656s] let's kill this
+[658s] let's just run
+[660s] and now b will have the statistics of
+[662s] the entire data set
+[664s] so these are the counts across all the
+[665s] words of the individual pie grams
+[668s] and we could for example look at some of
+[669s] the most common ones and least common
+[671s] ones
+[673s] this kind of grows in python but the way
+[675s] to do this the simplest way i like is we
+[677s] just use b dot items
+[679s] b dot items returns
+[681s] the tuples of
+[684s] key value in this case the keys are
+[687s] the character diagrams and the values
+[689s] are the counts
+[690s] and so then what we want to do is we
+[692s] want to do
+[695s] sorted of this
+[698s] but by default sort is on the first
+[703s] on the first item of a tuple but we want
+[705s] to sort by the values which are the
+[707s] second element of a tuple that is the
+[709s] key value
+[710s] so we want to use the key
+[712s] equals lambda
+[715s] that takes the key value
+[717s] and returns
+[718s] the key value at the one not at zero but
+[722s] at one which is the count so we want to
+[724s] sort by the count
+[727s] of these elements
+[730s] and actually we wanted to go backwards
+[732s] so here we have is
+[734s] the bi-gram q and r occurs only a single
+[737s] time
+[738s] dz occurred only a single time
+[740s] and when we sort this the other way
+[741s] around
+[743s] we're going to see the most likely
+[745s] bigrams so we see that n was
+[748s] very often an ending character
+[750s] many many times and apparently n almost
+[752s] always follows an a
+[754s] and that's a very likely combination as
+[756s] well
+[758s] so
+[759s] this is kind of the individual counts
+[761s] that we achieve over the entire data set
+[764s] now it's actually going to be
+[766s] significantly more convenient for us to
+[768s] keep this information in a
+[769s] two-dimensional array instead of a
+[771s] python dictionary
+[773s] so
+[774s] we're going to store this information
+[776s] in a 2d array
+[778s] and
+[780s] the rows are going to be the first
+[781s] character of the bigram and the columns
+[783s] are going to be the second character and
+[785s] each entry in this two-dimensional array
+[786s] will tell us how often that first
+[788s] character files the second character in
+[791s] the data set
+[792s] so in particular the array
+[794s] representation that we're going to use
+[796s] or the library is that of pytorch
+[798s] and pytorch is a deep
+[800s] learning neural network framework but
+[802s] part of it is also this torch.tensor
+[805s] which allows us to create
+[806s] multi-dimensional arrays and manipulate
+[808s] them very efficiently
+[809s] so
+[810s] let's import pytorch which you can do by
+[812s] import torch
+[814s] and then we can create
+[816s] arrays
+[817s] so let's create a array of zeros
+[820s] and we give it a
+[822s] size of this array let's create a three
+[824s] by five array as an example
+[827s] and
+[828s] this is a three by five array of zeros
+[831s] and by default you'll notice a.d type
+[833s] which is short for data type is float32
+[836s] so these are single precision floating
+[838s] point numbers
+[839s] because we are going to represent counts
+[841s] let's actually use d type as torch dot
+[844s] and 32
+[846s] so these are
+[847s] 32-bit integers
+[850s] so now you see that we have integer data
+[852s] inside this tensor
+[854s] now tensors allow us to really
+[857s] manipulate all the individual entries
+[858s] and do it very efficiently
+[860s] so for example if we want to change this
+[862s] bit
+[863s] we have to index into the tensor and in
+[865s] particular here this is the first row
+[869s] and the
+[871s] because it's zero indexed so this is row
+[874s] index one and column index zero one two
+[877s] three
+[878s] so a at one comma three we can set that
+[881s] to one
+[883s] and then a we'll have a 1 over there
+[887s] we can of course also do things like
+[888s] this so now a will be 2 over there
+[892s] or 3.
+[893s] and also we can for example say a 0 0 is
+[896s] 5
+[897s] and then a will have a 5 over here
+[900s] so that's how we can index into the
+[902s] arrays now of course the array that we
+[904s] are interested in is much much bigger so
+[906s] for our purposes we have 26 letters of
+[908s] the alphabet
+[909s] and then we have two special characters
+[912s] s and e
+[914s] so uh we want 26 plus 2 or 28 by 28
+[918s] array
+[919s] and let's call it the capital n because
+[921s] it's going to represent sort of the
+[922s] counts
+[924s] let me erase this stuff
+[926s] so that's the array that starts at zeros
+[928s] 28 by 28
+[930s] and now let's copy paste this
+[933s] here
+[934s] but instead of having a dictionary b
+[936s] which we're going to erase we now have
+[939s] an n
+[940s] now the problem here is that we have
+[942s] these characters which are strings but
+[944s] we have to now
+[945s] um basically index into a
+[948s] um array and we have to index using
+[950s] integers so we need some kind of a
+[952s] lookup table from characters to integers
+[955s] so let's construct such a character
+[956s] array
+[958s] and the way we're going to do this is
+[959s] we're going to take all the words which
+[961s] is a list of strings
+[962s] we're going to concatenate all of it
+[964s] into a massive string so this is just
+[966s] simply the entire data set as a single
+[967s] string
+[969s] we're going to pass this to the set
+[970s] constructor which takes this massive
+[973s] string
+[974s] and throws out duplicates because sets
+[976s] do not allow duplicates
+[978s] so set of this will just be the set of
+[981s] all the lowercase characters
+[984s] and there should be a total of 26 of
+[986s] them
+[988s] and now we actually don't want a set we
+[989s] want a list
+[992s] but we don't want a list sorted in some
+[994s] weird arbitrary way we want it to be
+[996s] sorted
+[997s] from a to z
+[999s] so sorted list
+[1001s] so those are our characters
+[1005s] now what we want is this lookup table as
+[1007s] i mentioned so let's create a special
+[1009s] s2i i will call it
+[1012s] um s is string or character and this
+[1015s] will be an s2i mapping
+[1018s] for
+[1019s] is in enumerate of these characters
+[1024s] so enumerate basically gives us this
+[1026s] iterator over the integer index and the
+[1030s] actual element of the list and then we
+[1032s] are mapping the character to the integer
+[1035s] so s2i
+[1036s] is a mapping from a to 0 b to 1 etc all
+[1039s] the way from z to 25
+[1044s] and that's going to be useful here but
+[1045s] we actually also have to specifically
+[1047s] set that s will be 26
+[1049s] and s to i at e will be 27 right because
+[1053s] z was 25.
+[1055s] so those are the lookups and now we can
+[1058s] come here and we can map
+[1059s] both character 1 and character 2 to
+[1061s] their integers
+[1062s] so this will be s2i at character 1
+[1065s] and ix2 will be s2i of character 2.
+[1069s] and now we should be able to
+[1072s] do this line but using our array so n at
+[1075s] x1 ix2 this is the two-dimensional array
+[1078s] indexing i've shown you before
+[1080s] and honestly just plus equals one
+[1082s] because everything starts at
+[1084s] zero
+[1086s] so this should
+[1087s] work
+[1088s] and give us a large 28 by 28 array
+[1092s] of all these counts so
+[1095s] if we print n
+[1096s] this is the array but of course it looks
+[1099s] ugly so let's erase this ugly mess and
+[1101s] let's try to visualize it a bit more
+[1103s] nicer
+[1104s] so for that we're going to use a library
+[1106s] called matplotlib
+[1108s] so matplotlib allows us to create
+[1110s] figures so we can do things like plt
+[1112s] item show of the counter array
+[1116s] so this is the 28x28 array
+[1119s] and this is structure but even this i
+[1121s] would say is still pretty ugly
+[1123s] so we're going to try to create a much
+[1125s] nicer visualization of it and i wrote a
+[1127s] bunch of code for that
+[1129s] the first thing we're going to need is
+[1131s] we're going to need to invert
+[1133s] this array here this dictionary so s2i
+[1137s] is mapping from s to i
+[1139s] and in i2s we're going to reverse this
+[1142s] dictionary so iterator of all the items
+[1144s] and just reverse that array
+[1146s] so i2s
+[1148s] maps inversely from 0 to a 1 to b etc
+[1152s] so we'll need that
+[1154s] and then here's the code that i came up
+[1156s] with to try to make this a little bit
+[1157s] nicer
+[1160s] we create a figure
+[1162s] we plot
+[1163s] n
+[1164s] and then we do and then we visualize a
+[1166s] bunch of things later let me just run it
+[1168s] so you get a sense of what this is
+[1171s] okay
+[1172s] so you see here that we have
+[1175s] the array spaced out
+[1177s] and every one of these is basically like
+[1179s] b follows g zero times
+[1182s] b follows h 41 times
+[1184s] um so a follows j 175 times
+[1187s] and so what you can see that i'm doing
+[1189s] here is first i show that entire array
+[1192s] and then i iterate over all the
+[1194s] individual little cells here
+[1196s] and i create a character string here
+[1199s] which is the inverse mapping i2s of the
+[1202s] integer i and the integer j so those are
+[1205s] the bi-grams in a character
+[1206s] representation
+[1208s] and then i plot just the diagram text
+[1212s] and then i plot the number of times that
+[1214s] this bigram occurs
+[1216s] now the reason that there's a dot item
+[1217s] here is because when you index into
+[1220s] these arrays these are torch tensors
+[1222s] you see that we still get a tensor back
+[1225s] so the type of this thing you'd think it
+[1228s] would be just an integer 149 but it's
+[1229s] actually a torch.tensor
+[1231s] and so
+[1232s] if you do dot item then it will pop out
+[1235s] that in individual integer
+[1238s] so it will just be 149.
+[1240s] so that's what's happening there and
+[1242s] these are just some options to make it
+[1243s] look nice
+[1245s] so what is the structure of this array
+[1249s] we have all these counts and we see that
+[1250s] some of them occur often and some of
+[1252s] them do not occur often
+[1253s] now if you scrutinize this carefully you
+[1256s] will notice that we're not actually
+[1257s] being very clever
+[1258s] that's because when you come over here
+[1260s] you'll notice that for example we have
+[1262s] an entire row of completely zeros and
+[1264s] that's because the end character
+[1266s] is never possibly going to be the first
+[1268s] character of a bi-gram because we're
+[1270s] always placing these end tokens all at
+[1272s] the end of the diagram
+[1274s] similarly we have entire columns zeros
+[1276s] here because the s
+[1279s] character will never possibly be the
+[1281s] second element of a bigram because we
+[1283s] always start with s and we end with e
+[1285s] and we only have the words in between
+[1287s] so we have an entire column of zeros an
+[1290s] entire row of zeros and in this little
+[1292s] two by two matrix here as well the only
+[1294s] one that can possibly happen is if s
+[1296s] directly follows e
+[1298s] that can be non-zero if we have a word
+[1301s] that has no letters so in that case
+[1303s] there's no letters in the word it's an
+[1304s] empty word and we just have s follows e
+[1307s] but the other ones are just not possible
+[1310s] and so we're basically wasting space and
+[1311s] not only that but the s and the e are
+[1313s] getting very crowded here
+[1315s] i was using these brackets because
+[1317s] there's convention and natural language
+[1318s] processing to use these kinds of
+[1320s] brackets to denote special tokens
+[1323s] but we're going to use something else
+[1325s] so let's fix all this and make it
+[1326s] prettier
+[1328s] we're not actually going to have two
+[1329s] special tokens we're only going to have
+[1331s] one special token
+[1332s] so
+[1333s] we're going to have n by n
+[1335s] array of 27 by 27 instead
+[1338s] instead of having two
+[1340s] we will just have one and i will call it
+[1342s] a dot
+[1344s] okay
+[1347s] let me swing this over here
+[1350s] now one more thing that i would like to
+[1351s] do is i would actually like to make this
+[1353s] special character half position zero
+[1356s] and i would like to offset all the other
+[1357s] letters off i find that a little bit
+[1359s] more
+[1360s] pleasing
+[1362s] so
+[1364s] we need a plus one here so that the
+[1366s] first character which is a will start at
+[1368s] one
+[1369s] so s2i
+[1371s] will now be a starts at one and dot is 0
+[1375s] and
+[1376s] i2s of course we're not changing this
+[1378s] because i2s just creates a reverse
+[1380s] mapping and this will work fine so 1 is
+[1382s] a 2 is b
+[1384s] 0 is dot
+[1386s] so we've reversed that here
+[1389s] we have
+[1390s] a dot and a dot
+[1392s] this should work fine
+[1394s] make sure i start at zeros
+[1397s] count
+[1398s] and then here we don't go up to 28 we go
+[1400s] up to 27
+[1402s] and this should just work
+[1410s] okay
+[1411s] so we see that dot never happened it's
+[1413s] at zero because we don't have empty
+[1415s] words
+[1416s] then this row here now is just uh very
+[1418s] simply the um
+[1420s] counts for all the first letters so
+[1424s] uh j starts a word h starts a word i
+[1427s] starts a word etc and then these are all
+[1430s] the ending
+[1431s] characters
+[1432s] and in between we have the structure of
+[1434s] what characters follow each other
+[1436s] so this is the counts array of our
+[1439s] entire
+[1440s] data set so this array actually has all
+[1443s] the information necessary for us to
+[1444s] actually sample from this bigram
+[1447s] uh character level language model
+[1449s] and um roughly speaking what we're going
+[1451s] to do is we're just going to start
+[1453s] following these probabilities and these
+[1454s] counts and we're going to start sampling
+[1456s] from the from the model
+[1458s] so in the beginning of course
+[1460s] we start with the dot the start token
+[1463s] dot
+[1464s] so to sample the first character of a
+[1467s] name we're looking at this row here
+[1470s] so we see that we have the counts and
+[1472s] those concepts terminally are telling us
+[1474s] how often any one of these characters is
+[1477s] to start a word
+[1479s] so if we take this n
+[1481s] and we grab the first row
+[1484s] we can do that by using just indexing as
+[1487s] zero
+[1488s] and then using this notation column for
+[1491s] the rest of that row
+[1493s] so n zero colon
+[1496s] is indexing into the zeroth
+[1498s] row and then it's grabbing all the
+[1500s] columns
+[1501s] and so this will give us a
+[1503s] one-dimensional array
+[1505s] of the first row so zero four four ten
+[1508s] you know zero four four ten one three oh
+[1510s] six one five four two etc it's just the
+[1513s] first row the shape of this
+[1515s] is 27 it's just the row of 27
+[1519s] and the other way that you can do this
+[1521s] also is you just you don't need to
+[1522s] actually give this
+[1523s] you just grab the zeroth row like this
+[1526s] this is equivalent
+[1528s] now these are the counts
+[1529s] and now what we'd like to do is we'd
+[1531s] like to basically um sample from this
+[1534s] since these are the raw counts we
+[1536s] actually have to convert this to
+[1537s] probabilities
+[1539s] so we create a probability vector
+[1542s] so we'll take n of zero
+[1544s] and we'll actually convert this to float
+[1548s] first
+[1549s] okay so these integers are converted to
+[1551s] float
+[1552s] floating point numbers and the reason
+[1554s] we're creating floats is because we're
+[1556s] about to normalize these counts
+[1558s] so to create a probability distribution
+[1560s] here we want to divide
+[1563s] we basically want to do p p p divide p
+[1565s] that sum
+[1569s] and now we get a vector of smaller
+[1571s] numbers and these are now probabilities
+[1573s] so of course because we divided by the
+[1575s] sum the sum of p now is 1.
+[1578s] so this is a nice proper probability
+[1580s] distribution it sums to 1 and this is
+[1582s] giving us the probability for any single
+[1584s] character to be the first
+[1586s] character of a word
+[1587s] so now we can try to sample from this
+[1589s] distribution to sample from these
+[1591s] distributions we're going to use
+[1593s] storch.multinomial which i've pulled up
+[1594s] here
+[1596s] so torch.multinomial returns uh
+[1600s] samples from the multinomial probability
+[1602s] distribution which is a complicated way
+[1604s] of saying you give me probabilities and
+[1606s] i will give you integers which are
+[1608s] sampled
+[1609s] according to the property distribution
+[1611s] so this is the signature of the method
+[1613s] and to make everything deterministic
+[1614s] we're going to use a generator object in
+[1617s] pytorch
+[1619s] so this makes everything deterministic
+[1620s] so when you run this on your computer
+[1622s] you're going to the exact get the exact
+[1624s] same results that i'm getting here on my
+[1625s] computer
+[1627s] so let me show you how this works
+[1632s] here's the deterministic way of creating
+[1635s] a torch generator object
+[1638s] seeding it with some number that we can
+[1640s] agree on
+[1641s] so that seeds a generator gets gives us
+[1643s] an object g
+[1644s] and then we can pass that g
+[1646s] to a function
+[1648s] that creates um
+[1650s] here random numbers twerk.rand creates
+[1652s] random numbers three of them
+[1655s] and it's using this generator object to
+[1657s] as a source of randomness
+[1660s] so
+[1661s] without normalizing it
+[1664s] i can just print
+[1666s] this is sort of like numbers between 0
+[1668s] and 1 that are random according to this
+[1670s] thing and whenever i run it again
+[1673s] i'm always going to get the same result
+[1674s] because i keep using the same generator
+[1676s] object which i'm seeing here
+[1678s] and then if i divide
+[1681s] to normalize i'm going to get a nice
+[1684s] probability distribution of just three
+[1685s] elements
+[1687s] and then we can use torsion multinomial
+[1689s] to draw samples from it so this is what
+[1691s] that looks like
+[1693s] tertiary multinomial we'll take the
+[1696s] torch tensor
+[1698s] of probability distributions
+[1700s] then we can ask for a number of samples
+[1702s] let's say 20.
+[1704s] replacement equals true means that when
+[1706s] we draw an element
+[1708s] we will uh we can draw it and then we
+[1710s] can put it back into the list of
+[1712s] eligible indices to draw again
+[1715s] and we have to specify replacement as
+[1717s] true because by default uh for some
+[1719s] reason it's false
+[1721s] and i think
+[1722s] you know it's just something to be
+[1724s] careful with
+[1725s] and the generator is passed in here so
+[1727s] we're going to always get deterministic
+[1729s] results the same results so if i run
+[1731s] these two
+[1733s] we're going to get a bunch of samples
+[1735s] from this distribution
+[1737s] now you'll notice here that the
+[1738s] probability for the
+[1740s] first element in this tensor is 60
+[1744s] so in these 20 samples we'd expect 60 of
+[1748s] them to be zero
+[1750s] we'd expect thirty percent of them to be
+[1752s] one
+[1754s] and because the the element index two
+[1757s] has only ten percent probability very
+[1759s] few of these samples should be two and
+[1762s] indeed we only have a small number of
+[1764s] twos
+[1765s] and we can sample as many as we'd like
+[1768s] and the more we sample the more
+[1771s] these numbers should um roughly have the
+[1773s] distribution here
+[1775s] so we should have lots of zeros
+[1778s] half as many um
+[1781s] ones and we should have um three times
+[1784s] as few
+[1786s] oh sorry s few ones and three times as
+[1789s] few uh
+[1790s] twos
+[1791s] so you see that we have very few twos we
+[1793s] have some ones and most of them are zero
+[1795s] so that's what torsion multinomial is
+[1797s] doing
+[1798s] for us here
+[1801s] we are interested in this row we've
+[1802s] created this
+[1805s] p here
+[1806s] and now we can sample from it
+[1809s] so if we use the same
+[1811s] seed
+[1812s] and then we sample from this
+[1814s] distribution let's just get one sample
+[1818s] then we see that the sample is say 13.
+[1822s] so this will be the index
+[1825s] and let's you see how it's a tensor that
+[1827s] wraps 13 we again have to use that item
+[1830s] to pop out that integer
+[1832s] and now index would be just the number
+[1835s] 13.
+[1837s] and of course the um we can do
+[1840s] we can map the i2s of ix to figure out
+[1843s] exactly which character
+[1845s] we're sampling here we're sampling m
+[1848s] so we're saying that the first character
+[1850s] is
+[1851s] in our generation
+[1853s] and just looking at the road here
+[1855s] m was drawn and you we can see that m
+[1857s] actually starts a large number of words
+[1859s] uh m
+[1861s] started 2 500 words out of 32 000 words
+[1864s] so almost
+[1866s] a bit less than 10 percent of the words
+[1867s] start with them so this was actually a
+[1869s] fairly likely character to draw
+[1873s] um
+[1875s] so that would be the first character of
+[1876s] our work and now we can continue to
+[1878s] sample more characters because now we
+[1880s] know that m started
+[1882s] m is already sampled
+[1884s] so now to draw the next character we
+[1886s] will come back here and we will look for
+[1889s] the row
+[1890s] that starts with m
+[1892s] so you see m
+[1894s] and we have a row here
+[1896s] so we see that m dot is
+[1899s] 516 m a is this many and b is this many
+[1903s] etc so these are the counts for the next
+[1904s] row and that's the next character that
+[1906s] we are going to now generate
+[1908s] so i think we are ready to actually just
+[1910s] write out the loop because i think
+[1911s] you're starting to get a sense of how
+[1912s] this is going to go
+[1914s] the um
+[1916s] we always begin at
+[1917s] index 0 because that's the start token
+[1922s] and then while true
+[1924s] we're going to grab the row
+[1926s] corresponding to index
+[1928s] that we're currently on so that's p
+[1931s] so that's n array at ix
+[1934s] converted to float is rp
+[1939s] then we normalize
+[1941s] this p to sum to one
+[1945s] i accidentally ran the infinite loop we
+[1948s] normalize p to something one
+[1950s] then we need this generator object
+[1953s] now we're going to initialize up here
+[1955s] and we're going to draw a single sample
+[1956s] from this distribution
+[1960s] and then this is going to tell us what
+[1962s] index is going to be next
+[1966s] if the index sampled is
+[1968s] 0
+[1969s] then that's now the end token
+[1972s] so we will break
+[1975s] otherwise we are going to print
+[1977s] s2i of ix
+[1982s] i2s
+[1985s] and uh that's pretty much it we're just
+[1987s] uh this should work okay more
+[1992s] so that's that's the name that we've
+[1993s] sampled we started with m the next step
+[1996s] was o then r and then dot
+[2001s] and this dot we it here as well
+[2004s] so
+[2006s] let's now do this a few times
+[2009s] so let's actually create an
+[2013s] out list here
+[2017s] and instead of printing we're going to
+[2018s] append
+[2019s] so out that append this character
+[2024s] and then here let's just print it at the
+[2026s] end so let's just join up all the outs
+[2029s] and we're just going to print more okay
+[2031s] now we're always getting the same result
+[2033s] because of the generator
+[2035s] so if we want to do this a few times we
+[2037s] can go for i in range
+[2040s] 10 we can sample 10 names
+[2042s] and we can just do that 10 times
+[2045s] and these are the names that we're
+[2046s] getting out
+[2048s] let's do 20.
+[2054s] i'll be honest with you this doesn't
+[2055s] look right
+[2056s] so i started a few minutes to convince
+[2058s] myself that it actually is right
+[2060s] the reason these samples are so terrible
+[2062s] is that bigram language model
+[2064s] is actually look just like really
+[2066s] terrible
+[2067s] we can generate a few more here
+[2070s] and you can see that they're kind of
+[2070s] like their name like a little bit like
+[2073s] yanu o'reilly etc but they're just like
+[2076s] totally messed up um
+[2078s] and i mean the reason that this is so
+[2080s] bad like we're generating h as a name
+[2082s] but you have to think through
+[2084s] it from the model's eyes it doesn't know
+[2087s] that this h is the very first h all it
+[2089s] knows is that h was previously and now
+[2092s] how likely is h the last character well
+[2095s] it's somewhat
+[2097s] likely and so it just makes it last
+[2098s] character it doesn't know that there
+[2100s] were other things before it or there
+[2102s] were not other things before it and so
+[2104s] that's why it's generating all these
+[2105s] like
+[2106s] nonsense names
+[2108s] another way to do this is
+[2111s] to convince yourself that this is
+[2112s] actually doing something reasonable even
+[2114s] though it's so terrible is
+[2117s] these little piece here are 27 right
+[2120s] like 27.
+[2123s] so how about if we did something like
+[2124s] this
+[2126s] instead of p having any structure
+[2127s] whatsoever
+[2128s] how about if p was just
+[2130s] torch dot once
+[2134s] of 27
+[2137s] by default this is a float 32 so this is
+[2139s] fine divide 27
+[2142s] so what i'm doing here is this is the
+[2144s] uniform distribution which will make
+[2147s] everything equally likely
+[2149s] and we can sample from that so let's see
+[2152s] if that does any better
+[2154s] okay so it's
+[2155s] this is what you have from a model that
+[2157s] is completely untrained where everything
+[2159s] is equally likely so it's obviously
+[2161s] garbage and then if we have a trained
+[2163s] model which is trained on just bi-grams
+[2167s] this is what we get so you can see that
+[2169s] it is more name-like it is actually
+[2171s] working it's just um
+[2174s] my gram is so terrible and we have to do
+[2175s] better now next i would like to fix an
+[2177s] inefficiency that we have going on here
+[2180s] because what we're doing here is we're
+[2181s] always fetching a row of n from the
+[2184s] counts matrix up ahead
+[2186s] and then we're always doing the same
+[2187s] things we're converting to float and
+[2188s] we're dividing and we're doing this
+[2190s] every single iteration of this loop and
+[2192s] we just keep renormalizing these rows
+[2194s] over and over again and it's extremely
+[2195s] inefficient and wasteful so what i'd
+[2197s] like to do is i'd like to actually
+[2198s] prepare a matrix capital p that will
+[2201s] just have the probabilities in it so in
+[2204s] other words it's going to be the same as
+[2205s] the capital n matrix here of counts but
+[2208s] every single row will have the row of
+[2210s] probabilities uh that is normalized to 1
+[2212s] indicating the probability distribution
+[2214s] for the next character given the
+[2216s] character before it
+[2217s] um as defined by which row we're in
+[2221s] so basically what we'd like to do is
+[2223s] we'd like to just do it up front here
+[2224s] and then we would like to just use that
+[2226s] row here so here we would like to just
+[2229s] do p equals p of ix instead
+[2232s] okay
+[2234s] the other reason i want to do this is
+[2236s] not just for efficiency but also i would
+[2237s] like us to practice
+[2239s] these n-dimensional tensors and i'd like
+[2241s] us to practice their manipulation and
+[2243s] especially something that's called
+[2244s] broadcasting that we'll go into in a
+[2246s] second
+[2246s] we're actually going to have to become
+[2248s] very good at these tensor manipulations
+[2250s] because if we're going to build out all
+[2252s] the way to transformers we're going to
+[2253s] be doing some pretty complicated um
+[2255s] array operations for efficiency and we
+[2257s] need to really understand that and be
+[2259s] very good at it
+[2262s] so intuitively what we want to do is we
+[2263s] first want to grab the floating point
+[2265s] copy of n
+[2268s] and i'm mimicking the line here
+[2269s] basically
+[2270s] and then we want to divide all the rows
+[2273s] so that they sum to 1.
+[2275s] so we'd like to do something like this p
+[2277s] divide p dot sum
+[2280s] but
+[2281s] now we have to be careful
+[2282s] because p dot sum actually
+[2285s] produces a sum
+[2288s] sorry equals and that float copy
+[2290s] p dot sum produces a um
+[2294s] sums up all of the counts of this entire
+[2296s] matrix n and gives us a single number of
+[2299s] just the summation of everything so
+[2301s] that's not the way we want to define
+[2302s] divide we want to simultaneously and in
+[2305s] parallel divide all the rows
+[2307s] by their respective sums
+[2310s] so what we have to do now is we have to
+[2312s] go into documentation for torch.sum
+[2315s] and we can scroll down here to a
+[2317s] definition that is relevant to us which
+[2318s] is where we don't only provide an input
+[2321s] array that we want to sum but we also
+[2323s] provide the dimension along which we
+[2325s] want to sum
+[2327s] and in particular we want to sum up
+[2329s] over rows
+[2331s] right
+[2332s] now one more argument that i want you to
+[2333s] pay attention to here is the keep them
+[2336s] is false
+[2337s] if keep them is true then the output
+[2340s] tensor is of the same size as input
+[2342s] except of course the dimension along
+[2343s] which is summed which will become just
+[2345s] one
+[2347s] but if you pass in keep them as false
+[2352s] then this dimension is squeezed out and
+[2354s] so torch.sum not only does the sum and
+[2356s] collapses dimension to be of size one
+[2358s] but in addition it does what's called a
+[2360s] squeeze where it squeezes out it
+[2362s] squeezes out that dimension
+[2364s] so
+[2365s] basically what we want here is we
+[2367s] instead want to do p dot sum of some
+[2369s] axis
+[2370s] and in particular notice that p dot
+[2372s] shape is 27 by 27
+[2375s] so when we sum up across axis zero then
+[2377s] we would be taking the zeroth dimension
+[2380s] and we would be summing across it
+[2382s] so when keep them as true
+[2384s] then this thing will not only give us
+[2386s] the counts across um
+[2390s] along the columns
+[2391s] but notice that basically the shape of
+[2393s] this is 1 by 27 we just get a row vector
+[2397s] and the reason we get a row vector here
+[2398s] again is because we passed in zero
+[2400s] dimension so this zero dimension becomes
+[2402s] one and we've done a sum
+[2404s] and we get a row and so basically we've
+[2406s] done the sum
+[2408s] this way
+[2409s] vertically and arrived at just a single
+[2411s] 1 by 27
+[2412s] vector of counts
+[2415s] what happens when you take out keep them
+[2417s] is that we just get 27. so it squeezes
+[2420s] out that dimension and we just get
+[2423s] a one-dimensional vector of size 27.
+[2428s] now we don't actually want
+[2431s] one by 27 row vector because that gives
+[2433s] us the counts or the sums across
+[2437s] the columns
+[2439s] we actually want to sum the other way
+[2441s] along dimension one and you'll see that
+[2443s] the shape of this is 27 by one so it's a
+[2446s] column vector it's a 27 by one
+[2449s] vector of counts
+[2452s] okay
+[2453s] and that's because what's happened here
+[2455s] is that we're going horizontally and
+[2456s] this 27 by 27 matrix becomes a 27 by 1
+[2461s] array
+[2463s] now you'll notice by the way that um the
+[2466s] actual numbers
+[2468s] of these counts are identical
+[2470s] and that's because this special array of
+[2472s] counts here comes from bi-gram
+[2473s] statistics and actually it just so
+[2475s] happens by chance
+[2477s] or because of the way this array is
+[2479s] constructed that the sums along the
+[2481s] columns or along the rows horizontally
+[2483s] or vertically is identical
+[2486s] but actually what we want to do in this
+[2487s] case is we want to sum across the
+[2490s] rows
+[2491s] horizontally so what we want here is p
+[2493s] that sum of one with keep in true
+[2497s] 27 by one column vector
+[2499s] and now what we want to do is we want to
+[2500s] divide by that
+[2504s] now we have to be careful here again is
+[2506s] it possible to take
+[2508s] what's a um p dot shape you see here 27
+[2511s] by 27 is it possible to take a 27 by 27
+[2515s] array and divide it by what is a 27 by 1
+[2519s] array
+[2521s] is that an operation that you can do
+[2523s] and whether or not you can perform this
+[2525s] operation is determined by what's called
+[2526s] broadcasting rules so if you just search
+[2529s] broadcasting semantics in torch
+[2531s] you'll notice that there's a special
+[2532s] definition for
+[2534s] what's called broadcasting that uh for
+[2536s] whether or not um these two uh arrays
+[2540s] can be combined in a binary operation
+[2542s] like division
+[2543s] so the first condition is each tensor
+[2545s] has at least one dimension which is the
+[2547s] case for us
+[2548s] and then when iterating over the
+[2549s] dimension sizes starting at the trailing
+[2551s] dimension
+[2552s] the dimension sizes must either be equal
+[2554s] one of them is one or one of them does
+[2556s] not exist
+[2558s] okay
+[2558s] so let's do that we need to align the
+[2561s] two arrays and their shapes which is
+[2564s] very easy because both of these shapes
+[2565s] have two elements so they're aligned
+[2568s] then we iterate over from the from the
+[2570s] right and going to the left
+[2572s] each dimension must be either equal one
+[2575s] of them is a one or one of them does not
+[2577s] exist so in this case they're not equal
+[2579s] but one of them is a one so this is fine
+[2581s] and then this dimension they're both
+[2583s] equal
+[2584s] so uh this is fine
+[2585s] so all the dimensions are fine and
+[2588s] therefore the this operation is
+[2590s] broadcastable so that means that this
+[2592s] operation is allowed
+[2594s] and what is it that these arrays do when
+[2596s] you divide 27 by 27 by 27 by one
+[2599s] what it does is that it takes this
+[2601s] dimension one and it stretches it out it
+[2604s] copies it to match
+[2607s] 27 here in this case
+[2608s] so in our case it takes this column
+[2610s] vector which is 27 by 1
+[2612s] and it copies it 27 times
+[2616s] to make
+[2617s] these both be 27 by 27 internally you
+[2620s] can think of it that way and so it
+[2622s] copies those counts
+[2624s] and then it does an element-wise
+[2625s] division
+[2627s] which is what we want because these
+[2628s] counts we want to divide by them on
+[2630s] every single one of these columns in
+[2632s] this matrix
+[2634s] so this actually we expect will
+[2636s] normalize
+[2637s] every single row
+[2639s] and we can check that this is true by
+[2641s] taking the first row for example and
+[2644s] taking its sum we expect this to be
+[2646s] 1. because it's not normalized
+[2650s] and then we expect this now because if
+[2653s] we actually correctly normalize all the
+[2654s] rows we expect to get the exact same
+[2656s] result here so let's run this
+[2659s] it's the exact same result
+[2661s] this is correct so now i would like to
+[2663s] scare you a little bit
+[2665s] uh you actually have to like i basically
+[2667s] encourage you very strongly to read
+[2668s] through broadcasting semantics
+[2670s] and i encourage you to treat this with
+[2671s] respect and it's not something to play
+[2674s] fast and loose with it's something to
+[2675s] really respect really understand and
+[2677s] look up maybe some tutorials for
+[2678s] broadcasting and practice it and be
+[2680s] careful with it because you can very
+[2682s] quickly run into books let me show you
+[2684s] what i mean
+[2687s] you see how here we have p dot sum of
+[2688s] one keep them as true
+[2690s] the shape of this is 27 by one let me
+[2693s] take out this line just so we have the n
+[2695s] and then we can see the counts
+[2698s] we can see that this is a all the counts
+[2700s] across all the
+[2702s] rows
+[2703s] and it's a 27 by one column vector right
+[2707s] now suppose that i tried to do the
+[2709s] following
+[2710s] but i erase keep them just true here
+[2713s] what does that do if keep them is not
+[2715s] true it's false then remember according
+[2718s] to documentation it gets rid of this
+[2720s] dimension one it squeezes it out so
+[2723s] basically we just get all the same
+[2724s] counts the same result except the shape
+[2727s] of it is not 27 by 1 it is just 27 the
+[2730s] one disappears
+[2731s] but all the counts are the same
+[2734s] so you'd think that this divide that
+[2737s] would uh would work
+[2740s] first of all can we even uh write this
+[2742s] and will it is it even is it even
+[2744s] expected to run is it broadcastable
+[2746s] let's determine if this result is
+[2747s] broadcastable
+[2749s] p.summit one is shape
+[2751s] is 27.
+[2752s] this is 27 by 27. so 27 by 27
+[2757s] broadcasting into 27. so now
+[2761s] rules of broadcasting number one align
+[2763s] all the dimensions on the right done now
+[2766s] iteration over all the dimensions
+[2767s] starting from the right going to the
+[2769s] left
+[2770s] all the dimensions must either be equal
+[2772s] one of them must be one or one that does
+[2774s] not exist so here they are all equal
+[2777s] here the dimension does not exist
+[2779s] so internally what broadcasting will do
+[2781s] is it will create a one here
+[2784s] and then
+[2785s] we see that one of them is a one and
+[2787s] this will get copied and this will run
+[2790s] this will broadcast
+[2792s] okay so you'd expect this
+[2794s] to work
+[2797s] because we we are
+[2801s] this broadcast and this we can divide
+[2802s] this
+[2803s] now if i run this you'd expect it to
+[2805s] work but
+[2806s] it doesn't
+[2807s] uh you actually get garbage you get a
+[2809s] wrong dissolve because this is actually
+[2811s] a bug
+[2812s] this keep them equals true
+[2817s] makes it work
+[2820s] this is a bug
+[2822s] in both cases we are doing
+[2824s] the correct counts we are summing up
+[2827s] across the rows
+[2829s] but keep them is saving us and making it
+[2830s] work so in this case
+[2832s] i'd like to encourage you to potentially
+[2834s] like pause this video at this point and
+[2835s] try to think about why this is buggy and
+[2838s] why the keep dim was necessary here
+[2842s] okay
+[2842s] so the reason to do
+[2844s] for this is i'm trying to hint it here
+[2846s] when i was sort of giving you a bit of a
+[2847s] hint on how this works
+[2849s] this
+[2850s] 27 vector
+[2852s] internally inside the broadcasting this
+[2854s] becomes a 1 by 27
+[2856s] and 1 by 27 is a row vector right
+[2859s] and now we are dividing 27 by 27 by 1 by
+[2862s] 27
+[2863s] and torch will replicate this dimension
+[2865s] so basically
+[2867s] uh it will take
+[2869s] it will take this
+[2871s] row vector and it will copy it
+[2873s] vertically now
+[2875s] 27 times so the 27 by 27 lies exactly
+[2877s] and element wise divides
+[2880s] and so basically what's happening here
+[2882s] is
+[2884s] we're actually normalizing the columns
+[2886s] instead of normalizing the rows
+[2889s] so you can check that what's happening
+[2891s] here is that p at zero which is the
+[2893s] first row of p dot sum
+[2896s] is not one it's seven
+[2898s] it is the first column as an example
+[2900s] that sums to one
+[2903s] so
+[2904s] to summarize where does the issue come
+[2906s] from the issue comes from the silent
+[2908s] adding of a dimension here because in
+[2910s] broadcasting rules you align on the
+[2911s] right and go from right to left and if
+[2914s] dimension doesn't exist you create it
+[2916s] so that's where the problem happens we
+[2918s] still did the counts correctly we did
+[2919s] the counts across the rows and we got
+[2921s] the the counts on the right here as a
+[2924s] column vector but because the keep
+[2926s] things was true this this uh this
+[2928s] dimension was discarded and now we just
+[2929s] have a vector of 27. and because of
+[2932s] broadcasting the way it works this
+[2934s] vector of 27 suddenly becomes a row
+[2936s] vector
+[2936s] and then this row vector gets replicated
+[2938s] vertically and that every single point
+[2940s] we are dividing by the by the count
+[2945s] in the opposite direction
+[2947s] so uh
+[2948s] so this thing just uh doesn't work this
+[2951s] needs to be keep things equal true in
+[2952s] this case
+[2954s] so then
+[2956s] then we have that p at zero is
+[2957s] normalized
+[2959s] and conversely the first column you'd
+[2961s] expect to potentially not be normalized
+[2964s] and this is what makes it work
+[2967s] so pretty subtle and uh hopefully this
+[2971s] helps to scare you that you should have
+[2973s] a respect for broadcasting be careful
+[2974s] check your work uh and uh understand how
+[2977s] it works under the hood and make sure
+[2979s] that it's broadcasting in the direction
+[2980s] that you like otherwise you're going to
+[2981s] introduce very subtle bugs very hard to
+[2984s] find bugs and uh just be careful one
+[2986s] more note on efficiency we don't want to
+[2988s] be doing this here because this creates
+[2991s] a completely new tensor that we store
+[2993s] into p
+[2994s] we prefer to use in place operations if
+[2996s] possible
+[2997s] so this would be an in-place operation
+[3000s] it has the potential to be faster it
+[3001s] doesn't create new memory
+[3003s] under the hood and then let's erase this
+[3006s] we don't need it
+[3007s] and let's
+[3009s] also
+[3010s] um just do fewer just so i'm not wasting
+[3013s] space
+[3014s] okay so we're actually in a pretty good
+[3015s] spot now
+[3016s] we trained a bigram language model and
+[3019s] we trained it really just by counting uh
+[3022s] how frequently any pairing occurs and
+[3024s] then normalizing so that we get a nice
+[3026s] property distribution
+[3027s] so really these elements of this array p
+[3031s] are really the parameters of our biogram
+[3032s] language model giving us and summarizing
+[3034s] the statistics of these bigrams
+[3036s] so we train the model and then we know
+[3038s] how to sample from a model we just
+[3040s] iteratively uh sample the next character
+[3043s] and feed it in each time and get a next
+[3045s] character
+[3046s] now what i'd like to do is i'd like to
+[3048s] somehow evaluate the quality of this
+[3050s] model we'd like to somehow summarize the
+[3052s] quality of this model into a single
+[3054s] number how good is it at predicting
+[3057s] the training set
+[3058s] and as an example so in the training set
+[3060s] we can evaluate now the training loss
+[3064s] and this training loss is telling us
+[3065s] about
+[3066s] sort of the quality of this model in a
+[3068s] single number just like we saw in
+[3070s] micrograd
+[3071s] so let's try to think through the
+[3073s] quality of the model and how we would
+[3074s] evaluate it
+[3076s] basically what we're going to do is
+[3078s] we're going to copy paste this code
+[3080s] that we previously used for counting
+[3082s] okay
+[3084s] and let me just print these diagrams
+[3085s] first we're gonna use f strings
+[3087s] and i'm gonna print character one
+[3089s] followed by character two these are the
+[3090s] diagrams and then i don't wanna do it
+[3092s] for all the words just do the first
+[3094s] three words so here we have emma olivia
+[3097s] and ava bigrams
+[3100s] now what we'd like to do is we'd like to
+[3101s] basically look at the probability that
+[3104s] the model assigns to every one of these
+[3106s] diagrams
+[3108s] so in other words we can look at the
+[3109s] probability which is
+[3111s] summarized in the matrix b
+[3112s] of i x 1 x 2
+[3116s] and then we can print it here
+[3117s] as probability
+[3120s] and because these properties are way too
+[3122s] large let me present
+[3124s] or call in 0.4 f
+[3126s] to like truncate it a bit
+[3129s] so what do we have here right we're
+[3130s] looking at the probabilities that the
+[3131s] model assigns to every one of these
+[3133s] bigrams in the dataset
+[3135s] and so we can see some of them are four
+[3136s] percent three percent etc
+[3138s] just to have a measuring stick in our
+[3139s] mind by the way um we have 27 possible
+[3143s] characters or tokens and if everything
+[3145s] was equally likely then you'd expect all
+[3147s] these probabilities
+[3148s] to be
+[3150s] four percent roughly
+[3152s] so anything above four percent means
+[3154s] that we've learned something useful from
+[3155s] these bigram statistics and you see that
+[3158s] roughly some of these are four percent
+[3159s] but some of them are as high as 40
+[3160s] percent
+[3161s] 35 percent and so on so you see that the
+[3164s] model actually assigned a pretty high
+[3165s] probability to whatever's in the
+[3167s] training set and so that's a good thing
+[3170s] um basically if you have a very good
+[3171s] model you'd expect that these
+[3173s] probabilities should be near one because
+[3174s] that means that your model is correctly
+[3177s] predicting what's going to come next
+[3178s] especially on the training set where you
+[3180s] where you trained your model
+[3182s] so
+[3183s] now we'd like to think about how can we
+[3185s] summarize these probabilities into a
+[3187s] single number that measures the quality
+[3189s] of this model
+[3191s] now when you look at the literature into
+[3193s] maximum likelihood estimation and
+[3195s] statistical modeling and so on
+[3197s] you'll see that what's typically used
+[3198s] here is something called the likelihood
+[3201s] and the likelihood is the product of all
+[3203s] of these probabilities
+[3205s] and so the product of all these
+[3207s] probabilities is the likelihood and it's
+[3209s] really telling us about the probability
+[3211s] of the entire data set assigned uh
+[3214s] assigned by the model that we've trained
+[3217s] and that is a measure of quality
+[3219s] so the product of these
+[3221s] should be as high as possible
+[3223s] when you are training the model and when
+[3224s] you have a good model your pro your
+[3226s] product of these probabilities should be
+[3227s] very high
+[3229s] um
+[3230s] now because the product of these
+[3231s] probabilities is an unwieldy thing to
+[3233s] work with you can see that all of them
+[3235s] are between zero and one so your product
+[3236s] of these probabilities will be a very
+[3238s] tiny number
+[3240s] um
+[3240s] so
+[3241s] for convenience what people work with
+[3243s] usually is not the likelihood but they
+[3244s] work with what's called the log
+[3246s] likelihood
+[3247s] so
+[3248s] the product of these is the likelihood
+[3250s] to get the log likelihood we just have
+[3252s] to take the log of the probability
+[3254s] and so the log of the probability here i
+[3257s] have the log of x from zero to one
+[3259s] the log is a you see here monotonic
+[3261s] transformation of the probability
+[3264s] where if you pass in one
+[3267s] you get zero
+[3268s] so probability one gets your log
+[3270s] probability of zero
+[3272s] and then as you go lower and lower
+[3273s] probability the log will grow more and
+[3275s] more negative until all the way to
+[3277s] negative infinity at zero
+[3281s] so here we have a log prob which is
+[3284s] really just a torch.log of probability
+[3286s] let's print it out to get a sense of
+[3288s] what that looks like
+[3289s] log prob
+[3291s] also 0.4 f
+[3294s] okay
+[3296s] so as you can see when we plug in
+[3298s] numbers that are very close some of our
+[3300s] higher numbers we get closer and closer
+[3302s] to zero
+[3303s] and then if we plug in very bad
+[3304s] probabilities we get more and more
+[3306s] negative number that's bad
+[3309s] so
+[3310s] and the reason we work with this is for
+[3312s] a large extent convenience right
+[3315s] because we have mathematically that if
+[3316s] you have some product a times b times c
+[3318s] of all these probabilities right
+[3321s] the likelihood is the product of all
+[3323s] these probabilities
+[3325s] then the log
+[3327s] of these
+[3328s] is just log of a plus
+[3330s] log of b
+[3333s] plus log of c if you remember your logs
+[3336s] from your
+[3337s] high school or undergrad and so on
+[3339s] so we have that basically
+[3341s] the likelihood of the product
+[3342s] probabilities the log likelihood is just
+[3344s] the sum of the logs of the individual
+[3346s] probabilities
+[3348s] so
+[3350s] log likelihood
+[3352s] starts at zero
+[3354s] and then log likelihood here we can just
+[3357s] accumulate simply
+[3360s] and in the end we can print this
+[3365s] print the log likelihood
+[3369s] f strings
+[3371s] maybe you're familiar with this
+[3373s] so log likelihood is negative 38.
+[3379s] okay
+[3381s] now
+[3382s] we actually want um
+[3385s] so how high can log likelihood get it
+[3387s] can go to zero so when all the
+[3390s] probabilities are one log likelihood
+[3391s] will be zero and then when all the
+[3393s] probabilities are lower this will grow
+[3395s] more and more negative
+[3397s] now we don't actually like this because
+[3399s] what we'd like is a loss function and a
+[3401s] loss function has the semantics that low
+[3404s] is good
+[3406s] because we're trying to minimize the
+[3407s] loss so we actually need to invert this
+[3410s] and that's what gives us something
+[3411s] called the negative log likelihood
+[3415s] negative log likelihood is just negative
+[3418s] of the log likelihood
+[3423s] these are f strings by the way if you'd
+[3425s] like to look this up
+[3426s] negative log likelihood equals
+[3429s] so negative log likelihood now is just
+[3430s] negative of it and so the negative log
+[3432s] block load is a very nice loss function
+[3435s] because um
+[3437s] the lowest it can get is zero
+[3439s] and the higher it is the worse off the
+[3442s] predictions are that you're making
+[3444s] and then one more modification to this
+[3446s] that sometimes people do is that for
+[3447s] convenience uh they actually like to
+[3449s] normalize by they like to make it an
+[3452s] average instead of a sum
+[3454s] and so uh here
+[3457s] let's just keep some counts as well
+[3459s] so n plus equals one
+[3461s] starts at zero
+[3462s] and then here
+[3464s] um we can have sort of like a normalized
+[3466s] log likelihood
+[3467s] um
+[3470s] if we just normalize it by the count
+[3472s] then we will sort of get the average
+[3474s] log likelihood so this would be
+[3476s] usually our loss function here is what
+[3479s] this we would this is what we would use
+[3482s] uh so our loss function for the training
+[3483s] set assigned by the model is 2.4 that's
+[3486s] the quality of this model
+[3488s] and the lower it is the better off we
+[3490s] are and the higher it is the worse off
+[3492s] we are
+[3493s] and
+[3494s] the job of our you know training is to
+[3497s] find the parameters that minimize the
+[3499s] negative log likelihood loss
+[3502s] and that would be like a high quality
+[3504s] model okay so to summarize i actually
+[3506s] wrote it out here
+[3508s] so our goal is to maximize likelihood
+[3510s] which is the
+[3511s] product of all the probabilities
+[3514s] assigned by the model
+[3515s] and we want to maximize this likelihood
+[3517s] with respect to the model parameters and
+[3519s] in our case the model parameters here
+[3521s] are defined in the table these numbers
+[3523s] the probabilities
+[3525s] are
+[3526s] the model parameters sort of in our
+[3527s] program language models so far but you
+[3530s] have to keep in mind that here we are
+[3532s] storing everything in a table format the
+[3533s] probabilities but what's coming up as a
+[3535s] brief preview is that these numbers will
+[3538s] not be kept explicitly but these numbers
+[3540s] will be calculated by a neural network
+[3543s] so that's coming up
+[3544s] and we want to change and tune the
+[3546s] parameters of these neural networks we
+[3548s] want to change these parameters to
+[3549s] maximize the likelihood the product of
+[3551s] the probabilities
+[3553s] now maximizing the likelihood is
+[3555s] equivalent to maximizing the log
+[3556s] likelihood because log is a monotonic
+[3558s] function
+[3559s] here's the graph of log
+[3562s] and basically all it is doing is it's
+[3564s] just scaling your um you can look at it
+[3567s] as just a scaling of the loss function
+[3569s] and so the optimization problem here and
+[3572s] here are actually equivalent because
+[3574s] this is just scaling you can look at it
+[3576s] that way
+[3576s] and so these are two identical
+[3578s] optimization problems
+[3581s] um
+[3581s] maximizing the log-likelihood is
+[3583s] equivalent to minimizing the negative
+[3584s] log likelihood and then in practice
+[3587s] people actually minimize the average
+[3588s] negative log likelihood to get numbers
+[3590s] like 2.4
+[3592s] and then this summarizes the quality of
+[3595s] your model and we'd like to minimize it
+[3597s] and make it as small as possible
+[3599s] and the lowest it can get is zero
+[3602s] and the lower it is
+[3604s] the better off your model is because
+[3605s] it's signing it's assigning high
+[3607s] probabilities to your data now let's
+[3609s] estimate the probability over the entire
+[3611s] training set just to make sure that we
+[3612s] get something around 2.4 let's run this
+[3615s] over the entire oops
+[3617s] let's take out the print segment as well
+[3620s] okay 2.45 or the entire training set
+[3624s] now what i'd like to show you is that
+[3625s] you can actually evaluate the
+[3626s] probability for any word that you want
+[3628s] like for example
+[3630s] if we just test a single word andre and
+[3632s] bring back the print statement
+[3635s] then you see that andre is actually kind
+[3637s] of like an unlikely word like on average
+[3640s] we take
+[3641s] three
+[3642s] log probability to represent it and
+[3644s] roughly that's because ej apparently is
+[3646s] very uncommon as an example
+[3650s] now
+[3651s] think through this um
+[3653s] when i take andre and i append q and i
+[3655s] test the probability of it under q
+[3660s] we actually get
+[3661s] infinity
+[3662s] and that's because jq has a zero percent
+[3665s] probability according to our model so
+[3667s] the log likelihood
+[3669s] so the log of zero will be negative
+[3671s] infinity we get infinite loss
+[3674s] so this is kind of undesirable right
+[3675s] because we plugged in a string that
+[3676s] could be like a somewhat reasonable name
+[3679s] but basically what this is saying is
+[3680s] that this model is exactly zero percent
+[3682s] likely to uh to predict this
+[3685s] name
+[3686s] and our loss is infinity on this example
+[3689s] and really what the reason for that is
+[3691s] that j
+[3692s] is followed by q
+[3694s] uh zero times
+[3696s] uh where's q jq is zero and so jq is uh
+[3700s] zero percent likely
+[3702s] so it's actually kind of gross and
+[3703s] people don't like this too much to fix
+[3705s] this there's a very simple fix that
+[3707s] people like to do to sort of like smooth
+[3709s] out your model a little bit and it's
+[3710s] called model smoothing and roughly
+[3712s] what's happening is that we will eight
+[3713s] we will add some fake counts
+[3716s] so
+[3717s] imagine adding a count of one to
+[3719s] everything
+[3720s] so we add a count of one
+[3723s] like this
+[3724s] and then we recalculate the
+[3725s] probabilities
+[3727s] and that's model smoothing and you can
+[3729s] add as much as you like you can add five
+[3730s] and it will give you a smoother model
+[3732s] and the more you add here
+[3734s] the more
+[3735s] uniform model you're going to have and
+[3737s] the less you add
+[3739s] the more peaked model you are going to
+[3741s] have of course
+[3742s] so one is like a pretty decent count to
+[3744s] add
+[3745s] and that will ensure that there will be
+[3747s] no zeros in our probability matrix p
+[3750s] and so this will of course change the
+[3752s] generations a little bit in this case it
+[3754s] didn't but in principle it could
+[3756s] but what that's going to do now is that
+[3758s] nothing will be infinity unlikely
+[3761s] so now
+[3762s] our model will predict some other
+[3763s] probability and we see that jq now has a
+[3766s] very small probability so the model
+[3768s] still finds it very surprising that this
+[3769s] was a word or a bigram but we don't get
+[3772s] negative infinity so it's kind of like a
+[3774s] nice fix that people like to apply
+[3775s] sometimes and it's called model
+[3776s] smoothing okay so we've now trained a
+[3778s] respectable bi-gram character level
+[3780s] language model and we saw that we both
+[3784s] sort of trained the model by looking at
+[3785s] the counts of all the bigrams and
+[3788s] normalizing the rows to get probability
+[3790s] distributions
+[3791s] we saw that we can also then use those
+[3794s] parameters of this model to perform
+[3796s] sampling of new words
+[3799s] so we sample new names according to
+[3800s] those distributions and we also saw that
+[3802s] we can evaluate the quality of this
+[3804s] model and the quality of this model is
+[3806s] summarized in a single number which is
+[3808s] the negative log likelihood and the
+[3810s] lower this number is the better the
+[3812s] model is
+[3813s] because it is giving high probabilities
+[3815s] to the actual next characters in all the
+[3817s] bi-grams in our training set
+[3820s] so that's all well and good but we've
+[3822s] arrived at this model explicitly by
+[3824s] doing something that felt sensible we
+[3826s] were just performing counts and then we
+[3828s] were normalizing those counts
+[3830s] now what i would like to do is i would
+[3832s] like to take an alternative approach we
+[3834s] will end up in a very very similar
+[3835s] position but the approach will look very
+[3837s] different because i would like to cast
+[3839s] the problem of bi-gram character level
+[3840s] language modeling into the neural
+[3842s] network framework
+[3844s] in the neural network framework we're
+[3845s] going to approach things slightly
+[3847s] differently but again end up in a very
+[3849s] similar spot i'll go into that later now
+[3852s] our neural network is going to be a
+[3854s] still a background character level
+[3856s] language model so it receives a single
+[3858s] character as an input
+[3860s] then there's neural network with some
+[3861s] weights or some parameters w
+[3864s] and it's going to output the probability
+[3866s] distribution over the next character in
+[3868s] a sequence it's going to make guesses as
+[3870s] to what is likely to follow this
+[3872s] character that was input to the model
+[3875s] and then in addition to that we're going
+[3877s] to be able to evaluate any setting of
+[3879s] the parameters of the neural net because
+[3881s] we have the loss function
+[3883s] the negative log likelihood so we're
+[3885s] going to take a look at its probability
+[3886s] distributions and we're going to use the
+[3888s] labels
+[3890s] which are basically just the identity of
+[3891s] the next character in that diagram the
+[3893s] second character
+[3894s] so knowing what second character
+[3896s] actually comes next in the bigram allows
+[3898s] us to then look at what how high of
+[3900s] probability the model assigns to that
+[3902s] character
+[3903s] and then we of course want the
+[3905s] probability to be very high
+[3906s] and that is another way of saying that
+[3908s] the loss is low
+[3910s] so we're going to use gradient-based
+[3912s] optimization then to tune the parameters
+[3914s] of this network because we have the loss
+[3916s] function and we're going to minimize it
+[3918s] so we're going to tune the weights so
+[3920s] that the neural net is correctly
+[3921s] predicting the probabilities for the
+[3922s] next character
+[3924s] so let's get started the first thing i
+[3926s] want to do is i want to compile the
+[3927s] training set of this neural network
+[3929s] right so
+[3930s] create
+[3931s] the training set
+[3933s] of all the bigrams
+[3936s] okay
+[3937s] and
+[3939s] here
+[3940s] i'm going to copy paste this code
+[3943s] because this code iterates over all the
+[3945s] programs
+[3947s] so here we start with the words we
+[3948s] iterate over all the bygrams and
+[3950s] previously as you recall we did the
+[3952s] counts but now we're not going to do
+[3954s] counts we're just creating a training
+[3955s] set
+[3956s] now this training set will be made up of
+[3958s] two lists
+[3962s] we have the
+[3964s] inputs
+[3966s] and the targets
+[3967s] the the labels
+[3969s] and these bi-grams will denote x y those
+[3971s] are the characters right
+[3973s] and so we're given the first character
+[3974s] of the bi-gram and then we're trying to
+[3976s] predict the next one
+[3977s] both of these are going to be integers
+[3979s] so here we'll take x's that append is
+[3982s] just
+[3983s] x1 ystat append ix2
+[3987s] and then here
+[3989s] we actually don't want lists of integers
+[3991s] we will create tensors out of these so
+[3994s] axis is torch.tensor of axis and wise a
+[3998s] storage.tensor of ys
+[4001s] and then
+[4002s] we don't actually want to take all the
+[4003s] words just yet because i want everything
+[4005s] to be manageable
+[4006s] so let's just do the first word which is
+[4008s] emma
+[4011s] and then it's clear what these x's and
+[4012s] y's would be
+[4015s] here let me print
+[4017s] character 1 character 2 just so you see
+[4019s] what's going on here
+[4021s] so the bigrams of these characters is
+[4024s] dot e e m m m a a dot so this single
+[4029s] word as i mentioned has one two three
+[4031s] four five examples for our neural
+[4033s] network
+[4034s] there are five separate examples in emma
+[4037s] and those examples are summarized here
+[4039s] when the input to the neural network is
+[4041s] integer 0
+[4043s] the desired label is integer 5 which
+[4045s] corresponds to e when the input to the
+[4048s] neural network is 5 we want its weights
+[4051s] to be arranged so that 13 gets a very
+[4053s] high probability
+[4055s] when 13 is put in we want 13 to have a
+[4057s] high probability
+[4059s] when 13 is put in we also want 1 to have
+[4061s] a high probability
+[4063s] when one is input we want zero to have a
+[4065s] very high probability so there are five
+[4068s] separate input examples to a neural nut
+[4071s] in this data set
+[4074s] i wanted to add a tangent of a node of
+[4077s] caution to be careful with a lot of the
+[4078s] apis of some of these frameworks
+[4081s] you saw me silently use torch.tensor
+[4083s] with a lowercase t
+[4085s] and the output looked right
+[4087s] but you should be aware that there's
+[4089s] actually two ways of constructing a
+[4090s] tensor there's a torch.lowercase tensor
+[4093s] and there's also a torch.capital tensor
+[4096s] class which you can also construct
+[4098s] so you can actually call both you can
+[4100s] also do torch.capital tensor
+[4102s] and you get a nexus and wise as well
+[4105s] so that's not confusing at all
+[4107s] um
+[4108s] there are threads on what is the
+[4109s] difference between these two
+[4111s] and um
+[4113s] unfortunately the docs are just like not
+[4115s] clear on the difference and when you
+[4116s] look at the the docs of lower case
+[4118s] tensor construct tensor with no autograd
+[4120s] history by copying data
+[4123s] it's just like it doesn't
+[4125s] it doesn't make sense so the actual
+[4127s] difference as far as i can tell is
+[4128s] explained eventually in this random
+[4130s] thread that you can google
+[4131s] and really it comes down to
+[4133s] i believe
+[4135s] that um
+[4136s] what is this
+[4138s] torch.tensor in first d-type the data
+[4140s] type automatically while torch.tensor
+[4142s] just returns a float tensor
+[4144s] i would recommend stick to
+[4145s] torch.lowercase tensor
+[4147s] so um
+[4149s] indeed we see that when i
+[4151s] construct this with a capital t the data
+[4153s] type here of xs is float32
+[4158s] but towards that lowercase tensor
+[4161s] you see how it's now x dot d type is now
+[4164s] integer
+[4166s] so um
+[4168s] it's advised that you use lowercase t
+[4170s] and you can read more about it if you
+[4172s] like in some of these threads but
+[4174s] basically
+[4175s] um
+[4176s] i'm pointing out some of these things
+[4178s] because i want to caution you and i want
+[4179s] you to re get used to reading a lot of
+[4181s] documentation and reading through a lot
+[4183s] of
+[4184s] q and a's and threads like this
+[4186s] and
+[4188s] you know some of the stuff is
+[4189s] unfortunately not easy and not very well
+[4190s] documented and you have to be careful
+[4191s] out there what we want here is integers
+[4194s] because that's what makes uh sense
+[4196s] um
+[4198s] and so
+[4199s] lowercase tensor is what we are using
+[4201s] okay now we want to think through how
+[4202s] we're going to feed in these examples
+[4204s] into a neural network
+[4206s] now it's not quite as straightforward as
+[4209s] plugging it in because these examples
+[4210s] right now are integers so there's like a
+[4212s] 0 5 or 13 it gives us the index of the
+[4215s] character and you can't just plug an
+[4217s] integer index into a neural net
+[4219s] these neural nets right are sort of made
+[4222s] up of these neurons
+[4224s] and
+[4225s] these neurons have weights and as you
+[4227s] saw in micrograd these weights act
+[4229s] multiplicatively on the inputs w x plus
+[4232s] b there's 10 h's and so on and so it
+[4234s] doesn't really make sense to make an
+[4235s] input neuron take on integer values that
+[4237s] you feed in and then multiply on with
+[4240s] weights
+[4241s] so instead
+[4242s] a common way of encoding integers is
+[4244s] what's called one hot encoding
+[4246s] in one hot encoding
+[4248s] we take an integer like 13 and we create
+[4251s] a vector that is all zeros except for
+[4254s] the 13th dimension which we turn to a
+[4256s] one and then that vector can feed into a
+[4259s] neural net
+[4261s] now conveniently
+[4263s] uh pi torch actually has something
+[4264s] called the one hot
+[4267s] function inside torching and functional
+[4270s] it takes a tensor made up of integers
+[4273s] um
+[4274s] long is a is a as an integer
+[4278s] um
+[4279s] and it also takes a number of classes um
+[4282s] which is how large you want your uh
+[4284s] tensor uh your vector to be
+[4287s] so here let's import
+[4290s] torch.n.functional sf this is a common
+[4292s] way of importing it
+[4294s] and then let's do f.1 hot
+[4296s] and we feed in the integers that we want
+[4298s] to encode so we can actually feed in the
+[4301s] entire array of x's
+[4304s] and we can tell it that num classes is
+[4306s] 27.
+[4307s] so it doesn't have to try to guess it it
+[4309s] may have guessed that it's only 13 and
+[4311s] would give us an incorrect result
+[4314s] so this is the one hot let's call this x
+[4317s] inc for x encoded
+[4322s] and then we see that x encoded that
+[4323s] shape is 5 by 27
+[4327s] and uh we can also visualize it plt.i am
+[4330s] show of x inc
+[4332s] to make it a little bit more clear
+[4333s] because this is a little messy
+[4335s] so we see that we've encoded all the
+[4337s] five examples uh into vectors we have
+[4340s] five examples so we have five rows and
+[4342s] each row here is now an example into a
+[4344s] neural nut
+[4346s] and we see that the appropriate bit is
+[4348s] turned on as a one and everything else
+[4350s] is zero
+[4351s] so um
+[4353s] here for example the zeroth bit is
+[4355s] turned on the fifth bit is turned on
+[4358s] 13th bits are turned on for both of
+[4360s] these examples and then the first bit
+[4362s] here is turned on
+[4364s] so that's how we can encode
+[4367s] integers into vectors and then these
+[4369s] vectors can feed in to neural nets one
+[4372s] more issue to be careful with here by
+[4373s] the way is
+[4375s] let's look at the data type of encoding
+[4376s] we always want to be careful with data
+[4378s] types
+[4379s] what would you expect x encoding's data
+[4381s] type to be
+[4382s] when we're plugging numbers into neural
+[4384s] nuts we don't want them to be integers
+[4386s] we want them to be floating point
+[4387s] numbers that can take on various values
+[4390s] but the d type here is actually 64-bit
+[4393s] integer
+[4394s] and the reason for that i suspect is
+[4395s] that one hot received a 64-bit integer
+[4398s] here and it returned the same data type
+[4401s] and when you look at the signature of
+[4403s] one hot it doesn't even take a d type a
+[4405s] desired data type of the output tensor
+[4408s] and so we can't in a lot of functions in
+[4410s] torch we'd be able to do something like
+[4412s] d type equal storage.float32
+[4414s] which is what we want but one heart does
+[4416s] not support that
+[4417s] so instead we're going to want to cast
+[4419s] this to float like this
+[4423s] so that these
+[4424s] everything is the same
+[4426s] everything looks the same but the d-type
+[4428s] is float32 and floats can feed into
+[4432s] neural nets so now let's construct our
+[4434s] first neuron
+[4436s] this neuron will look at these input
+[4438s] vectors
+[4440s] and as you remember from micrograd these
+[4442s] neurons basically perform a very simple
+[4443s] function w x plus b where w x is a dot
+[4447s] product
+[4448s] right
+[4449s] so we can achieve the same thing here
+[4452s] let's first define the weights of this
+[4454s] neuron basically what are the initial
+[4455s] weights at initialization for this
+[4457s] neuron
+[4458s] let's initialize them with torch.rendin
+[4461s] torch.rendin
+[4463s] is um
+[4464s] fills a tensor with random numbers
+[4467s] drawn from a normal distribution
+[4469s] and a normal distribution
+[4471s] has
+[4471s] a probability density function like this
+[4474s] and so most of the numbers drawn from
+[4475s] this distribution will be around 0
+[4479s] but some of them will be as high as
+[4480s] almost three and so on and very few
+[4482s] numbers will be above three in magnitude
+[4486s] so we need to take a size as an input
+[4489s] here
+[4490s] and i'm going to use size as to be 27 by
+[4492s] one
+[4494s] so
+[4495s] 27 by one and then let's visualize w so
+[4498s] w is a column vector of 27 numbers
+[4503s] and
+[4503s] these weights are then multiplied by the
+[4506s] inputs
+[4508s] so now to perform this multiplication we
+[4510s] can take x encoding and we can multiply
+[4513s] it with w
+[4514s] this is a matrix multiplication operator
+[4517s] in pi torch
+[4519s] and the output of this operation is five
+[4522s] by one
+[4523s] the reason is five by five is the
+[4524s] following
+[4525s] we took x encoding which is five by
+[4528s] twenty seven and we multiplied it by
+[4530s] twenty seven by one
+[4533s] and
+[4534s] in matrix multiplication
+[4536s] you see that the output will become five
+[4538s] by one because these 27
+[4541s] will multiply and add
+[4544s] so basically what we're seeing here outs
+[4546s] out of this operation
+[4548s] is we are seeing the five
+[4551s] activations
+[4553s] of this neuron
+[4556s] on these five inputs
+[4558s] and we've evaluated all of them in
+[4559s] parallel we didn't feed in just a single
+[4561s] input to the single neuron we fed in
+[4563s] simultaneously all the five inputs into
+[4566s] the same neuron
+[4568s] and in parallel patrol has evaluated
+[4571s] the wx plus b but here is just the wx
+[4574s] there's no bias
+[4575s] it has value w times x for all of them
+[4579s] independently now instead of a single
+[4581s] neuron though i would like to have 27
+[4583s] neurons and i'll show you in a second
+[4585s] why i want 27 neurons
+[4587s] so instead of having just a 1 here which
+[4589s] is indicating this presence of one
+[4591s] single neuron
+[4592s] we can use 27
+[4594s] and then when w is 27 by 27
+[4598s] this will in parallel evaluate all the
+[4601s] 27 neurons on all the 5 inputs
+[4606s] giving us a much better much much bigger
+[4608s] result so now what we've done is 5 by 27
+[4611s] multiplied 27 by 27
+[4614s] and the output of this is now 5 by 27
+[4617s] so we can see that the shape of this
+[4621s] is 5 by 27.
+[4623s] so what is every element here telling us
+[4626s] right
+[4627s] it's telling us for every one of 27
+[4629s] neurons that we created
+[4633s] what is the firing rate of those neurons
+[4636s] on every one of those five examples
+[4639s] so
+[4640s] the element for example 3 comma 13
+[4645s] is giving us the firing rate of the 13th
+[4648s] neuron
+[4649s] looking at the third input
+[4651s] and the way this was achieved is by a
+[4654s] dot product
+[4656s] between the third
+[4657s] input
+[4658s] and the 13th column
+[4661s] of this w matrix here
+[4664s] okay
+[4665s] so
+[4666s] using matrix multiplication we can very
+[4668s] efficiently evaluate
+[4670s] the dot product between lots of input
+[4672s] examples in a batch
+[4674s] and lots of neurons where all those
+[4677s] neurons have weights in the columns of
+[4679s] those w's
+[4681s] and in matrix multiplication we're just
+[4682s] doing those dot products and
+[4684s] in parallel just to show you that this
+[4686s] is the case we can take x and we can
+[4688s] take the third
+[4690s] row
+[4692s] and we can take the w and take its 13th
+[4694s] column
+[4697s] and then we can do
+[4698s] x and get three
+[4701s] elementwise multiply with w at 13.
+[4706s] and sum that up that's wx plus b
+[4709s] well there's no plus b it's just wx dot
+[4711s] product
+[4712s] and that's
+[4714s] this number
+[4715s] so you see that this is just being done
+[4716s] efficiently by the matrix multiplication
+[4719s] operation
+[4720s] for all the input examples and for all
+[4722s] the output neurons of this first layer
+[4726s] okay so we fed our 27-dimensional inputs
+[4729s] into a first layer of a neural net that
+[4731s] has 27 neurons right so we have 27
+[4734s] inputs and now we have 27 neurons these
+[4737s] neurons perform w times x they don't
+[4740s] have a bias and they don't have a
+[4741s] non-linearity like 10 h we're going to
+[4743s] leave them to be a linear layer
+[4746s] in addition to that we're not going to
+[4747s] have any other layers this is going to
+[4749s] be it it's just going to be
+[4751s] the dumbest smallest simplest neural net
+[4753s] which is just a single linear layer
+[4756s] and now i'd like to explain what i want
+[4758s] those 27 outputs to be
+[4761s] intuitively what we're trying to produce
+[4762s] here for every single input example is
+[4764s] we're trying to produce some kind of a
+[4766s] probability distribution for the next
+[4767s] character in a sequence
+[4769s] and there's 27 of them
+[4771s] but we have to come up with like precise
+[4773s] semantics for exactly how we're going to
+[4774s] interpret these 27 numbers that these
+[4777s] neurons take on
+[4779s] now intuitively
+[4781s] you see here that these numbers are
+[4782s] negative and some of them are positive
+[4784s] etc
+[4785s] and that's because these are coming out
+[4786s] of a neural net layer initialized with
+[4788s] these
+[4791s] normal distribution
+[4792s] parameters
+[4794s] but what we want is we want something
+[4795s] like we had here
+[4797s] like each row here
+[4798s] told us the counts and then we
+[4801s] normalized the counts to get
+[4802s] probabilities and we want something
+[4804s] similar to come out of the neural net
+[4806s] but what we just have right now is just
+[4807s] some negative and positive numbers
+[4810s] now we want those numbers to somehow
+[4812s] represent the probabilities for the next
+[4814s] character
+[4815s] but you see that probabilities they they
+[4817s] have a special structure they um
+[4819s] they're positive numbers and they sum to
+[4821s] one
+[4822s] and so that doesn't just come out of a
+[4824s] neural net
+[4825s] and then they can't be counts
+[4827s] because these counts are positive and
+[4831s] counts are integers
+[4832s] so counts are also not really a good
+[4834s] thing to output from a neural net
+[4836s] so instead what the neural net is going
+[4838s] to output and how we are going to
+[4839s] interpret the um
+[4842s] the 27 numbers is that these 27 numbers
+[4845s] are giving us log counts
+[4848s] basically
+[4849s] um
+[4850s] so instead of giving us counts directly
+[4852s] like in this table they're giving us log
+[4854s] counts
+[4856s] and to get the counts we're going to
+[4857s] take the log counts and we're going to
+[4859s] exponentiate them
+[4861s] now
+[4862s] exponentiation
+[4864s] takes the following form
+[4867s] it takes numbers
+[4868s] that are negative or they are positive
+[4870s] it takes the entire real line
+[4872s] and then if you plug in negative numbers
+[4874s] you're going to get e to the x
+[4877s] which is uh always below one
+[4880s] so you're getting numbers lower than one
+[4883s] and if you plug in numbers greater than
+[4885s] zero you're getting numbers greater than
+[4887s] one all the way growing to the infinity
+[4890s] and this here grows to zero
+[4893s] so basically we're going to
+[4895s] take these numbers
+[4897s] here
+[4900s] and
+[4903s] instead of them being positive and
+[4904s] negative and all over the place we're
+[4906s] going to interpret them as log counts
+[4908s] and then we're going to element wise
+[4910s] exponentiate these numbers
+[4912s] exponentiating them now gives us
+[4914s] something like this
+[4916s] and you see that these numbers now
+[4917s] because they went through an exponent
+[4919s] all the negative numbers turned into
+[4920s] numbers below 1 like 0.338 and all the
+[4924s] positive numbers originally turned into
+[4927s] even more positive numbers sort of
+[4928s] greater than one
+[4930s] so like for example
+[4932s] seven
+[4934s] is some positive number over here
+[4938s] that is greater than zero
+[4941s] but exponentiated outputs here
+[4944s] basically give us something that we can
+[4946s] use and interpret as the equivalent of
+[4949s] counts originally so you see these
+[4951s] counts here 112 7 51 1 etc
+[4956s] the neural net is kind of now predicting
+[4958s] uh
+[4960s] counts
+[4961s] and these counts are positive numbers
+[4963s] they can never be below zero so that
+[4965s] makes sense
+[4966s] and uh they can now take on various
+[4968s] values
+[4969s] depending on the settings of w
+[4974s] so let me break this down
+[4976s] we're going to interpret these to be the
+[4978s] log counts
+[4981s] in other words for this that is often
+[4982s] used is so-called logits
+[4985s] these are logits log counts
+[4988s] then these will be sort of the counts
+[4991s] largest exponentiated
+[4993s] and this is equivalent to the n matrix
+[4996s] sort of the n
+[4998s] array that we used previously remember
+[5000s] this was the n
+[5001s] this is the the array of counts
+[5004s] and each row here are the counts for the
+[5007s] for the um
+[5008s] next character sort of
+[5012s] so those are the counts and now the
+[5014s] probabilities are just the counts um
+[5017s] normalized
+[5019s] and so um
+[5021s] i'm not going to find the same but
+[5023s] basically i'm not going to scroll all
+[5024s] over the place
+[5026s] we've already done this we want to
+[5028s] counts that sum
+[5030s] along the first dimension and we want to
+[5032s] keep them as true
+[5034s] we've went over this and this is how we
+[5036s] normalize the rows of our counts matrix
+[5039s] to get our probabilities
+[5043s] props
+[5044s] so now these are the probabilities
+[5047s] and
+[5048s] these are the counts that we ask
+[5050s] currently and now when i show the
+[5051s] probabilities
+[5053s] you see that um
+[5055s] every row here
+[5057s] of course
+[5059s] will sum to 1
+[5061s] because they're normalized
+[5063s] and the shape of this
+[5065s] is 5 by 27
+[5067s] and so really what we've achieved is for
+[5069s] every one of our five examples
+[5071s] we now have a row that came out of a
+[5073s] neural net
+[5075s] and because of the transformations here
+[5077s] we made sure that this output of this
+[5079s] neural net now are probabilities or we
+[5081s] can interpret to be probabilities
+[5084s] so
+[5085s] our wx here gave us logits
+[5088s] and then we interpret those to be log
+[5089s] counts
+[5090s] we exponentiate to get something that
+[5092s] looks like counts
+[5093s] and then we normalize those counts to
+[5095s] get a probability distribution
+[5097s] and all of these are differentiable
+[5099s] operations
+[5100s] so what we've done now is we're taking
+[5102s] inputs we have differentiable operations
+[5104s] that we can back propagate through
+[5106s] and we're getting out probability
+[5108s] distributions
+[5109s] so
+[5111s] for example for the zeroth example that
+[5113s] fed in
+[5115s] right which was um
+[5117s] the zeroth example here was a one-half
+[5118s] vector of zero
+[5120s] and um
+[5122s] it basically corresponded to feeding in
+[5126s] this example here so we're feeding in a
+[5128s] dot into a neural net and the way we fed
+[5131s] the dot into a neural net is that we
+[5132s] first got its index
+[5134s] then we one hot encoded it
+[5136s] then it went into the neural net and out
+[5139s] came
+[5140s] this distribution of probabilities
+[5143s] and its shape
+[5146s] is 27 there's 27 numbers and we're going
+[5149s] to interpret this as the neural nets
+[5151s] assignment for how likely every one of
+[5154s] these characters um
+[5156s] the 27 characters are to come next
+[5159s] and as we tune the weights w
+[5162s] we're going to be of course getting
+[5163s] different probabilities out for any
+[5165s] character that you input
+[5167s] and so now the question is just can we
+[5168s] optimize and find a good w
+[5170s] such that the probabilities coming out
+[5172s] are pretty good and the way we measure
+[5175s] pretty good is by the loss function okay
+[5177s] so i organized everything into a single
+[5178s] summary so that hopefully it's a bit
+[5180s] more clear so it starts here
+[5182s] with an input data set
+[5184s] we have some inputs to the neural net
+[5186s] and we have some labels for the correct
+[5188s] next character in a sequence these are
+[5190s] integers
+[5192s] here i'm using uh torch generators now
+[5195s] so that you see the same numbers that i
+[5197s] see
+[5198s] and i'm generating um
+[5200s] 27 neurons weights
+[5202s] and each neuron here receives 27 inputs
+[5208s] then here we're going to plug in all the
+[5210s] input examples x's into a neural net so
+[5212s] here this is a forward pass
+[5215s] first we have to encode all of the
+[5217s] inputs into one hot representations
+[5220s] so we have 27 classes we pass in these
+[5222s] integers and
+[5224s] x inc becomes a array that is 5 by 27
+[5229s] zeros except for a few ones
+[5232s] we then multiply this in the first layer
+[5234s] of a neural net to get logits
+[5236s] exponentiate the logits to get fake
+[5238s] counts sort of
+[5240s] and normalize these counts to get
+[5242s] probabilities
+[5244s] so we lock these last two lines by the
+[5246s] way here are called the softmax
+[5250s] which i pulled up here soft max is a
+[5253s] very often used layer in a neural net
+[5255s] that takes these z's which are logics
+[5258s] exponentiates them
+[5260s] and divides and normalizes it's a way of
+[5263s] taking
+[5264s] outputs of a neural net layer and these
+[5267s] these outputs can be positive or
+[5268s] negative
+[5269s] and it outputs probability distributions
+[5272s] it outputs something that is always
+[5275s] sums to one and are positive numbers
+[5276s] just like probabilities
+[5278s] um so it's kind of like a normalization
+[5280s] function if you want to think of it that
+[5281s] way and you can put it on top of any
+[5283s] other linear layer inside a neural net
+[5285s] and it basically makes a neural net
+[5287s] output probabilities that's very often
+[5289s] used and we used it as well here
+[5293s] so this is the forward pass and that's
+[5294s] how we made a neural net output
+[5296s] probability
+[5297s] now
+[5299s] you'll notice that
+[5300s] um
+[5302s] all of these
+[5304s] this entire forward pass is made up of
+[5305s] differentiable
+[5307s] layers everything here we can back
+[5309s] propagate through and we saw some of the
+[5310s] back propagation in micrograd
+[5313s] this is just
+[5314s] multiplication and addition all that's
+[5316s] happening here is just multiply and then
+[5318s] add and we know how to backpropagate
+[5319s] through them
+[5320s] exponentiation we know how to
+[5322s] backpropagate through
+[5323s] and then here we are summing
+[5326s] and sum is is easily backpropagable as
+[5329s] well
+[5330s] and division as well so everything here
+[5332s] is differentiable operation
+[5334s] and we can back propagate through
+[5337s] now we achieve these probabilities which
+[5339s] are 5 by 27
+[5341s] for every single example we have a
+[5343s] vector of probabilities that's into one
+[5346s] and then here i wrote a bunch of stuff
+[5348s] to sort of like break down uh the
+[5350s] examples
+[5351s] so we have five examples making up emma
+[5354s] right
+[5356s] and there are five bigrams inside emma
+[5360s] so bigram example a bigram example1 is
+[5363s] that e is the beginning character right
+[5366s] after dot
+[5368s] and the indexes for these are zero and
+[5370s] five
+[5371s] so then we feed in a zero
+[5374s] that's the input of the neural net
+[5375s] we get probabilities from the neural net
+[5378s] that are 27 numbers
+[5381s] and then the label is 5 because e
+[5384s] actually comes after dot
+[5385s] so that's the label
+[5387s] and then
+[5389s] we use this label 5 to index into the
+[5392s] probability distribution here
+[5394s] so
+[5395s] this
+[5396s] index 5 here is 0 1 2 3 4 5. it's this
+[5400s] number here
+[5401s] which is here
+[5404s] so that's basically the probability
+[5405s] assigned by the neural net to the actual
+[5407s] correct character
+[5408s] you see that the network currently
+[5410s] thinks that this next character that e
+[5412s] following dot is only one percent likely
+[5415s] which is of course not very good right
+[5416s] because this actually is a training
+[5418s] example and the network thinks this is
+[5420s] currently very very unlikely but that's
+[5422s] just because we didn't get very lucky in
+[5424s] generating a good setting of w so right
+[5427s] now this network things it says unlikely
+[5429s] and 0.01 is not a good outcome
+[5431s] so the log likelihood then is very
+[5434s] negative
+[5435s] and the negative log likelihood is very
+[5438s] positive
+[5439s] and so four is a very high negative log
+[5442s] likelihood and that means we're going to
+[5444s] have a high loss
+[5445s] because what is the loss the loss is
+[5447s] just the average negative log likelihood
+[5451s] so the second character is em
+[5453s] and you see here that also the network
+[5455s] thought that m following e is very
+[5457s] unlikely one percent
+[5460s] the for m following m i thought it was
+[5463s] two percent
+[5464s] and for a following m it actually
+[5466s] thought it was seven percent likely so
+[5468s] just by chance this one actually has a
+[5470s] pretty good probability and therefore
+[5472s] pretty low negative log likelihood
+[5475s] and finally here it thought this was one
+[5477s] percent likely
+[5478s] so overall our average negative log
+[5480s] likelihood which is the loss the total
+[5482s] loss that summarizes
+[5484s] basically the how well this network
+[5486s] currently works at least on this one
+[5488s] word not on the full data suggested one
+[5490s] word is 3.76 which is actually very
+[5493s] fairly high loss this is not a very good
+[5495s] setting of w's
+[5496s] now here's what we can do
+[5498s] we're currently getting 3.76
+[5501s] we can actually come here and we can
+[5502s] change our w we can resample it so let
+[5505s] me just add one to have a different seed
+[5508s] and then we get a different w
+[5510s] and then we can rerun this
+[5512s] and with this different c with this
+[5514s] different setting of w's we now get 3.37
+[5518s] so this is a much better w right and
+[5520s] that and it's better because the
+[5522s] probabilities just happen to come out
+[5524s] higher for the for the characters that
+[5527s] actually are next
+[5528s] and so you can imagine actually just
+[5530s] resampling this you know we can try two
+[5534s] so
+[5535s] okay this was not very good
+[5537s] let's try one more
+[5538s] we can try three
+[5540s] okay this was terrible setting because
+[5542s] we have a very high loss
+[5544s] so anyway i'm going to erase this
+[5549s] what i'm doing here which is just guess
+[5551s] and check of randomly assigning
+[5552s] parameters and seeing if the network is
+[5554s] good that is uh amateur hour that's not
+[5557s] how you optimize a neural net the way
+[5559s] you optimize your neural net is you
+[5560s] start with some random guess and we're
+[5562s] going to commit to this one even though
+[5563s] it's not very good
+[5565s] but now the big deal is we have a loss
+[5566s] function
+[5568s] so this loss
+[5569s] is made up only of differentiable
+[5572s] operations and we can minimize the loss
+[5576s] by tuning
+[5577s] ws
+[5578s] by computing the gradients of the loss
+[5581s] with respect to
+[5582s] these w matrices
+[5584s] and so then we can tune w to minimize
+[5587s] the loss and find a good setting of w
+[5589s] using gradient based optimization so
+[5591s] let's see how that will work now things
+[5593s] are actually going to look almost
+[5594s] identical to what we had with micrograd
+[5597s] so here
+[5598s] i pulled up the lecture from micrograd
+[5600s] the notebook it's from this repository
+[5603s] and when i scroll all the way to the end
+[5604s] where we left off with micrograd we had
+[5606s] something very very similar
+[5608s] we had
+[5609s] a number of input examples in this case
+[5611s] we had four input examples inside axis
+[5614s] and we had their targets these are
+[5616s] targets
+[5617s] just like here we have our axes now but
+[5619s] we have five of them and they're now
+[5621s] integers instead of vectors
+[5624s] but we're going to convert our integers
+[5625s] to vectors except our vectors will be 27
+[5628s] large instead of three large
+[5631s] and then here what we did is first we
+[5633s] did a forward pass where we ran a neural
+[5635s] net on all of the inputs
+[5638s] to get predictions
+[5640s] our neural net at the time this nfx was
+[5642s] a multi-layer perceptron
+[5645s] our neural net is going to look
+[5646s] different because our neural net is just
+[5648s] a single layer
+[5650s] single linear layer followed by a soft
+[5652s] max
+[5653s] so that's our neural net
+[5655s] and the loss here was the mean squared
+[5657s] error so we simply subtracted the
+[5659s] prediction from the ground truth and
+[5661s] squared it and summed it all up and that
+[5663s] was the loss and loss was the single
+[5665s] number that summarized the quality of
+[5667s] the neural net and when loss is low like
+[5670s] almost zero that means the neural net is
+[5673s] predicting correctly
+[5676s] so we had a single number that uh that
+[5678s] summarized the uh the performance of the
+[5680s] neural net and everything here was
+[5682s] differentiable and was stored in massive
+[5684s] compute graph
+[5686s] and then we iterated over all the
+[5688s] parameters we made sure that the
+[5690s] gradients are set to zero and we called
+[5692s] lost up backward
+[5694s] and lasted backward initiated back
+[5696s] propagation at the final output node of
+[5698s] loss
+[5699s] right so
+[5700s] yeah remember these expressions we had
+[5702s] loss all the way at the end we start
+[5703s] back propagation and we went all the way
+[5705s] back
+[5706s] and we made sure that we populated all
+[5708s] the parameters dot grad
+[5710s] so that graph started at zero but back
+[5712s] propagation filled it in
+[5714s] and then in the update we iterated over
+[5716s] all the parameters and we simply did a
+[5718s] parameter update where every single
+[5721s] element of our parameters was nudged in
+[5724s] the opposite direction of the gradient
+[5727s] and so we're going to do the exact same
+[5730s] thing here
+[5731s] so i'm going to pull this up
+[5734s] on the side here
+[5738s] so that we have it available and we're
+[5740s] actually going to do the exact same
+[5741s] thing so this was the forward pass so
+[5744s] where we did this
+[5746s] and probs is our wipe red so now we have
+[5749s] to evaluate the loss but we're not using
+[5751s] the mean squared error we're using the
+[5752s] negative log likelihood because we are
+[5754s] doing classification we're not doing
+[5756s] regression as it's called
+[5758s] so here we want to calculate loss
+[5762s] now the way we calculate it is it's just
+[5764s] this average negative log likelihood
+[5767s] now this probs here
+[5770s] has a shape of 5 by 27
+[5773s] and so to get all the we basically want
+[5775s] to pluck out the probabilities at the
+[5778s] correct indices here
+[5780s] so in particular because the labels are
+[5782s] stored here in array wise
+[5784s] basically what we're after is for the
+[5786s] first example we're looking at
+[5787s] probability of five right at index five
+[5790s] for the second example
+[5792s] at the the second row or row index one
+[5796s] we are interested in the probability
+[5797s] assigned to index 13.
+[5800s] at the second example we also have 13.
+[5803s] at the third row we want one
+[5807s] and then the last row which is four we
+[5809s] want zero so these are the probabilities
+[5812s] we're interested in right
+[5814s] and you can see that they're not amazing
+[5815s] as we saw above
+[5818s] so these are the probabilities we want
+[5820s] but we want like a more efficient way to
+[5822s] access these probabilities
+[5824s] not just listing them out in a tuple
+[5826s] like this so it turns out that the way
+[5827s] to do this in pytorch uh one of the ways
+[5829s] at least is we can basically pass in
+[5832s] all of these
+[5836s] sorry about that all of these um
+[5839s] integers in the vectors
+[5842s] so
+[5842s] the
+[5843s] these ones you see how they're just 0 1
+[5845s] 2 3 4
+[5847s] we can actually create that using mp
+[5849s] not mp sorry torch dot range of 5
+[5852s] 0 1 2 3 4.
+[5854s] so we can index here with torch.range of
+[5857s] 5
+[5858s] and here we index with ys
+[5861s] and you see that that gives us
+[5863s] exactly these numbers
+[5868s] so that plucks out the probabilities of
+[5871s] that the neural network assigns to the
+[5873s] correct next character
+[5876s] now we take those probabilities and we
+[5878s] don't we actually look at the log
+[5879s] probability so we want to dot log
+[5883s] and then we want to just
+[5885s] average that up so take the mean of all
+[5887s] of that
+[5888s] and then it's the negative
+[5890s] average log likelihood that is the loss
+[5894s] so the loss here is 3.7 something and
+[5898s] you see that this loss 3.76 3.76 is
+[5901s] exactly as we've obtained before but
+[5903s] this is a vectorized form of that
+[5905s] expression
+[5906s] so
+[5907s] we get the same loss
+[5909s] and the same loss we can consider
+[5911s] service part of this forward pass
+[5914s] and we've achieved here now loss
+[5916s] okay so we made our way all the way to
+[5917s] loss we've defined the forward pass
+[5920s] we forwarded the network and the loss
+[5922s] now we're ready to do the backward pass
+[5924s] so backward pass
+[5928s] we want to first make sure that all the
+[5929s] gradients are reset so they're at zero
+[5932s] now in pytorch you can set the gradients
+[5935s] to be zero but you can also just set it
+[5937s] to none and setting it to none is more
+[5939s] efficient and pi torch will interpret
+[5941s] none as like a lack of a gradient and is
+[5944s] the same as zeros
+[5945s] so this is a way to set to zero the
+[5947s] gradient
+[5950s] and now we do lost it backward
+[5954s] before we do lost that backward we need
+[5956s] one more thing if you remember from
+[5957s] micrograd
+[5958s] pytorch actually requires
+[5961s] that we pass in requires grad is true
+[5965s] so that when we tell
+[5966s] pythorge that we are interested in
+[5968s] calculating gradients for this leaf
+[5970s] tensor by default this is false
+[5973s] so let me recalculate with that
+[5975s] and then set to none and lost that
+[5977s] backward
+[5980s] now something magical happened when
+[5982s] lasted backward was run
+[5984s] because pytorch just like micrograd when
+[5987s] we did the forward pass here
+[5989s] it keeps track of all the operations
+[5991s] under the hood it builds a full
+[5993s] computational graph just like the graphs
+[5995s] we've
+[5996s] produced in micrograd those graphs exist
+[5998s] inside pi torch
+[6000s] and so it knows all the dependencies and
+[6002s] all the mathematical operations of
+[6004s] everything
+[6004s] and when you then calculate the loss
+[6007s] we can call a dot backward on it
+[6009s] and that backward then fills in the
+[6011s] gradients of
+[6013s] all the intermediates
+[6015s] all the way back to w's which are the
+[6018s] parameters of our neural net so now we
+[6020s] can do w grad and we see that it has
+[6023s] structure there's stuff inside it
+[6029s] and these gradients
+[6030s] every single element here
+[6033s] so w dot shape is 27 by 27
+[6036s] w grad shape is the same 27 by 27
+[6040s] and every element of w that grad
+[6043s] is telling us
+[6044s] the influence of that weight on the loss
+[6047s] function
+[6048s] so for example this number all the way
+[6050s] here
+[6051s] if this element the zero zero element of
+[6054s] w
+[6055s] because the gradient is positive is
+[6057s] telling us that this has a positive
+[6060s] influence in the loss slightly nudging
+[6063s] w
+[6064s] slightly taking w 0 0
+[6066s] and
+[6067s] adding a small h to it
+[6070s] would increase the loss
+[6072s] mildly because this gradient is positive
+[6075s] some of these gradients are also
+[6076s] negative
+[6078s] so that's telling us about the gradient
+[6080s] information and we can use this gradient
+[6082s] information to update the weights of
+[6085s] this neural network so let's now do the
+[6087s] update it's going to be very similar to
+[6089s] what we had in micrograd we need no loop
+[6092s] over all the parameters because we only
+[6093s] have one parameter uh tensor and that is
+[6096s] w
+[6097s] so we simply do w dot data plus equals
+[6100s] uh the
+[6102s] we can actually copy this almost exactly
+[6103s] negative 0.1 times w dot grad
+[6109s] and that would be the update to the
+[6112s] tensor
+[6114s] so that updates
+[6115s] the tensor
+[6118s] and
+[6119s] because the tensor is updated we would
+[6121s] expect that now the loss should decrease
+[6124s] so
+[6125s] here if i print loss
+[6129s] that item
+[6131s] it was 3.76 right
+[6133s] so we've updated the w here so if i
+[6136s] recalculate forward pass
+[6138s] loss now should be slightly lower so
+[6141s] 3.76 goes to
+[6143s] 3.74
+[6145s] and then
+[6146s] we can again set to set grad to none and
+[6149s] backward
+[6150s] update
+[6152s] and now the parameters changed again
+[6154s] so if we recalculate the forward pass we
+[6157s] expect a lower loss again 3.72
+[6162s] okay and this is again doing the we're
+[6164s] now doing gradient descent
+[6168s] and when we achieve a low loss that will
+[6170s] mean that the network is assigning high
+[6172s] probabilities to the correctness
+[6174s] characters okay so i rearranged
+[6176s] everything and i put it all together
+[6177s] from scratch
+[6179s] so here is where we construct our data
+[6181s] set of bigrams
+[6183s] you see that we are still iterating only
+[6184s] on the first word emma
+[6186s] i'm going to change that in a second i
+[6189s] added a number that counts the number of
+[6191s] elements in x's so that we explicitly
+[6194s] see that number of examples is five
+[6196s] because currently we're just working
+[6198s] with emma and there's five backgrounds
+[6199s] there
+[6200s] and here i added a loop of exactly what
+[6202s] we had before so we had 10 iterations of
+[6205s] grainy descent of forward pass backward
+[6207s] pass and an update
+[6208s] and so running these two cells
+[6210s] initialization and gradient descent
+[6212s] gives us some improvement
+[6215s] on
+[6216s] the loss function
+[6218s] but now i want to use all the words
+[6221s] and there's not 5 but 228 000 bigrams
+[6225s] now
+[6226s] however this should require no
+[6228s] modification whatsoever everything
+[6229s] should just run because all the code we
+[6231s] wrote doesn't care if there's five
+[6233s] migrants or 228 000 bigrams and with
+[6236s] everything we should just work so
+[6238s] you see that this will just run
+[6240s] but now we are optimizing over the
+[6241s] entire training set of all the bigrams
+[6244s] and you see now that we are decreasing
+[6246s] very slightly so actually we can
+[6248s] probably afford a larger learning rate
+[6252s] and probably for even larger learning
+[6254s] rate
+[6260s] even 50 seems to work on this very very
+[6262s] simple example right so let me
+[6264s] re-initialize and let's run 100
+[6266s] iterations
+[6269s] see what happens
+[6272s] okay
+[6276s] we seem to be
+[6279s] coming up to some pretty good losses
+[6280s] here 2.47
+[6282s] let me run 100 more
+[6284s] what is the number that we expect by the
+[6286s] way in the loss we expect to get
+[6288s] something around what we had originally
+[6290s] actually
+[6292s] so all the way back if you remember in
+[6293s] the beginning of this video when we
+[6295s] optimized uh just by counting
+[6298s] our loss was roughly 2.47
+[6301s] after we had it smoothing
+[6303s] but before smoothing we had roughly 2.45
+[6306s] likelihood
+[6308s] sorry loss
+[6309s] and so that's actually roughly the
+[6310s] vicinity of what we expect to achieve
+[6313s] but before we achieved it by counting
+[6315s] and here we are achieving the roughly
+[6317s] the same result but with gradient based
+[6319s] optimization
+[6320s] so we come to about 2.4
+[6323s] 6 2.45 etc
+[6326s] and that makes sense because
+[6327s] fundamentally we're not taking any
+[6328s] additional information we're still just
+[6330s] taking in the previous character and
+[6331s] trying to predict the next one but
+[6333s] instead of doing it explicitly by
+[6335s] counting and normalizing
+[6338s] we are doing it with gradient-based
+[6339s] learning and it just so happens that the
+[6341s] explicit approach happens to very well
+[6344s] optimize the loss function without any
+[6346s] need for a gradient based optimization
+[6348s] because the setup for bigram language
+[6350s] models are is so straightforward that's
+[6352s] so simple we can just afford to estimate
+[6354s] those probabilities directly and
+[6356s] maintain them
+[6357s] in a table
+[6358s] but the gradient-based approach is
+[6360s] significantly more flexible
+[6362s] so we've actually gained a lot
+[6364s] because
+[6366s] what we can do now is
+[6369s] we can expand this approach and
+[6371s] complexify the neural net so currently
+[6373s] we're just taking a single character and
+[6374s] feeding into a neural net and the neural
+[6376s] that's extremely simple but we're about
+[6378s] to iterate on this substantially we're
+[6380s] going to be taking multiple previous
+[6382s] characters and we're going to be feeding
+[6384s] feeding them into increasingly more
+[6386s] complex neural nets but fundamentally
+[6388s] out the output of the neural net will
+[6390s] always just be logics
+[6392s] and those logits will go through the
+[6394s] exact same transformation we are going
+[6396s] to take them through a soft max
+[6397s] calculate the loss function and the
+[6399s] negative log likelihood and do gradient
+[6402s] based optimization and so actually
+[6404s] as we complexify the neural nets and
+[6407s] work all the way up to transformers
+[6409s] none of this will really fundamentally
+[6411s] change none of this will fundamentally
+[6412s] change the only thing that will change
+[6414s] is
+[6415s] the way we do the forward pass where we
+[6417s] take in some previous characters and
+[6419s] calculate logits for the next character
+[6421s] in the sequence that will become more
+[6423s] complex
+[6425s] and uh but we'll use the same machinery
+[6427s] to optimize it
+[6428s] and um
+[6430s] it's not obvious how we would have
+[6432s] extended
+[6433s] this bigram approach
+[6434s] into the case where there are many more
+[6437s] characters at the input because
+[6439s] eventually these tables would get way
+[6441s] too large because there's way too many
+[6443s] combinations of what previous characters
+[6446s] could be
+[6447s] if you only have one previous character
+[6449s] we can just keep everything in a table
+[6451s] that counts but if you have the last 10
+[6453s] characters that are input we can't
+[6455s] actually keep everything in the table
+[6456s] anymore so this is fundamentally an
+[6458s] unscalable approach and the neural
+[6460s] network approach is significantly more
+[6462s] scalable and it's something that
+[6464s] actually we can improve on over time so
+[6466s] that's where we will be digging next i
+[6468s] wanted to point out two more things
+[6471s] number one
+[6472s] i want you to notice that
+[6474s] this
+[6475s] x ink here
+[6476s] this is made up of one hot vectors and
+[6479s] then those one hot vectors are
+[6480s] multiplied by this w matrix
+[6483s] and we think of this as multiple neurons
+[6485s] being forwarded in a fully connected
+[6487s] manner
+[6488s] but actually what's happening here is
+[6490s] that for example
+[6491s] if you have a one hot vector here that
+[6494s] has a one at say the fifth dimension
+[6497s] then because of the way the matrix
+[6499s] multiplication works
+[6501s] multiplying that one-half vector with w
+[6503s] actually ends up plucking out the fifth
+[6505s] row of w
+[6507s] log logits would become just the fifth
+[6509s] row of w
+[6511s] and that's because of the way the matrix
+[6512s] multiplication works
+[6515s] um
+[6516s] so
+[6517s] that's actually what ends up happening
+[6520s] so but that's actually exactly what
+[6522s] happened before
+[6523s] because remember all the way up here
+[6526s] we have a bigram we took the first
+[6528s] character and then that first character
+[6530s] indexed into a row of this array here
+[6534s] and that row gave us the probability
+[6536s] distribution for the next character so
+[6538s] the first character was used as a lookup
+[6541s] into a
+[6543s] matrix here to get the probability
+[6545s] distribution
+[6546s] well that's actually exactly what's
+[6547s] happening here because we're taking the
+[6549s] index we're encoding it as one hot and
+[6551s] multiplying it by w
+[6553s] so logics literally becomes
+[6555s] the
+[6558s] the appropriate row of w
+[6560s] and that gets just as before
+[6562s] exponentiated to create the counts
+[6564s] and then normalized and becomes
+[6566s] probability
+[6567s] so this w here
+[6569s] is literally
+[6571s] the same as this array here
+[6575s] but w remember is the log counts not the
+[6578s] counts so it's more precise to say that
+[6580s] w exponentiated
+[6582s] w dot x is this array
+[6586s] but this array was filled in by counting
+[6589s] and by
+[6590s] basically
+[6591s] populating the counts of bi-grams
+[6593s] whereas in the gradient-based framework
+[6595s] we initialize it randomly and then we
+[6597s] let the loss
+[6599s] guide us
+[6600s] to arrive at the exact same array
+[6603s] so this array exactly here
+[6605s] is
+[6606s] basically the array w at the end of
+[6609s] optimization except we arrived at it
+[6612s] piece by piece by following the loss
+[6614s] and that's why we also obtain the same
+[6616s] loss function at the end and the second
+[6618s] note is if i come here
+[6620s] remember the smoothing where we added
+[6622s] fake counts to our counts
+[6624s] in order to
+[6626s] smooth out and make more uniform the
+[6628s] distributions of these probabilities
+[6630s] and that prevented us from assigning
+[6632s] zero probability to
+[6634s] to any one bigram
+[6637s] now if i increase the count here
+[6640s] what's happening to the probability
+[6642s] as i increase the count probability
+[6645s] becomes more and more uniform
+[6647s] right because these counts go only up to
+[6650s] like 900 or whatever so if i'm adding
+[6652s] plus a million to every single number
+[6654s] here you can see how
+[6656s] the row and its probability then when we
+[6658s] divide is just going to become more and
+[6660s] more close to exactly even probability
+[6662s] uniform distribution
+[6665s] it turns out that the gradient based
+[6666s] framework has an equivalent to smoothing
+[6670s] in particular
+[6673s] think through these w's here
+[6675s] which we initialized randomly
+[6678s] we could also think about initializing
+[6680s] w's to be zero
+[6682s] if all the entries of w are zero
+[6685s] then you'll see that logits will become
+[6687s] all zero
+[6688s] and then exponentiating those logics
+[6690s] becomes all one
+[6692s] and then the probabilities turned out to
+[6693s] be exactly uniform
+[6695s] so basically when w's are all equal to
+[6698s] each other or say especially zero
+[6701s] then the probabilities come out
+[6702s] completely uniform
+[6704s] so
+[6705s] trying to incentivize w to be near zero
+[6709s] is basically equivalent to
+[6711s] label smoothing and the more you
+[6713s] incentivize that in the loss function
+[6715s] the more smooth distribution you're
+[6717s] going to achieve
+[6718s] so this brings us to something that's
+[6720s] called
+[6720s] regularization where we can actually
+[6722s] augment the loss function to have a
+[6724s] small component that we call a
+[6726s] regularization loss
+[6728s] in particular what we're going to do is
+[6730s] we can take w and we can for example
+[6732s] square all of its entries
+[6734s] and then we can um whoops
+[6737s] sorry about that
+[6738s] we can take all the entries of w and we
+[6740s] can sum them
+[6743s] and because we're squaring uh there will
+[6745s] be no signs anymore um
+[6748s] negatives and positives all get squashed
+[6749s] to be positive numbers
+[6751s] and then the way this works is you
+[6753s] achieve zero loss if w is exactly or
+[6756s] zero but if w has non-zero numbers you
+[6759s] accumulate loss
+[6761s] and so we can actually take this and we
+[6762s] can add it on here
+[6764s] so we can do something like loss plus
+[6768s] w square
+[6770s] dot sum
+[6771s] or let's actually instead of sum let's
+[6773s] take a mean because otherwise the sum
+[6775s] gets too large
+[6777s] so mean is like a little bit more
+[6778s] manageable
+[6781s] and then we have a regularization loss
+[6782s] here say 0.01 times
+[6785s] or something like that you can choose
+[6786s] the regularization strength
+[6789s] and then we can just optimize this and
+[6792s] now this optimization actually has two
+[6794s] components not only is it trying to make
+[6796s] all the probabilities work out but in
+[6798s] addition to that there's an additional
+[6799s] component that simultaneously tries to
+[6802s] make all w's be zero because if w's are
+[6804s] non-zero you feel a loss and so
+[6806s] minimizing this the only way to achieve
+[6808s] that is for w to be zero
+[6810s] and so you can think of this as adding
+[6812s] like a spring force or like a gravity
+[6814s] force that that pushes w to be zero so w
+[6818s] wants to be zero and the probabilities
+[6820s] want to be uniform but they also
+[6822s] simultaneously want to match up your
+[6824s] your probabilities as indicated by the
+[6826s] data
+[6827s] and so the strength of this
+[6829s] regularization is exactly controlling
+[6832s] the amount of counts
+[6834s] that you add here
+[6837s] adding a lot more counts
+[6839s] here
+[6840s] corresponds to
+[6842s] increasing this number
+[6844s] because the more you increase it the
+[6846s] more this part of the loss function
+[6848s] dominates this part and the more these
+[6850s] these weights will un be unable to grow
+[6853s] because as they grow
+[6855s] they uh accumulate way too much loss
+[6858s] and so if this is strong enough
+[6861s] then we are not able to overcome the
+[6863s] force of this loss and we will never
+[6866s] and basically everything will be uniform
+[6868s] predictions
+[6869s] so i thought that's kind of cool okay
+[6870s] and lastly before we wrap up
+[6873s] i wanted to show you how you would
+[6874s] sample from this neural net model
+[6876s] and i copy-pasted the sampling code from
+[6879s] before
+[6880s] where remember that we sampled five
+[6883s] times
+[6884s] and all we did we start at zero we
+[6886s] grabbed the current ix row of p and that
+[6890s] was our probability row
+[6892s] from which we sampled the next index and
+[6894s] just accumulated that and
+[6896s] break when zero
+[6898s] and running this
+[6900s] gave us these
+[6902s] results still have the
+[6905s] p in memory so this is fine
+[6907s] now
+[6909s] the speed doesn't come from the row of b
+[6911s] instead it comes from this neural net
+[6914s] first we take ix
+[6917s] and we encode it into a one hot row of x
+[6921s] inc
+[6922s] this x inc multiplies rw
+[6925s] which really just plucks out the row of
+[6926s] w corresponding to ix really that's
+[6929s] what's happening
+[6930s] and that gets our logits and then we
+[6933s] normalize those low jets
+[6934s] exponentiate to get counts and then
+[6936s] normalize to get uh the distribution and
+[6939s] then we can sample from the distribution
+[6941s] so if i run this
+[6945s] kind of anticlimactic or climatic
+[6947s] depending how you look at it but we get
+[6948s] the exact same result
+[6950s] um
+[6952s] and that's because this is in the
+[6953s] identical model not only does it achieve
+[6955s] the same loss
+[6956s] but
+[6958s] as i mentioned these are identical
+[6959s] models and this w is the log counts of
+[6962s] what we've estimated before but we came
+[6965s] to this answer in a very different way
+[6967s] and it's got a very different
+[6968s] interpretation but fundamentally this is
+[6970s] basically the same model and gives the
+[6971s] same samples here and so
+[6974s] that's kind of cool okay so we've
+[6976s] actually covered a lot of ground we
+[6978s] introduced the bigram character level
+[6980s] language model
+[6981s] we saw how we can train the model how we
+[6984s] can sample from the model and how we can
+[6985s] evaluate the quality of the model using
+[6988s] the negative log likelihood loss
+[6990s] and then we actually trained the model
+[6991s] in two completely different ways that
+[6993s] actually get the same result and the
+[6994s] same model
+[6996s] in the first way we just counted up the
+[6998s] frequency of all the bigrams and
+[7000s] normalized
+[7001s] in a second way we used the
+[7004s] negative log likelihood loss as a guide
+[7007s] to optimizing the counts matrix
+[7010s] or the counts array so that the loss is
+[7012s] minimized in the in a gradient-based
+[7014s] framework and we saw that both of them
+[7016s] give the same result
+[7018s] and
+[7020s] that's it
+[7021s] now the second one of these the
+[7022s] gradient-based framework is much more
+[7023s] flexible and right now our neural
+[7026s] network is super simple we're taking a
+[7028s] single previous character and we're
+[7030s] taking it through a single linear layer
+[7032s] to calculate the logits
+[7034s] this is about to complexify so in the
+[7036s] follow-up videos we're going to be
+[7037s] taking more and more of these characters
+[7040s] and we're going to be feeding them into
+[7041s] a neural net but this neural net will
+[7043s] still output the exact same thing the
+[7045s] neural net will output logits
+[7047s] and these logits will still be
+[7049s] normalized in the exact same way and all
+[7050s] the loss and everything else and the
+[7052s] gradient gradient-based framework
+[7053s] everything stays identical it's just
+[7055s] that this neural net will now complexify
+[7058s] all the way to transformers
+[7060s] so that's gonna be pretty awesome and
+[7062s] i'm looking forward to it for now bye

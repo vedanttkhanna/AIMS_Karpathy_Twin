@@ -1,0 +1,25 @@
+{
+  "project": "makemore",
+  "description": "Character-level language model series progressing from bigram to transformer",
+  "github": "https://github.com/karpathy/makemore",
+  "key_decisions": [
+    {
+      "decision": "Start with a bigram model",
+      "reasoning": "The dumbest possible model that still works. Establish a baseline loss that any better model must beat."
+    },
+    {
+      "decision": "Progressive complexity across parts",
+      "reasoning": "MLP → BatchNorm → RNN → attention → transformer. Each step adds exactly one new idea so you can isolate what each contributes."
+    },
+    {
+      "decision": "Train on names dataset",
+      "reasoning": "Small enough to iterate fast, complex enough to be non-trivial. You can tell immediately if the model is learning."
+    }
+  ],
+  "lessons": [
+    "Always establish the simplest baseline first — bigram model, linear model, whatever",
+    "Add complexity one piece at a time and measure the effect of each addition",
+    "BatchNorm is subtle — the initialization matters more than people think"
+  ],
+  "connected_concepts": ["language modeling", "MLP", "RNN", "attention", "batch normalization", "embeddings"]
+}

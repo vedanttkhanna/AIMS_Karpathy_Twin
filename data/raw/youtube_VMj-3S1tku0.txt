@@ -1,0 +1,4185 @@
+SOURCE: https://www.youtube.com/watch?v=VMj-3S1tku0
+
+[0s] hello my name is andre
+[1s] and i've been training deep neural
+[2s] networks for a bit more than a decade
+[4s] and in this lecture i'd like to show you
+[6s] what neural network training looks like
+[8s] under the hood so in particular we are
+[10s] going to start with a blank jupiter
+[12s] notebook and by the end of this lecture
+[14s] we will define and train in neural net
+[16s] and you'll get to see everything that
+[18s] goes on under the hood and exactly
+[20s] sort of how that works on an intuitive
+[21s] level
+[22s] now specifically what i would like to do
+[24s] is i would like to take you through
+[26s] building of micrograd now micrograd is
+[29s] this library that i released on github
+[30s] about two years ago but at the time i
+[32s] only uploaded the source code and you'd
+[34s] have to go in by yourself and really
+[37s] figure out how it works
+[39s] so in this lecture i will take you
+[40s] through it step by step and kind of
+[42s] comment on all the pieces of it so what
+[44s] is micrograd and why is it interesting
+[47s] good
+[48s] um
+[49s] micrograd is basically an autograd
+[51s] engine autograd is short for automatic
+[53s] gradient and really what it does is it
+[55s] implements backpropagation now
+[57s] backpropagation is this algorithm that
+[59s] allows you to efficiently evaluate the
+[61s] gradient of
+[63s] some kind of a loss function with
+[65s] respect to the weights of a neural
+[67s] network and what that allows us to do
+[69s] then is we can iteratively tune the
+[71s] weights of that neural network to
+[72s] minimize the loss function and therefore
+[74s] improve the accuracy of the network so
+[76s] back propagation would be at the
+[78s] mathematical core of any modern deep
+[80s] neural network library like say pytorch
+[82s] or jaxx
+[84s] so the functionality of microgrant is i
+[85s] think best illustrated by an example so
+[87s] if we just scroll down here
+[89s] you'll see that micrograph basically
+[91s] allows you to build out mathematical
+[92s] expressions
+[94s] and um here what we are doing is we have
+[96s] an expression that we're building out
+[97s] where you have two inputs a and b
+[100s] and you'll see that a and b are negative
+[103s] four and two but we are wrapping those
+[106s] values into this value object that we
+[108s] are going to build out as part of
+[109s] micrograd
+[111s] so this value object will wrap the
+[113s] numbers themselves
+[114s] and then we are going to build out a
+[116s] mathematical expression here where a and
+[118s] b are transformed into c d and
+[121s] eventually e f and g
+[123s] and i'm showing some of the functions
+[125s] some of the functionality of micrograph
+[127s] and the operations that it supports so
+[128s] you can add two value objects you can
+[131s] multiply them you can raise them to a
+[133s] constant power you can offset by one
+[135s] negate squash at zero
+[138s] square divide by constant divide by it
+[141s] etc
+[142s] and so we're building out an expression
+[144s] graph with with these two inputs a and b
+[147s] and we're creating an output value of g
+[150s] and micrograd will in the background
+[152s] build out this entire mathematical
+[154s] expression so it will for example know
+[156s] that c is also a value
+[158s] c was a result of an addition operation
+[161s] and the
+[162s] child nodes of c are a and b because the
+[166s] and will maintain pointers to a and b
+[168s] value objects so we'll basically know
+[170s] exactly how all of this is laid out
+[173s] and then not only can we do what we call
+[175s] the forward pass where we actually look
+[177s] at the value of g of course that's
+[178s] pretty straightforward we will access
+[180s] that using the dot data attribute and so
+[183s] the output of the forward pass the value
+[186s] of g is 24.7 it turns out but the big
+[189s] deal is that we can also take this g
+[191s] value object and we can call that
+[193s] backward
+[194s] and this will basically uh initialize
+[196s] back propagation at the node g
+[199s] and what backpropagation is going to do
+[201s] is it's going to start at g and it's
+[203s] going to go backwards through that
+[205s] expression graph and it's going to
+[206s] recursively apply the chain rule from
+[208s] calculus
+[210s] and what that allows us to do then is
+[212s] we're going to evaluate basically the
+[214s] derivative of g with respect to all the
+[216s] internal nodes
+[218s] like e d and c but also with respect to
+[220s] the inputs a and b
+[223s] and then we can actually query this
+[225s] derivative of g with respect to a for
+[227s] example that's a dot grad in this case
+[230s] it happens to be 138 and the derivative
+[232s] of g with respect to b
+[234s] which also happens to be here 645
+[237s] and this derivative we'll see soon is
+[239s] very important information because it's
+[241s] telling us how a and b are affecting g
+[244s] through this mathematical expression so
+[246s] in particular
+[248s] a dot grad is 138 so if we slightly
+[251s] nudge a and make it slightly larger
+[254s] 138 is telling us that g will grow and
+[258s] the slope of that growth is going to be
+[259s] 138
+[260s] and the slope of growth of b is going to
+[262s] be 645. so that's going to tell us about
+[265s] how g will respond if a and b get
+[267s] tweaked a tiny amount in a positive
+[269s] direction
+[271s] okay
+[273s] now you might be confused about what
+[274s] this expression is that we built out
+[276s] here and this expression by the way is
+[278s] completely meaningless i just made it up
+[280s] i'm just flexing about the kinds of
+[282s] operations that are supported by
+[283s] micrograd
+[284s] what we actually really care about are
+[286s] neural networks but it turns out that
+[288s] neural networks are just mathematical
+[289s] expressions just like this one but
+[291s] actually slightly bit less crazy even
+[294s] neural networks are just a mathematical
+[296s] expression they take the input data as
+[299s] an input and they take the weights of a
+[300s] neural network as an input and it's a
+[302s] mathematical expression and the output
+[304s] are your predictions of your neural net
+[306s] or the loss function we'll see this in a
+[308s] bit but basically neural networks just
+[310s] happen to be a certain class of
+[312s] mathematical expressions
+[313s] but back propagation is actually
+[315s] significantly more general it doesn't
+[317s] actually care about neural networks at
+[318s] all it only tells us about arbitrary
+[320s] mathematical expressions and then we
+[322s] happen to use that machinery for
+[324s] training of neural networks now one more
+[326s] note i would like to make at this stage
+[328s] is that as you see here micrograd is a
+[330s] scalar valued auto grant engine so it's
+[332s] working on the you know level of
+[334s] individual scalars like negative four
+[336s] and two and we're taking neural nets and
+[337s] we're breaking them down all the way to
+[339s] these atoms of individual scalars and
+[341s] all the little pluses and times and it's
+[343s] just excessive and so obviously you
+[345s] would never be doing any of this in
+[347s] production it's really just put down for
+[348s] pedagogical reasons because it allows us
+[350s] to not have to deal with these
+[352s] n-dimensional tensors that you would use
+[354s] in modern deep neural network library so
+[356s] this is really done so that you
+[358s] understand and refactor out back
+[360s] propagation and chain rule and
+[362s] understanding of neurologic training
+[364s] and then if you actually want to train
+[366s] bigger networks you have to be using
+[368s] these tensors but none of the math
+[369s] changes this is done purely for
+[371s] efficiency we are basically taking scale
+[373s] value
+[374s] all the scale values we're packaging
+[376s] them up into tensors which are just
+[377s] arrays of these scalars and then because
+[380s] we have these large arrays we're making
+[382s] operations on those large arrays that
+[384s] allows us to take advantage of the
+[386s] parallelism in a computer and all those
+[388s] operations can be done in parallel and
+[390s] then the whole thing runs faster but
+[392s] really none of the math changes and
+[393s] that's done purely for efficiency so i
+[395s] don't think that it's pedagogically
+[396s] useful to be dealing with tensors from
+[398s] scratch uh and i think and that's why i
+[400s] fundamentally wrote micrograd because
+[402s] you can understand how things work uh at
+[404s] the fundamental level and then you can
+[406s] speed it up later okay so here's the fun
+[408s] part my claim is that micrograd is what
+[411s] you need to train your networks and
+[412s] everything else is just efficiency so
+[414s] you'd think that micrograd would be a
+[416s] very complex piece of code and that
+[418s] turns out to not be the case
+[421s] so if we just go to micrograd
+[423s] and you'll see that there's only two
+[425s] files here in micrograd this is the
+[427s] actual engine it doesn't know anything
+[429s] about neural nuts and this is the entire
+[430s] neural nets library
+[432s] on top of micrograd so engine and nn.pi
+[437s] so the actual backpropagation autograd
+[439s] engine
+[441s] that gives you the power of neural
+[442s] networks is literally
+[446s] 100 lines of code of like very simple
+[448s] python
+[450s] which we'll understand by the end of
+[451s] this lecture
+[452s] and then nn.pi
+[453s] this neural network library built on top
+[455s] of the autograd engine
+[457s] um is like a joke it's like
+[460s] we have to define what is a neuron and
+[462s] then we have to define what is the layer
+[464s] of neurons and then we define what is a
+[466s] multi-layer perceptron which is just a
+[467s] sequence of layers of neurons and so
+[470s] it's just a total joke
+[472s] so basically
+[473s] there's a lot of power that comes from
+[475s] only 150 lines of code
+[477s] and that's all you need to understand to
+[479s] understand neural network training and
+[480s] everything else is just efficiency and
+[482s] of course there's a lot to efficiency
+[485s] but fundamentally that's all that's
+[487s] happening okay so now let's dive right
+[489s] in and implement micrograph step by step
+[491s] the first thing i'd like to do is i'd
+[492s] like to make sure that you have a very
+[493s] good understanding intuitively of what a
+[496s] derivative is and exactly what
+[498s] information it gives you so let's start
+[500s] with some basic imports that i copy
+[502s] paste in every jupiter notebook always
+[505s] and let's define a function a scalar
+[507s] valued function
+[508s] f of x
+[510s] as follows
+[511s] so i just make this up randomly i just
+[513s] want to scale a valid function that
+[514s] takes a single scalar x and returns a
+[516s] single scalar y
+[518s] and we can call this function of course
+[520s] so we can pass in say 3.0 and get 20
+[522s] back
+[523s] now we can also plot this function to
+[525s] get a sense of its shape you can tell
+[527s] from the mathematical expression that
+[528s] this is probably a parabola it's a
+[530s] quadratic
+[531s] and so if we just uh create a set of um
+[536s] um
+[537s] scale values that we can feed in using
+[539s] for example a range from negative five
+[541s] to five in steps of 0.25
+[543s] so this is so axis is just from negative
+[546s] 5 to 5 not including 5 in steps of 0.25
+[551s] and we can actually call this function
+[552s] on this numpy array as well so we get a
+[554s] set of y's if we call f on axis
+[557s] and these y's are basically
+[560s] also applying a function on every one of
+[563s] these elements independently
+[565s] and we can plot this using matplotlib so
+[568s] plt.plot x's and y's and we get a nice
+[571s] parabola so previously here we fed in
+[573s] 3.0 somewhere here and we received 20
+[576s] back which is here the y coordinate so
+[579s] now i'd like to think through
+[580s] what is the derivative
+[582s] of this function at any single input
+[584s] point x
+[585s] right so what is the derivative at
+[587s] different points x of this function now
+[589s] if you remember back to your calculus
+[591s] class you've probably derived
+[592s] derivatives so we take this mathematical
+[594s] expression 3x squared minus 4x plus 5
+[597s] and you would write out on a piece of
+[598s] paper and you would you know apply the
+[599s] product rule and all the other rules and
+[601s] derive the mathematical expression of
+[603s] the great derivative of the original
+[605s] function and then you could plug in
+[606s] different texts and see what the
+[608s] derivative is
+[609s] we're not going to actually do that
+[611s] because no one in neural networks
+[613s] actually writes out the expression for
+[615s] the neural net it would be a massive
+[616s] expression um it would be you know
+[618s] thousands tens of thousands of terms no
+[620s] one actually derives the derivative of
+[622s] course and so we're not going to take
+[624s] this kind of like a symbolic approach
+[626s] instead what i'd like to do is i'd like
+[627s] to look at the definition of derivative
+[629s] and just make sure that we really
+[630s] understand what derivative is measuring
+[632s] what it's telling you about the function
+[634s] and so if we just look up derivative
+[642s] we see that
+[643s] okay so this is not a very good
+[644s] definition of derivative this is a
+[646s] definition of what it means to be
+[647s] differentiable
+[648s] but if you remember from your calculus
+[650s] it is the limit as h goes to zero of f
+[652s] of x plus h minus f of x over h so
+[655s] basically what it's saying is if you
+[658s] slightly bump up you're at some point x
+[660s] that you're interested in or a and if
+[662s] you slightly bump up
+[664s] you know you slightly increase it by
+[666s] small number h
+[668s] how does the function respond with what
+[669s] sensitivity does it respond what is the
+[671s] slope at that point does the function go
+[673s] up or does it go down and by how much
+[676s] and that's the slope of that function
+[678s] the
+[678s] the slope of that response at that point
+[681s] and so we can basically evaluate
+[683s] the derivative here numerically by
+[686s] taking a very small h of course the
+[688s] definition would ask us to take h to
+[690s] zero we're just going to pick a very
+[691s] small h 0.001
+[694s] and let's say we're interested in point
+[695s] 3.0 so we can look at f of x of course
+[697s] as 20
+[698s] and now f of x plus h
+[700s] so if we slightly nudge x in a positive
+[702s] direction how is the function going to
+[704s] respond
+[705s] and just looking at this do you expect
+[707s] do you expect f of x plus h to be
+[709s] slightly greater than 20 or do you
+[711s] expect to be slightly lower than 20
+[714s] and since this 3 is here and this is 20
+[717s] if we slightly go positively the
+[719s] function will respond positively so
+[721s] you'd expect this to be slightly greater
+[723s] than 20. and now by how much it's
+[725s] telling you the
+[726s] sort of the
+[727s] the strength of that slope right the the
+[729s] size of the slope so f of x plus h minus
+[732s] f of x this is how much the function
+[734s] responded
+[736s] in the positive direction and we have to
+[737s] normalize by the
+[739s] run so we have the rise over run to get
+[742s] the slope so this of course is just a
+[744s] numerical approximation of the slope
+[746s] because we have to make age very very
+[748s] small to converge to the exact amount
+[752s] now if i'm doing too many zeros
+[755s] at some point
+[756s] i'm gonna get an incorrect answer
+[758s] because we're using floating point
+[759s] arithmetic and the representations of
+[761s] all these numbers in computer memory is
+[763s] finite and at some point we get into
+[765s] trouble
+[766s] so we can converse towards the right
+[767s] answer with this approach
+[770s] but basically um at 3 the slope is 14.
+[774s] and you can see that by taking 3x
+[776s] squared minus 4x plus 5 and
+[778s] differentiating it in our head
+[780s] so 3x squared would be
+[782s] 6 x minus 4
+[784s] and then we plug in x equals 3 so that's
+[787s] 18 minus 4 is 14. so this is correct
+[790s] so that's
+[792s] at 3. now how about the slope at say
+[795s] negative 3
+[797s] would you expect would you expect for
+[799s] the slope
+[800s] now telling the exact value is really
+[802s] hard but what is the sign of that slope
+[804s] so at negative three
+[806s] if we slightly go in the positive
+[808s] direction at x the function would
+[810s] actually go down and so that tells you
+[812s] that the slope would be negative so
+[813s] we'll get a slight number below
+[816s] below 20. and so if we take the slope we
+[819s] expect something negative
+[820s] negative 22. okay
+[823s] and at some point here of course the
+[825s] slope would be zero now for this
+[827s] specific function i looked it up
+[828s] previously and it's at point two over
+[831s] three
+[832s] so at roughly two over three
+[834s] uh that's somewhere here
+[835s] um
+[837s] this derivative be zero
+[839s] so basically at that precise point
+[843s] yeah
+[844s] at that precise point if we nudge in a
+[846s] positive direction the function doesn't
+[847s] respond this stays the same almost and
+[849s] so that's why the slope is zero okay now
+[851s] let's look at a bit more complex case
+[854s] so we're going to start you know
+[855s] complexifying a bit so now we have a
+[858s] function
+[859s] here
+[860s] with output variable d
+[862s] that is a function of three scalar
+[864s] inputs a b and c
+[866s] so a b and c are some specific values
+[868s] three inputs into our expression graph
+[870s] and a single output d
+[872s] and so if we just print d we get four
+[876s] and now what i have to do is i'd like to
+[878s] again look at the derivatives of d with
+[880s] respect to a b and c
+[882s] and uh think through uh again just the
+[884s] intuition of what this derivative is
+[886s] telling us
+[887s] so in order to evaluate this derivative
+[889s] we're going to get a bit hacky here
+[892s] we're going to again have a very small
+[893s] value of h
+[895s] and then we're going to fix the inputs
+[897s] at some
+[898s] values that we're interested in
+[900s] so these are the this is the point abc
+[902s] at which we're going to be evaluating
+[904s] the the
+[905s] derivative of d with respect to all a b
+[907s] and c at that point
+[909s] so there are the inputs and now we have
+[911s] d1 is that expression
+[913s] and then we're going to for example look
+[915s] at the derivative of d with respect to a
+[917s] so we'll take a and we'll bump it by h
+[919s] and then we'll get d2 to be the exact
+[922s] same function
+[923s] and now we're going to print um
+[926s] you know f1
+[928s] d1 is d1
+[931s] d2 is d2
+[932s] and print slope
+[935s] so the derivative or slope
+[937s] here will be um
+[939s] of course
+[941s] d2
+[942s] minus d1 divide h
+[944s] so d2 minus d1 is how much the function
+[947s] increased
+[948s] uh when we bumped
+[950s] the uh
+[951s] the specific input that we're interested
+[953s] in by a tiny amount
+[955s] and
+[956s] this is then normalized by h
+[959s] to get the slope
+[962s] so
+[963s] um
+[965s] yeah
+[966s] so this so if i just run this we're
+[968s] going to print
+[970s] d1
+[972s] which we know is four
+[975s] now d2 will be bumped a will be bumped
+[978s] by h
+[980s] so let's just think through
+[982s] a little bit uh what d2 will be uh
+[986s] printed out here
+[987s] in particular
+[989s] d1 will be four
+[991s] will d2 be a number slightly greater
+[993s] than four or slightly lower than four
+[995s] and that's going to tell us the sl the
+[997s] the sign of the derivative
+[1000s] so
+[1002s] we're bumping a by h
+[1005s] b as minus three c is ten
+[1008s] so you can just intuitively think
+[1009s] through this derivative and what it's
+[1011s] doing a will be slightly more positive
+[1014s] and but b is a negative number
+[1017s] so if a is slightly more positive
+[1020s] because b is negative three
+[1023s] we're actually going to be adding less
+[1026s] to d
+[1028s] so you'd actually expect that the value
+[1030s] of the function will go down
+[1033s] so let's just see this
+[1036s] yeah and so we went from 4
+[1038s] to 3.9996
+[1040s] and that tells you that the slope will
+[1042s] be negative
+[1043s] and then
+[1044s] uh will be a negative number
+[1046s] because we went down
+[1047s] and then
+[1049s] the exact number of slope will be
+[1051s] exact amount of slope is negative 3.
+[1053s] and you can also convince yourself that
+[1055s] negative 3 is the right answer
+[1056s] mathematically and analytically because
+[1059s] if you have a times b plus c and you are
+[1061s] you know you have calculus then
+[1063s] differentiating a times b plus c with
+[1066s] respect to a gives you just b
+[1068s] and indeed the value of b is negative 3
+[1070s] which is the derivative that we have so
+[1072s] you can tell that that's correct
+[1074s] so now if we do this with b
+[1077s] so if we bump b by a little bit in a
+[1079s] positive direction we'd get different
+[1082s] slopes so what is the influence of b on
+[1084s] the output d
+[1086s] so if we bump b by a tiny amount in a
+[1088s] positive direction then because a is
+[1090s] positive
+[1091s] we'll be adding more to d
+[1093s] right
+[1094s] so um and now what is the what is the
+[1097s] sensitivity what is the slope of that
+[1098s] addition
+[1099s] and it might not surprise you that this
+[1101s] should be
+[1102s] 2
+[1104s] and y is a 2 because d of d
+[1107s] by db differentiating with respect to b
+[1110s] would be would give us a
+[1111s] and the value of a is two so that's also
+[1114s] working well
+[1115s] and then if c gets bumped a tiny amount
+[1117s] in h
+[1118s] by h
+[1119s] then of course a times b is unaffected
+[1121s] and now c becomes slightly bit higher
+[1124s] what does that do to the function it
+[1125s] makes it slightly bit higher because
+[1127s] we're simply adding c
+[1128s] and it makes it slightly bit higher by
+[1130s] the exact same amount that we added to c
+[1133s] and so that tells you that the slope is
+[1135s] one
+[1136s] that will be the
+[1139s] the rate at which
+[1141s] d will increase as we scale
+[1144s] c
+[1145s] okay so we now have some intuitive sense
+[1146s] of what this derivative is telling you
+[1148s] about the function and we'd like to move
+[1150s] to neural networks now as i mentioned
+[1151s] neural networks will be pretty massive
+[1153s] expressions mathematical expressions so
+[1155s] we need some data structures that
+[1156s] maintain these expressions and that's
+[1157s] what we're going to start to build out
+[1159s] now
+[1160s] so we're going to
+[1162s] build out this value object that i
+[1164s] showed you in the readme page of
+[1166s] micrograd
+[1167s] so let me copy paste a skeleton of the
+[1170s] first very simple value object
+[1173s] so class value takes a single
+[1176s] scalar value that it wraps and keeps
+[1178s] track of
+[1179s] and that's it so
+[1181s] we can for example do value of 2.0 and
+[1183s] then we can
+[1185s] get we can look at its content and
+[1188s] python will internally
+[1190s] use the wrapper function
+[1192s] to uh return
+[1194s] uh this string oops
+[1196s] like that
+[1198s] so this is a value object with data
+[1200s] equals two that we're creating here
+[1203s] now we'd like to do is like we'd like to
+[1204s] be able to
+[1207s] have not just like two values
+[1210s] but we'd like to do a bluffy right we'd
+[1212s] like to add them
+[1213s] so currently you would get an error
+[1215s] because python doesn't know how to add
+[1217s] two value objects so we have to tell it
+[1221s] so here's
+[1222s] addition
+[1226s] so you have to basically use these
+[1227s] special double underscore methods in
+[1229s] python to define these operators for
+[1231s] these objects so if we call um
+[1235s] the uh if we use this plus operator
+[1239s] python will internally call a dot add of
+[1243s] b
+[1243s] that's what will happen internally and
+[1245s] so b will be the other and
+[1248s] self will be a
+[1250s] and so we see that what we're going to
+[1252s] return is a new value object and it's
+[1254s] just it's going to be wrapping
+[1256s] the plus of
+[1258s] their data
+[1259s] but remember now because data is the
+[1262s] actual like numbered python number so
+[1264s] this operator here is just the typical
+[1266s] floating point plus addition now it's
+[1269s] not an addition of value objects
+[1271s] and will return a new value so now a
+[1274s] plus b should work and it should print
+[1276s] value of
+[1277s] negative one
+[1278s] because that's two plus minus three
+[1280s] there we go
+[1281s] okay let's now implement multiply
+[1284s] just so we can recreate this expression
+[1285s] here
+[1286s] so multiply i think it won't surprise
+[1288s] you will be fairly similar
+[1291s] so instead of add we're going to be
+[1293s] using mul
+[1294s] and then here of course we want to do
+[1296s] times
+[1296s] and so now we can create a c value
+[1298s] object which will be 10.0 and now we
+[1301s] should be able to do a times b well
+[1304s] let's just do a times b first
+[1306s] um
+[1307s] [Music]
+[1308s] that's value of negative six now
+[1310s] and by the way i skipped over this a
+[1312s] little bit suppose that i didn't have
+[1313s] the wrapper function here
+[1315s] then it's just that you'll get some kind
+[1317s] of an ugly expression so what wrapper is
+[1319s] doing is it's providing us a way to
+[1322s] print out like a nicer looking
+[1323s] expression in python
+[1325s] uh so we don't just have something
+[1327s] cryptic we actually are you know it's
+[1329s] value of
+[1330s] negative six so this gives us a times
+[1334s] and then this we should now be able to
+[1336s] add c to it because we've defined and
+[1338s] told the python how to do mul and add
+[1340s] and so this will call this will
+[1342s] basically be equivalent to a dot
+[1344s] small
+[1346s] of b
+[1347s] and then this new value object will be
+[1349s] dot add
+[1351s] of c
+[1352s] and so let's see if that worked
+[1354s] yep so that worked well that gave us
+[1356s] four which is what we expect from before
+[1359s] and i believe we can just call them
+[1360s] manually as well there we go so
+[1364s] yeah
+[1365s] okay so now what we are missing is the
+[1366s] connective tissue of this expression as
+[1369s] i mentioned we want to keep these
+[1370s] expression graphs so we need to know and
+[1372s] keep pointers about what values produce
+[1374s] what other values
+[1376s] so here for example we are going to
+[1378s] introduce a new variable which we'll
+[1380s] call children and by default it will be
+[1382s] an empty tuple
+[1383s] and then we're actually going to keep a
+[1384s] slightly different variable in the class
+[1386s] which we'll call underscore prev which
+[1388s] will be the set of children
+[1391s] this is how i done i did it in the
+[1393s] original micrograd looking at my code
+[1395s] here i can't remember exactly the reason
+[1397s] i believe it was efficiency but this
+[1399s] underscore children will be a tuple for
+[1400s] convenience but then when we actually
+[1402s] maintain it in the class it will be just
+[1403s] this set yeah i believe for efficiency
+[1407s] um
+[1408s] so now
+[1409s] when we are creating a value like this
+[1411s] with a constructor children will be
+[1413s] empty and prep will be the empty set but
+[1416s] when we're creating a value through
+[1417s] addition or multiplication we're going
+[1419s] to feed in the children of this value
+[1422s] which in this case is self and other
+[1426s] so those are the children
+[1428s] here
+[1430s] so now we can do d dot prev
+[1432s] and we'll see that the children of the
+[1435s] we now know are this value of negative 6
+[1438s] and value of 10 and this of course is
+[1440s] the value resulting from a times b and
+[1443s] the c value which is 10.
+[1446s] now the last piece of information we
+[1448s] don't know so we know that the children
+[1450s] of every single value but we don't know
+[1452s] what operation created this value
+[1454s] so we need one more element here let's
+[1456s] call it underscore pop
+[1459s] and by default this is the empty set for
+[1461s] leaves
+[1462s] and then we'll just maintain it here
+[1465s] and now the operation will be just a
+[1467s] simple string and in the case of
+[1469s] addition it's plus in the case of
+[1471s] multiplication is times
+[1473s] so now we
+[1475s] not just have d dot pref we also have a
+[1477s] d dot up
+[1478s] and we know that d was produced by an
+[1480s] addition of those two values and so now
+[1482s] we have the full
+[1484s] mathematical expression uh and we're
+[1486s] building out this data structure and we
+[1487s] know exactly how each value came to be
+[1489s] by word expression and from what other
+[1491s] values
+[1494s] now because these expressions are about
+[1496s] to get quite a bit larger we'd like a
+[1498s] way to nicely visualize these
+[1500s] expressions that we're building out so
+[1502s] for that i'm going to copy paste a bunch
+[1503s] of slightly scary code that's going to
+[1506s] visualize this these expression graphs
+[1508s] for us
+[1509s] so here's the code and i'll explain it
+[1511s] in a bit but first let me just show you
+[1513s] what this code does
+[1514s] basically what it does is it creates a
+[1516s] new function drawdot that we can call on
+[1519s] some root node
+[1520s] and then it's going to visualize it so
+[1522s] if we call drawdot on d
+[1524s] which is this final value here that is a
+[1527s] times b plus c
+[1529s] it creates something like this so this
+[1531s] is d
+[1532s] and you see that this is a times b
+[1534s] creating an integrated value plus c
+[1536s] gives us this output node d
+[1540s] so that's dried out of d
+[1542s] and i'm not going to go through this in
+[1544s] complete detail you can take a look at
+[1546s] graphless and its api uh graphis is a
+[1548s] open source graph visualization software
+[1551s] and what we're doing here is we're
+[1552s] building out this graph and graphis
+[1554s] api and
+[1556s] you can basically see that trace is this
+[1558s] helper function that enumerates all of
+[1560s] the nodes and edges in the graph
+[1562s] so that just builds a set of all the
+[1564s] nodes and edges and then we iterate for
+[1566s] all the nodes and we create special node
+[1568s] objects
+[1568s] for them in
+[1571s] using dot node
+[1573s] and then we also create edges using dot
+[1575s] dot edge
+[1576s] and the only thing that's like slightly
+[1578s] tricky here is you'll notice that i
+[1580s] basically add these fake nodes which are
+[1582s] these operation nodes so for example
+[1584s] this node here is just like a plus node
+[1587s] and
+[1588s] i create these
+[1591s] special op nodes here
+[1594s] and i connect them accordingly so these
+[1597s] nodes of course are not actual
+[1599s] nodes in the original graph
+[1601s] they're not actually a value object the
+[1603s] only value objects here are the things
+[1606s] in squares those are actual value
+[1608s] objects or representations thereof and
+[1610s] these op nodes are just created in this
+[1612s] drawdot routine so that it looks nice
+[1615s] let's also add labels to these graphs
+[1617s] just so we know what variables are where
+[1619s] so let's create a special underscore
+[1621s] label
+[1622s] um
+[1623s] or let's just do label
+[1625s] equals empty by default and save it in
+[1628s] each node
+[1631s] and then here we're going to do label as
+[1633s] a
+[1635s] label is the
+[1637s] label a c
+[1642s] and then
+[1644s] let's create a special um
+[1647s] e equals a times b
+[1650s] and e dot label will be e
+[1654s] it's kind of naughty
+[1655s] and e will be e plus c
+[1658s] and a d dot label will be
+[1660s] d
+[1662s] okay so nothing really changes i just
+[1664s] added this new e function
+[1666s] a new e variable
+[1668s] and then here when we are
+[1670s] printing this
+[1671s] i'm going to print the label here so
+[1674s] this will be a percent s
+[1676s] bar
+[1676s] and this will be end.label
+[1681s] and so now
+[1683s] we have the label on the left here so it
+[1685s] says a b creating e and then e plus c
+[1687s] creates d
+[1688s] just like we have it here
+[1690s] and finally let's make this expression
+[1692s] just one layer deeper
+[1694s] so d will not be the final output node
+[1697s] instead after d we are going to create a
+[1700s] new value object
+[1701s] called f we're going to start running
+[1703s] out of variables soon f will be negative
+[1705s] 2.0
+[1707s] and its label will of course just be f
+[1710s] and then l capital l will be the output
+[1714s] of our graph
+[1715s] and l will be p times f
+[1718s] okay
+[1718s] so l will be negative eight is the
+[1720s] output
+[1722s] so
+[1724s] now we don't just draw a d we draw l
+[1730s] okay
+[1732s] and somehow the label of
+[1734s] l was undefined oops all that label has
+[1736s] to be explicitly sort of given to it
+[1739s] there we go so l is the output
+[1741s] so let's quickly recap what we've done
+[1743s] so far
+[1744s] we are able to build out mathematical
+[1745s] expressions using only plus and times so
+[1748s] far
+[1749s] they are scalar valued along the way
+[1751s] and we can do this forward pass
+[1754s] and build out a mathematical expression
+[1756s] so we have multiple inputs here a b c
+[1758s] and f
+[1759s] going into a mathematical expression
+[1761s] that produces a single output l
+[1764s] and this here is visualizing the forward
+[1766s] pass so the output of the forward pass
+[1768s] is negative eight that's the value
+[1771s] now what we'd like to do next is we'd
+[1773s] like to run back propagation
+[1775s] and in back propagation we are going to
+[1777s] start here at the end and we're going to
+[1779s] reverse
+[1780s] and calculate the gradient along along
+[1783s] all these intermediate values
+[1785s] and really what we're computing for
+[1786s] every single value here
+[1788s] um we're going to compute the derivative
+[1790s] of that node with respect to l
+[1795s] so
+[1796s] the derivative of l with respect to l is
+[1798s] just uh one
+[1800s] and then we're going to derive what is
+[1801s] the derivative of l with respect to f
+[1803s] with respect to d with respect to c with
+[1806s] respect to e
+[1807s] with respect to b and with respect to a
+[1810s] and in the neural network setting you'd
+[1812s] be very interested in the derivative of
+[1813s] basically this loss function l
+[1816s] with respect to the weights of a neural
+[1818s] network
+[1819s] and here of course we have just these
+[1820s] variables a b c and f
+[1822s] but some of these will eventually
+[1823s] represent the weights of a neural net
+[1825s] and so we'll need to know how those
+[1827s] weights are impacting
+[1829s] the loss function so we'll be interested
+[1831s] basically in the derivative of the
+[1832s] output with respect to some of its leaf
+[1834s] nodes and those leaf nodes will be the
+[1836s] weights of the neural net
+[1838s] and the other leaf nodes of course will
+[1839s] be the data itself but usually we will
+[1841s] not want or use the derivative of the
+[1844s] loss function with respect to data
+[1845s] because the data is fixed but the
+[1847s] weights will be iterated on
+[1850s] using the gradient information so next
+[1852s] we are going to create a variable inside
+[1854s] the value class that maintains the
+[1857s] derivative of l with respect to that
+[1859s] value
+[1860s] and we will call this variable grad
+[1863s] so there's a data and there's a
+[1865s] self.grad
+[1867s] and initially it will be zero and
+[1869s] remember that zero is basically means no
+[1872s] effect so at initialization we're
+[1874s] assuming that every value does not
+[1876s] impact does not affect the out the
+[1878s] output
+[1879s] right because if the gradient is zero
+[1881s] that means that changing this variable
+[1883s] is not changing the loss function
+[1885s] so by default we assume that the
+[1887s] gradient is zero
+[1888s] and then
+[1891s] now that we have grad and it's 0.0
+[1896s] we are going to be able to visualize it
+[1898s] here after data so here grad is 0.4 f
+[1902s] and this will be in that graph
+[1905s] and now we are going to be showing both
+[1907s] the data and the grad
+[1910s] initialized at zero
+[1913s] and we are just about getting ready to
+[1915s] calculate the back propagation
+[1917s] and of course this grad again as i
+[1918s] mentioned is representing
+[1920s] the derivative of the output in this
+[1922s] case l with respect to this value so
+[1925s] with respect to so this is the
+[1926s] derivative of l with respect to f with
+[1928s] respect to d and so on so let's now fill
+[1931s] in those gradients and actually do back
+[1932s] propagation manually so let's start
+[1934s] filling in these gradients and start all
+[1936s] the way at the end as i mentioned here
+[1938s] first we are interested to fill in this
+[1940s] gradient here so what is the derivative
+[1942s] of l with respect to l
+[1945s] in other words if i change l by a tiny
+[1947s] amount of h
+[1949s] how much does
+[1950s] l change
+[1952s] it changes by h so it's proportional and
+[1955s] therefore derivative will be one
+[1957s] we can of course measure these or
+[1959s] estimate these numerical gradients
+[1960s] numerically just like we've seen before
+[1963s] so if i take this expression
+[1965s] and i create a def lol function here
+[1969s] and put this here now the reason i'm
+[1971s] creating a gating function hello here is
+[1973s] because i don't want to pollute or mess
+[1975s] up the global scope here this is just
+[1977s] kind of like a little staging area and
+[1978s] as you know in python all of these will
+[1980s] be local variables to this function so
+[1982s] i'm not changing any of the global scope
+[1984s] here
+[1985s] so here l1 will be l
+[1990s] and then copy pasting this expression
+[1993s] we're going to add a small amount h
+[1997s] in for example a
+[2000s] right and this would be measuring the
+[2002s] derivative of l with respect to a
+[2005s] so here this will be l2
+[2008s] and then we want to print this
+[2009s] derivative so print
+[2011s] l2 minus l1 which is how much l changed
+[2015s] and then normalize it by h so this is
+[2017s] the rise over run
+[2019s] and we have to be careful because l is a
+[2021s] value node so we actually want its data
+[2025s] um
+[2026s] so that these are floats dividing by h
+[2028s] and this should print the derivative of
+[2030s] l with respect to a because a is the one
+[2033s] that we bumped a little bit by h
+[2035s] so what is the
+[2037s] derivative of l with respect to a
+[2039s] it's six
+[2041s] okay and obviously
+[2043s] if we change l by h
+[2046s] then that would be
+[2049s] here effectively
+[2052s] this looks really awkward but changing l
+[2054s] by h
+[2056s] you see the derivative here is 1. um
+[2060s] that's kind of like the base case of
+[2063s] what we are doing here
+[2064s] so basically we cannot come up here and
+[2066s] we can manually set l.grad to one this
+[2069s] is our manual back propagation
+[2071s] l dot grad is one and let's redraw
+[2075s] and we'll see that we filled in grad as
+[2077s] 1 for l
+[2079s] we're now going to continue the back
+[2080s] propagation so let's here look at the
+[2082s] derivatives of l with respect to d and f
+[2085s] let's do a d first
+[2087s] so what we are interested in if i create
+[2089s] a markdown on here is we'd like to know
+[2091s] basically we have that l is d times f
+[2094s] and we'd like to know what is uh d
+[2097s] l by d d
+[2100s] what is that
+[2101s] and if you know your calculus uh l is d
+[2103s] times f so what is d l by d d it would
+[2106s] be f
+[2108s] and if you don't believe me we can also
+[2110s] just derive it because the proof would
+[2111s] be fairly straightforward uh we go to
+[2114s] the
+[2115s] definition of the derivative which is f
+[2118s] of x plus h minus f of x divide h
+[2122s] as a limit limit of h goes to zero of
+[2124s] this kind of expression so when we have
+[2126s] l is d times f
+[2128s] then increasing d by h
+[2131s] would give us the output of b plus h
+[2133s] times f
+[2135s] that's basically f of x plus h right
+[2138s] minus d times f
+[2142s] and then divide h and symbolically
+[2144s] expanding out here we would have
+[2146s] basically d times f plus h times f minus
+[2150s] t times f divide h
+[2152s] and then you see how the df minus df
+[2154s] cancels so you're left with h times f
+[2157s] divide h
+[2158s] which is f
+[2159s] so in the limit as h goes to zero of
+[2163s] you know
+[2164s] derivative
+[2166s] definition we just get f in the case of
+[2169s] d times f
+[2172s] so
+[2173s] symmetrically
+[2174s] dl by d
+[2175s] f will just be d
+[2178s] so what we have is that f dot grad
+[2181s] we see now is just the value of d
+[2184s] which is 4.
+[2188s] and we see that
+[2190s] d dot grad
+[2191s] is just uh the value of f
+[2196s] and so the value of f is negative two
+[2201s] so we'll set those manually
+[2205s] let me erase this markdown node and then
+[2207s] let's redraw what we have
+[2210s] okay
+[2211s] and let's just make sure that these were
+[2213s] correct so we seem to think that dl by
+[2216s] dd is negative two so let's double check
+[2219s] um let me erase this plus h from before
+[2222s] and now we want the derivative with
+[2223s] respect to f
+[2225s] so let's just come here when i create f
+[2226s] and let's do a plus h here and this
+[2228s] should print the derivative of l with
+[2230s] respect to f so we expect to see four
+[2234s] yeah and this is four up to floating
+[2236s] point
+[2237s] funkiness
+[2238s] and then dl by dd
+[2241s] should be f which is negative two
+[2245s] grad is negative two
+[2246s] so if we again come here and we change d
+[2251s] d dot data plus equals h right here
+[2255s] so we expect so we've added a little h
+[2257s] and then we see how l changed and we
+[2260s] expect to print
+[2262s] uh negative two
+[2264s] there we go
+[2267s] so we've numerically verified what we're
+[2269s] doing here is what kind of like an
+[2270s] inline gradient check gradient check is
+[2273s] when we
+[2274s] are deriving this like back propagation
+[2276s] and getting the derivative with respect
+[2277s] to all the intermediate results and then
+[2280s] numerical gradient is just you know
+[2283s] estimating it using small step size
+[2286s] now we're getting to the crux of
+[2288s] backpropagation so this will be the most
+[2290s] important node to understand because if
+[2292s] you understand the gradient for this
+[2294s] node you understand all of back
+[2296s] propagation and all of training of
+[2297s] neural nets basically
+[2299s] so we need to derive dl by bc
+[2303s] in other words the derivative of l with
+[2304s] respect to c
+[2306s] because we've computed all these other
+[2307s] gradients already
+[2309s] now we're coming here and we're
+[2310s] continuing the back propagation manually
+[2313s] so we want dl by dc and then we'll also
+[2316s] derive dl by de
+[2318s] now here's the problem
+[2320s] how do we derive dl
+[2321s] by dc
+[2324s] we actually know the derivative l with
+[2326s] respect to d so we know how l assessed
+[2328s] it to d
+[2330s] but how is l sensitive to c so if we
+[2333s] wiggle c how does that impact l
+[2335s] through d
+[2338s] so we know dl by dc
+[2341s] and we also here know how c impacts d
+[2344s] and so just very intuitively if you know
+[2346s] the impact that c is having on d and the
+[2349s] impact that d is having on l
+[2351s] then you should be able to somehow put
+[2352s] that information together to figure out
+[2354s] how c impacts l
+[2356s] and indeed this is what we can actually
+[2358s] do so in particular we know just
+[2360s] concentrating on d first let's look at
+[2362s] how what is the derivative basically of
+[2364s] d with respect to c so in other words
+[2367s] what is dd by dc
+[2371s] so here we know that d is c times c plus
+[2374s] e
+[2375s] that's what we know and now we're
+[2377s] interested in dd by dc
+[2379s] if you just know your calculus again and
+[2381s] you remember that differentiating c plus
+[2383s] e with respect to c you know that that
+[2385s] gives you
+[2386s] 1.0
+[2387s] and we can also go back to the basics
+[2389s] and derive this because again we can go
+[2391s] to our f of x plus h minus f of x
+[2394s] divide by h
+[2396s] that's the definition of a derivative as
+[2398s] h goes to zero
+[2400s] and so here
+[2401s] focusing on c and its effect on d
+[2404s] we can basically do the f of x plus h
+[2406s] will be
+[2407s] c is incremented by h plus e
+[2410s] that's the first evaluation of our
+[2412s] function minus
+[2414s] c plus e
+[2416s] and then divide h
+[2418s] and so what is this
+[2419s] uh just expanding this out this will be
+[2421s] c plus h plus e minus c minus e
+[2425s] divide h and then you see here how c
+[2427s] minus c cancels e minus e cancels we're
+[2430s] left with h over h which is 1.0
+[2433s] and so
+[2435s] by symmetry also d d by d
+[2438s] e
+[2439s] will be 1.0 as well
+[2442s] so basically the derivative of a sum
+[2444s] expression is very simple and and this
+[2446s] is the local derivative so i call this
+[2449s] the local derivative because we have the
+[2451s] final output value all the way at the
+[2452s] end of this graph and we're now like a
+[2454s] small node here
+[2455s] and this is a little plus node
+[2458s] and it the little plus node doesn't know
+[2460s] anything about the rest of the graph
+[2462s] that it's embedded in all it knows is
+[2464s] that it did a plus it took a c and an e
+[2467s] added them and created d
+[2469s] and this plus note also knows the local
+[2471s] influence of c on d or rather rather the
+[2474s] derivative of d with respect to c and it
+[2476s] also
+[2477s] knows the derivative of d with respect
+[2478s] to e but that's not what we want that's
+[2481s] just a local derivative what we actually
+[2483s] want is d l by d c and l could l is here
+[2487s] just one step away but in a general case
+[2490s] this little plus note is could be
+[2492s] embedded in like a massive graph
+[2494s] so
+[2495s] again we know how l impacts d and now we
+[2498s] know how c and e impact d how do we put
+[2501s] that information together to write dl by
+[2503s] dc and the answer of course is the chain
+[2506s] rule in calculus
+[2507s] and so um
+[2510s] i pulled up a chain rule here from
+[2511s] kapedia
+[2512s] and
+[2513s] i'm going to go through this very
+[2514s] briefly so chain rule
+[2517s] wikipedia sometimes can be very
+[2518s] confusing and calculus can
+[2520s] can be very confusing like this is the
+[2522s] way i
+[2523s] learned
+[2525s] chain rule and it was very confusing
+[2526s] like what is happening it's just
+[2528s] complicated so i like this expression
+[2530s] much better
+[2532s] if a variable z depends on a variable y
+[2535s] which itself depends on the variable x
+[2538s] then z depends on x as well obviously
+[2540s] through the intermediate variable y
+[2542s] in this case the chain rule is expressed
+[2544s] as
+[2545s] if you want dz by dx
+[2548s] then you take the dz by dy and you
+[2550s] multiply it by d y by dx
+[2553s] so the chain rule fundamentally is
+[2554s] telling you
+[2556s] how
+[2557s] we chain these
+[2559s] uh derivatives together
+[2561s] correctly so to differentiate through a
+[2564s] function composition
+[2566s] we have to apply a multiplication
+[2568s] of
+[2569s] those derivatives
+[2571s] so that's really what chain rule is
+[2573s] telling us
+[2574s] and there's a nice little intuitive
+[2576s] explanation here which i also think is
+[2578s] kind of cute the chain rule says that
+[2579s] knowing the instantaneous rate of change
+[2581s] of z with respect to y and y relative to
+[2583s] x allows one to calculate the
+[2584s] instantaneous rate of change of z
+[2586s] relative to x
+[2587s] as a product of those two rates of
+[2589s] change
+[2590s] simply the product of those two
+[2592s] so here's a good one
+[2594s] if a car travels twice as fast as
+[2596s] bicycle and the bicycle is four times as
+[2598s] fast as walking man
+[2599s] then the car travels two times four
+[2602s] eight times as fast as demand
+[2605s] and so this makes it very clear that the
+[2607s] correct thing to do sort of
+[2609s] is to multiply
+[2610s] so
+[2611s] cars twice as fast as bicycle and
+[2613s] bicycle is four times as fast as man
+[2616s] so the car will be eight times as fast
+[2618s] as the man and so we can take these
+[2622s] intermediate rates of change if you will
+[2624s] and multiply them together
+[2626s] and that justifies the
+[2628s] chain rule intuitively so have a look at
+[2630s] chain rule about here really what it
+[2632s] means for us is there's a very simple
+[2634s] recipe for deriving what we want which
+[2636s] is dl by dc
+[2639s] and what we have so far
+[2641s] is we know
+[2643s] want
+[2645s] and we know
+[2647s] what is the
+[2648s] impact of d on l so we know d l by
+[2652s] d d the derivative of l with respect to
+[2654s] d d we know that that's negative two
+[2657s] and now because of this local
+[2659s] reasoning that we've done here we know
+[2661s] dd by d
+[2663s] c
+[2664s] so how does c impact d and in
+[2667s] particular this is a plus node so the
+[2669s] local derivative is simply 1.0 it's very
+[2672s] simple
+[2673s] and so
+[2674s] the chain rule tells us that dl by dc
+[2677s] going through this intermediate variable
+[2680s] will just be simply d l by
+[2684s] d
+[2684s] times
+[2689s] dd by dc
+[2691s] that's chain rule
+[2693s] so this is identical to what's happening
+[2695s] here
+[2696s] except
+[2698s] z is rl
+[2699s] y is our d and x is rc
+[2703s] so we literally just have to multiply
+[2705s] these
+[2706s] and because
+[2710s] these local derivatives like dd by dc
+[2712s] are just one
+[2714s] we basically just copy over dl by dd
+[2717s] because this is just times one
+[2719s] so what does it do so because dl by dd
+[2722s] is negative two what is dl by dc
+[2725s] well it's the local gradient 1.0 times
+[2729s] dl by dd which is negative two
+[2731s] so literally what a plus node does you
+[2733s] can look at it that way is it literally
+[2735s] just routes the gradient
+[2737s] because the plus nodes local derivatives
+[2739s] are just one and so in the chain rule
+[2741s] one times
+[2743s] dl by dd
+[2745s] is um
+[2747s] is uh is just dl by dd and so that
+[2750s] derivative just gets routed to both c
+[2753s] and to e in this case
+[2755s] so basically um we have that that grad
+[2759s] or let's start with c since that's the
+[2761s] one we looked at
+[2762s] is
+[2763s] negative two times one
+[2766s] negative two
+[2768s] and in the same way by symmetry e that
+[2771s] grad will be negative two that's the
+[2773s] claim so we can set those
+[2776s] we can redraw
+[2779s] and you see how we just assign negative
+[2780s] to negative two so this backpropagating
+[2783s] signal which is carrying the information
+[2785s] of like what is the derivative of l with
+[2786s] respect to all the intermediate nodes
+[2788s] we can imagine it almost like flowing
+[2790s] backwards through the graph and a plus
+[2792s] node will simply distribute the
+[2794s] derivative to all the leaf nodes sorry
+[2796s] to all the children nodes of it
+[2799s] so this is the claim and now let's
+[2800s] verify it so let me remove the plus h
+[2803s] here from before
+[2805s] and now instead what we're going to do
+[2806s] is we're going to increment c so c dot
+[2808s] data will be credited by h
+[2810s] and when i run this we expect to see
+[2812s] negative 2
+[2814s] negative 2. and then of course for e
+[2818s] so e dot data plus equals h and we
+[2821s] expect to see negative 2.
+[2823s] simple
+[2827s] so those are the derivatives of these
+[2829s] internal nodes
+[2831s] and now we're going to recurse our way
+[2833s] backwards again
+[2835s] and we're again going to apply the chain
+[2837s] rule so here we go our second
+[2839s] application of chain rule and we will
+[2840s] apply it all the way through the graph
+[2842s] we just happen to only have one more
+[2844s] node remaining
+[2845s] we have that d l
+[2847s] by d e
+[2848s] as we have just calculated is negative
+[2850s] two so we know that
+[2852s] so we know the derivative of l with
+[2853s] respect to e
+[2856s] and now we want dl
+[2859s] by
+[2860s] da
+[2861s] right
+[2862s] and the chain rule is telling us that
+[2864s] that's just dl by de
+[2868s] negative 2
+[2870s] times the local gradient so what is the
+[2872s] local gradient basically d e
+[2875s] by d a
+[2876s] we have to look at that
+[2880s] so i'm a little times node
+[2882s] inside a massive graph
+[2884s] and i only know that i did a times b and
+[2886s] i produced an e
+[2889s] so now what is d e by d a and d e by d b
+[2892s] that's the only thing that i sort of
+[2894s] know about that's my local gradient
+[2897s] so
+[2897s] because we have that e's a times b we're
+[2900s] asking what is d e by d a
+[2904s] and of course we just did that here we
+[2906s] had a
+[2907s] times so i'm not going to rederive it
+[2910s] but if you want to differentiate this
+[2912s] with respect to a you'll just get b
+[2914s] right the value of b
+[2916s] which in this case is negative 3.0
+[2921s] so
+[2921s] basically we have that dl by da
+[2925s] well let me just do it right here we
+[2927s] have that a dot grad and we are applying
+[2929s] chain rule here
+[2930s] is d l by d e which we see here is
+[2934s] negative two
+[2936s] times
+[2937s] what is d e by d a
+[2939s] it's the value of b which is negative 3.
+[2944s] that's it
+[2947s] and then we have b grad is again dl by
+[2950s] de
+[2951s] which is negative 2
+[2953s] just the same way
+[2954s] times
+[2955s] what is d e by d
+[2958s] um db
+[2959s] is the value of a which is 2.2.0
+[2963s] as the value of a
+[2965s] so these are our claimed derivatives
+[2968s] let's
+[2970s] redraw
+[2972s] and we see here that
+[2973s] a dot grad turns out to be 6 because
+[2976s] that is negative 2 times negative 3
+[2978s] and b dot grad is negative 4
+[2981s] times sorry is negative 2 times 2 which
+[2983s] is negative 4.
+[2985s] so those are our claims let's delete
+[2987s] this and let's verify them
+[2990s] we have
+[2992s] a here a dot data plus equals h
+[2997s] so the claim is that
+[2999s] a dot grad is six
+[3001s] let's verify
+[3003s] six
+[3004s] and we have beta data
+[3007s] plus equals h
+[3008s] so nudging b by h
+[3011s] and looking at what happens
+[3013s] we claim it's negative four
+[3015s] and indeed it's negative four plus minus
+[3017s] again float oddness
+[3020s] um
+[3021s] and uh
+[3023s] that's it this
+[3024s] that was the manual
+[3026s] back propagation
+[3028s] uh all the way from here to all the leaf
+[3030s] nodes and we've done it piece by piece
+[3033s] and really all we've done is as you saw
+[3035s] we iterated through all the nodes one by
+[3037s] one and locally applied the chain rule
+[3039s] we always know what is the derivative of
+[3041s] l with respect to this little output and
+[3044s] then we look at how this output was
+[3045s] produced this output was produced
+[3047s] through some operation and we have the
+[3049s] pointers to the children nodes of this
+[3051s] operation
+[3052s] and so in this little operation we know
+[3054s] what the local derivatives are and we
+[3056s] just multiply them onto the derivative
+[3058s] always
+[3059s] so we just go through and recursively
+[3061s] multiply on the local derivatives and
+[3064s] that's what back propagation is is just
+[3065s] a recursive application of chain rule
+[3068s] backwards through the computation graph
+[3070s] let's see this power in action just very
+[3072s] briefly what we're going to do is we're
+[3074s] going to
+[3075s] nudge our inputs to try to make l go up
+[3079s] so in particular what we're doing is we
+[3081s] want a.data we're going to change it
+[3084s] and if we want l to go up that means we
+[3086s] just have to go in the direction of the
+[3087s] gradient so
+[3089s] a
+[3090s] should increase in the direction of
+[3092s] gradient by like some small step amount
+[3094s] this is the step size
+[3096s] and we don't just want this for ba but
+[3098s] also for b
+[3101s] also for c
+[3104s] also for f
+[3106s] those are
+[3107s] leaf nodes which we usually have control
+[3109s] over
+[3110s] and if we nudge in direction of the
+[3112s] gradient we expect a positive influence
+[3114s] on l
+[3115s] so we expect l to go up
+[3118s] positively
+[3119s] so it should become less negative it
+[3121s] should go up to say negative you know
+[3123s] six or something like that
+[3125s] uh it's hard to tell exactly and we'd
+[3128s] have to rewrite the forward pass so let
+[3129s] me just um
+[3132s] do that here
+[3133s] um
+[3136s] this would be the forward pass f would
+[3138s] be unchanged this is effectively the
+[3140s] forward pass and now if we print l.data
+[3144s] we expect because we nudged all the
+[3147s] values all the inputs in the rational
+[3148s] gradient we expected a less negative l
+[3150s] we expect it to go up
+[3152s] so maybe it's negative six or so let's
+[3154s] see what happens
+[3156s] okay negative seven
+[3158s] and uh this is basically one step of an
+[3161s] optimization that we'll end up running
+[3163s] and really does gradient just give us
+[3166s] some power because we know how to
+[3167s] influence the final outcome and this
+[3169s] will be extremely useful for training
+[3170s] knowledge as well as you'll see
+[3172s] so now i would like to do one more uh
+[3175s] example of manual backpropagation using
+[3178s] a bit more complex and uh useful example
+[3182s] we are going to back propagate through a
+[3184s] neuron
+[3185s] so
+[3187s] we want to eventually build up neural
+[3188s] networks and in the simplest case these
+[3190s] are multilateral perceptrons as they're
+[3192s] called so this is a two layer neural net
+[3195s] and it's got these hidden layers made up
+[3197s] of neurons and these neurons are fully
+[3198s] connected to each other
+[3200s] now biologically neurons are very
+[3201s] complicated devices but we have very
+[3203s] simple mathematical models of them
+[3206s] and so this is a very simple
+[3207s] mathematical model of a neuron you have
+[3209s] some inputs axis
+[3211s] and then you have these synapses that
+[3213s] have weights on them so
+[3216s] the w's are weights
+[3219s] and then
+[3220s] the synapse interacts with the input to
+[3222s] this neuron multiplicatively so what
+[3224s] flows to the cell body
+[3227s] of this neuron is w times x
+[3229s] but there's multiple inputs so there's
+[3231s] many w times x's flowing into the cell
+[3233s] body
+[3234s] the cell body then has also like some
+[3236s] bias
+[3237s] so this is kind of like the
+[3239s] inert innate sort of trigger happiness
+[3242s] of this neuron so this bias can make it
+[3244s] a bit more trigger happy or a bit less
+[3246s] trigger happy regardless of the input
+[3248s] but basically we're taking all the w
+[3250s] times x
+[3251s] of all the inputs adding the bias and
+[3253s] then we take it through an activation
+[3255s] function
+[3256s] and this activation function is usually
+[3258s] some kind of a squashing function
+[3260s] like a sigmoid or 10h or something like
+[3262s] that so as an example
+[3264s] we're going to use the 10h in this
+[3266s] example
+[3268s] numpy has a
+[3269s] np.10h
+[3271s] so
+[3272s] we can call it on a range
+[3274s] and we can plot it
+[3276s] this is the 10h function and you see
+[3278s] that the inputs as they come in
+[3281s] get squashed on the y coordinate here so
+[3284s] um
+[3285s] right at zero we're going to get exactly
+[3287s] zero and then as you go more positive in
+[3289s] the input
+[3290s] then you'll see that the function will
+[3292s] only go up to one and then plateau out
+[3295s] and so if you pass in very positive
+[3297s] inputs we're gonna cap it smoothly at
+[3300s] one and on the negative side we're gonna
+[3302s] cap it smoothly to negative one
+[3304s] so that's 10h
+[3306s] and that's the squashing function or an
+[3308s] activation function and what comes out
+[3310s] of this neuron is just the activation
+[3312s] function applied to the dot product of
+[3314s] the weights and the
+[3316s] inputs
+[3318s] so let's
+[3319s] write one out
+[3321s] um
+[3322s] i'm going to copy paste because
+[3327s] i don't want to type too much
+[3328s] but okay so here we have the inputs
+[3331s] x1 x2 so this is a two-dimensional
+[3333s] neuron so two inputs are going to come
+[3334s] in
+[3335s] these are thought out as the weights of
+[3337s] this neuron
+[3338s] weights w1 w2 and these weights again
+[3341s] are the synaptic strengths for each
+[3343s] input
+[3345s] and this is the bias of the neuron
+[3347s] b
+[3349s] and now we want to do is according to
+[3351s] this model we need to multiply x1 times
+[3354s] w1
+[3355s] and x2 times w2
+[3357s] and then we need to add bias on top of
+[3360s] it
+[3361s] and it gets a little messy here but all
+[3363s] we are trying to do is x1 w1 plus x2 w2
+[3366s] plus b
+[3367s] and these are multiply here
+[3369s] except i'm doing it in small steps so
+[3372s] that we actually have pointers to all
+[3373s] these intermediate nodes so we have x1
+[3375s] w1 variable x times x2 w2 variable and
+[3379s] i'm also labeling them
+[3381s] so n is now
+[3383s] the cell body raw
+[3385s] raw
+[3386s] activation without
+[3388s] the activation function for now
+[3390s] and this should be enough to basically
+[3392s] plot it so draw dot of n
+[3397s] gives us x1 times w1 x2 times w2
+[3401s] being added
+[3403s] then the bias gets added on top of this
+[3405s] and this n
+[3407s] is this sum
+[3409s] so we're now going to take it through an
+[3410s] activation function
+[3412s] and let's say we use the 10h
+[3414s] so that we produce the output
+[3416s] so what we'd like to do here is we'd
+[3418s] like to do the output and i'll call it o
+[3421s] is um
+[3423s] n dot 10h
+[3425s] okay but we haven't yet written the 10h
+[3428s] now the reason that we need to implement
+[3429s] another 10h function here is that
+[3432s] tanh is a
+[3434s] hyperbolic function and we've only so
+[3436s] far implemented a plus and the times and
+[3438s] you can't make a 10h out of just pluses
+[3440s] and times
+[3442s] you also need exponentiation so 10h is
+[3445s] this kind of a formula here
+[3447s] you can use either one of these and you
+[3448s] see that there's exponentiation involved
+[3450s] which we have not implemented yet for
+[3452s] our low value node here so we're not
+[3454s] going to be able to produce 10h yet and
+[3456s] we have to go back up and implement
+[3457s] something like it
+[3459s] now one option here
+[3462s] is we could actually implement um
+[3464s] exponentiation
+[3466s] right and we could return the x of a
+[3469s] value instead of a 10h of a value
+[3472s] because if we had x then we have
+[3474s] everything else that we need so um
+[3476s] because we know how to add and we know
+[3478s] how to
+[3480s] um
+[3481s] we know how to add and we know how to
+[3482s] multiply so we'd be able to create 10h
+[3484s] if we knew how to x
+[3486s] but for the purposes of this example i
+[3488s] specifically wanted to
+[3490s] show you
+[3491s] that we don't necessarily need to have
+[3493s] the most atomic pieces
+[3495s] in
+[3496s] um
+[3496s] in this value object we can actually
+[3499s] like create functions at arbitrary
+[3503s] points of abstraction they can be
+[3504s] complicated functions but they can be
+[3506s] also very very simple functions like a
+[3507s] plus and it's totally up to us the only
+[3510s] thing that matters is that we know how
+[3511s] to differentiate through any one
+[3513s] function so we take some inputs and we
+[3515s] make an output the only thing that
+[3517s] matters it can be arbitrarily complex
+[3518s] function as long as you know how to
+[3521s] create the local derivative if you know
+[3523s] the local derivative of how the inputs
+[3524s] impact the output then that's all you
+[3526s] need so we're going to cluster up
+[3529s] all of this expression and we're not
+[3531s] going to break it down to its atomic
+[3532s] pieces we're just going to directly
+[3534s] implement tanh
+[3535s] so let's do that
+[3537s] depth nh
+[3539s] and then out will be a value
+[3542s] of
+[3543s] and we need this expression here so
+[3545s] um
+[3548s] let me actually
+[3550s] copy paste
+[3554s] let's grab n which is a cell.theta
+[3557s] and then this
+[3558s] i believe is the tan h
+[3561s] math.x of
+[3564s] two
+[3565s] no n
+[3567s] n minus one over
+[3568s] two n plus one
+[3570s] maybe i can call this x
+[3573s] just so that it matches exactly
+[3575s] okay and now
+[3577s] this will be t
+[3580s] and uh children of this node there's
+[3582s] just one child
+[3584s] and i'm wrapping it in a tuple so this
+[3586s] is a tuple of one object just self
+[3588s] and here the name of this operation will
+[3590s] be 10h
+[3592s] and we're going to return that
+[3596s] okay
+[3598s] so now valley should be implementing 10h
+[3602s] and now we can scroll all the way down
+[3603s] here
+[3604s] and we can actually do n.10 h and that's
+[3606s] going to return the tanhd
+[3609s] output of n
+[3611s] and now we should be able to draw it out
+[3612s] of o not of n
+[3614s] so let's see how that worked
+[3618s] there we go
+[3619s] n went through 10 h
+[3621s] to produce this output
+[3624s] so now tan h is a
+[3626s] sort of
+[3627s] our little micro grad supported node
+[3630s] here as an operation
+[3633s] and as long as we know the derivative of
+[3635s] 10h
+[3636s] then we'll be able to back propagate
+[3637s] through it now let's see this 10h in
+[3639s] action currently it's not squashing too
+[3641s] much because the input to it is pretty
+[3643s] low so if the bias was increased to say
+[3646s] eight
+[3649s] then we'll see that what's flowing into
+[3651s] the 10h now is
+[3653s] two
+[3654s] and 10h is squashing it to 0.96 so we're
+[3657s] already hitting the tail of this 10h and
+[3659s] it will sort of smoothly go up to 1 and
+[3661s] then plateau out over there
+[3663s] okay so now i'm going to do something
+[3664s] slightly strange i'm going to change
+[3666s] this bias from 8 to this number
+[3669s] 6.88 etc
+[3671s] and i'm going to do this for specific
+[3673s] reasons because we're about to start
+[3675s] back propagation
+[3676s] and i want to make sure that our numbers
+[3679s] come out nice they're not like very
+[3681s] crazy numbers they're nice numbers that
+[3682s] we can sort of understand in our head
+[3684s] let me also add a pose label
+[3686s] o is short for output here
+[3690s] so that's zero
+[3691s] okay so
+[3692s] 0.88 flows into 10 h comes out 0.7 so on
+[3696s] so now we're going to do back
+[3697s] propagation and we're going to fill in
+[3698s] all the gradients
+[3700s] so what is the derivative o with respect
+[3703s] to
+[3704s] all the
+[3705s] inputs here and of course in the typical
+[3707s] neural network setting what we really
+[3708s] care about the most is the derivative of
+[3711s] these neurons on the weights
+[3713s] specifically the w2 and w1 because those
+[3716s] are the weights that we're going to be
+[3717s] changing part of the optimization
+[3719s] and the other thing that we have to
+[3720s] remember is here we have only a single
+[3722s] neuron but in the neural natives
+[3723s] typically have many neurons and they're
+[3724s] connected
+[3727s] so this is only like a one small neuron
+[3729s] a piece of a much bigger puzzle and
+[3730s] eventually there's a loss function that
+[3732s] sort of measures the accuracy of the
+[3733s] neural net and we're back propagating
+[3735s] with respect to that accuracy and trying
+[3736s] to increase it
+[3739s] so let's start off by propagation here
+[3741s] in the end
+[3742s] what is the derivative of o with respect
+[3744s] to o the base case sort of we know
+[3746s] always is that the gradient is just 1.0
+[3750s] so let me fill it in
+[3752s] and then let me
+[3755s] split out
+[3757s] the drawing function
+[3760s] here
+[3763s] and then here cell
+[3767s] clear this output here okay
+[3770s] so now when we draw o we'll see that oh
+[3772s] that grad is one
+[3773s] so now we're going to back propagate
+[3775s] through the tan h
+[3776s] so to back propagate through 10h we need
+[3778s] to know the local derivative of 10h
+[3781s] so if we have that
+[3783s] o is 10 h of
+[3787s] n
+[3788s] then what is d o by d n
+[3792s] now what you could do is you could come
+[3793s] here and you could take this expression
+[3795s] and you could
+[3796s] do your calculus derivative taking
+[3799s] um and that would work but we can also
+[3801s] just scroll down wikipedia here
+[3803s] into a section that hopefully tells us
+[3806s] that derivative uh
+[3808s] d by dx of 10 h of x is
+[3811s] any of these i like this one 1 minus 10
+[3813s] h square of x
+[3815s] so this is 1 minus 10 h
+[3817s] of x squared
+[3819s] so basically what this is saying is that
+[3821s] d o by d n
+[3823s] is
+[3824s] 1 minus 10 h
+[3827s] of n
+[3828s] squared
+[3831s] and we already have 10 h of n that's
+[3832s] just o
+[3834s] so it's one minus o squared
+[3836s] so o is the output here so the output is
+[3839s] this number
+[3842s] data
+[3844s] is this number
+[3846s] and then
+[3848s] what this is saying is that do by dn is
+[3850s] 1 minus
+[3851s] this squared so
+[3853s] one minus of that data squared
+[3856s] is 0.5 conveniently
+[3858s] so the local derivative of this 10 h
+[3861s] operation here is 0.5
+[3864s] and
+[3865s] so that would be d o by d n
+[3867s] so
+[3868s] we can fill in that in that grad
+[3873s] is 0.5 we'll just fill in
+[3882s] so this is exactly 0.5 one half
+[3885s] so now we're going to continue the back
+[3887s] propagation
+[3889s] this is 0.5 and this is a plus node
+[3892s] so how is backprop going to what is that
+[3895s] going to do here
+[3896s] and if you remember our previous example
+[3898s] a plus is just a distributor of gradient
+[3901s] so this gradient will simply flow to
+[3903s] both of these equally and that's because
+[3905s] the local derivative of this operation
+[3907s] is one for every one of its nodes so 1
+[3910s] times 0.5 is 0.5
+[3912s] so therefore we know that
+[3914s] this node here which we called this
+[3918s] its grad is just 0.5
+[3921s] and we know that b dot grad is also 0.5
+[3924s] so let's set those and let's draw
+[3928s] so 0.5
+[3930s] continuing we have another plus
+[3932s] 0.5 again we'll just distribute it so
+[3934s] 0.5 will flow to both of these
+[3937s] so we can set
+[3939s] theirs
+[3943s] x2w2 as well that grad is 0.5
+[3947s] and let's redraw pluses are my favorite
+[3950s] uh operations to back propagate through
+[3951s] because
+[3953s] it's very simple
+[3955s] so now it's flowing into these
+[3956s] expressions is 0.5 and so really again
+[3958s] keep in mind what the derivative is
+[3959s] telling us at every point in time along
+[3961s] here this is saying that
+[3964s] if we want the output of this neuron to
+[3966s] increase
+[3968s] then
+[3968s] the influence on these expressions is
+[3970s] positive on the output both of them are
+[3973s] positive
+[3976s] contribution to the output
+[3980s] so now back propagating to x2 and w2
+[3983s] first
+[3984s] this is a times node so we know that the
+[3986s] local derivative is you know the other
+[3988s] term
+[3988s] so if we want to calculate x2.grad
+[3992s] then
+[3993s] can you think through what it's going to
+[3994s] be
+[4000s] so x2.grad will be
+[4002s] w2.data
+[4004s] times this x2w2
+[4008s] by grad right
+[4011s] and
+[4012s] w2.grad will be
+[4015s] x2 that data times x2w2.grad
+[4021s] right so that's the local piece of chain
+[4023s] rule
+[4027s] let's set them and let's redraw
+[4029s] so here we see that the gradient on our
+[4031s] weight 2 is 0 because x2 data was 0
+[4035s] right but x2 will have the gradient 0.5
+[4038s] because data here was 1.
+[4040s] and so what's interesting here right is
+[4042s] because the input x2 was 0 then because
+[4045s] of the way the times works
+[4048s] of course this gradient will be zero and
+[4050s] think about intuitively why that is
+[4053s] derivative always tells us the influence
+[4055s] of
+[4056s] this on the final output if i wiggle w2
+[4059s] how is the output changing
+[4061s] it's not changing because we're
+[4062s] multiplying by zero
+[4064s] so because it's not changing there's no
+[4066s] derivative and zero is the correct
+[4067s] answer
+[4068s] because we're
+[4069s] squashing it at zero
+[4072s] and let's do it here point five should
+[4074s] come here and flow through this times
+[4077s] and so we'll have that x1.grad is
+[4081s] can you think through a little bit what
+[4083s] what
+[4084s] this should be
+[4087s] the local derivative of times
+[4089s] with respect to x1 is going to be w1
+[4092s] so w1 is data times
+[4095s] x1 w1 dot grad
+[4098s] and w1.grad will be x1.data times
+[4103s] x1 w2 w1 with graph
+[4107s] let's see what those came out to be
+[4109s] so this is 0.5 so this would be negative
+[4111s] 1.5 and this would be 1.
+[4114s] and we've back propagated through this
+[4116s] expression these are the actual final
+[4118s] derivatives so if we want this neuron's
+[4120s] output to increase
+[4123s] we know that what's necessary is that
+[4127s] w2 we have no gradient w2 doesn't
+[4129s] actually matter to this neuron right now
+[4131s] but this neuron this weight should uh go
+[4134s] up
+[4135s] so if this weight goes up then this
+[4137s] neuron's output would have gone up and
+[4139s] proportionally because the gradient is
+[4141s] one okay so doing the back propagation
+[4143s] manually is obviously ridiculous so we
+[4145s] are now going to put an end to this
+[4146s] suffering and we're going to see how we
+[4148s] can implement uh the backward pass a bit
+[4151s] more automatically we're not going to be
+[4152s] doing all of it manually out here
+[4154s] it's now pretty obvious to us by example
+[4157s] how these pluses and times are back
+[4158s] property ingredients so let's go up to
+[4160s] the value
+[4162s] object and we're going to start
+[4164s] codifying what we've seen
+[4167s] in the examples below
+[4169s] so we're going to do this by storing a
+[4171s] special cell dot backward
+[4174s] and underscore backward and this will be
+[4177s] a function which is going to do that
+[4179s] little piece of chain rule at each
+[4181s] little node that compute that took
+[4183s] inputs and produced output uh we're
+[4185s] going to store
+[4186s] how we are going to chain the the
+[4189s] outputs gradient into the inputs
+[4191s] gradients
+[4192s] so by default
+[4194s] this will be a function
+[4195s] that uh doesn't do anything
+[4198s] so um
+[4199s] and you can also see that here in the
+[4201s] value in micrograb
+[4203s] so
+[4204s] with this backward function by default
+[4206s] doesn't do anything
+[4208s] this is an empty function
+[4210s] and that would be sort of the case for
+[4211s] example for a leaf node for leaf node
+[4213s] there's nothing to do
+[4215s] but now if when we're creating these out
+[4218s] values these out values are an addition
+[4221s] of self and other
+[4224s] and so we will want to sell set
+[4227s] outs backward to be
+[4229s] the function that propagates the
+[4231s] gradient
+[4234s] so
+[4235s] let's define what should happen
+[4240s] and we're going to store it in a closure
+[4242s] let's define what should happen when we
+[4244s] call
+[4245s] outs grad
+[4247s] for in addition
+[4250s] our job is to take
+[4252s] outs grad and propagate it into self's
+[4255s] grad and other grad so basically we want
+[4257s] to sell self.grad to something
+[4260s] and we want to set others.grad to
+[4262s] something
+[4264s] okay
+[4265s] and the way we saw below how chain rule
+[4268s] works we want to take the local
+[4270s] derivative times
+[4271s] the
+[4272s] sort of global derivative i should call
+[4274s] it which is the derivative of the final
+[4276s] output of the expression with respect to
+[4278s] out's data
+[4281s] with respect to out
+[4282s] so
+[4284s] the local derivative of self in an
+[4287s] addition is 1.0
+[4289s] so it's just 1.0 times
+[4291s] outs grad
+[4294s] that's the chain rule
+[4295s] and others.grad will be 1.0 times
+[4298s] outgrad
+[4299s] and what you basically what you're
+[4300s] seeing here is that outscrad
+[4302s] will simply be copied onto selfs grad
+[4305s] and others grad as we saw happens for an
+[4308s] addition operation
+[4309s] so we're going to later call this
+[4311s] function to propagate the gradient
+[4313s] having done an addition
+[4315s] let's now do multiplication we're going
+[4317s] to also define that backward
+[4322s] and we're going to set its backward to
+[4324s] be backward
+[4327s] and we want to chain outgrad into
+[4331s] self.grad
+[4334s] and others.grad
+[4337s] and this will be a little piece of chain
+[4338s] rule for multiplication
+[4340s] so we'll have
+[4341s] so what should this be
+[4343s] can you think through
+[4348s] so what is the local derivative
+[4350s] here the local derivative was
+[4352s] others.data
+[4355s] and then
+[4356s] oops others.data and the times of that
+[4359s] grad that's channel
+[4362s] and here we have self.data times of that
+[4364s] grad
+[4365s] that's what we've been doing
+[4369s] and finally here for 10 h
+[4371s] left backward
+[4374s] and then we want to set out backwards to
+[4377s] be just backward
+[4380s] and here we need to
+[4382s] back propagate we have out that grad and
+[4384s] we want to chain it into self.grad
+[4389s] and salt.grad will be
+[4391s] the local derivative of this operation
+[4393s] that we've done here which is 10h
+[4396s] and so we saw that the local the
+[4397s] gradient is 1 minus the tan h of x
+[4400s] squared which here is t
+[4403s] that's the local derivative because
+[4405s] that's t is the output of this 10 h so 1
+[4407s] minus t squared is the local derivative
+[4410s] and then gradient um
+[4412s] has to be multiplied because of the
+[4413s] chain rule
+[4414s] so outgrad is chained through the local
+[4416s] gradient into salt.grad
+[4419s] and that should be basically it so we're
+[4421s] going to redefine our value node
+[4424s] we're going to swing all the way down
+[4426s] here
+[4428s] and we're going to
+[4429s] redefine
+[4431s] our expression
+[4432s] make sure that all the grads are zero
+[4435s] okay
+[4436s] but now we don't have to do this
+[4437s] manually anymore
+[4439s] we are going to basically be calling the
+[4441s] dot backward in the right order
+[4444s] so
+[4445s] first we want to call os
+[4447s] dot backwards
+[4454s] so o was the outcome of 10h
+[4457s] right so calling all that those who's
+[4460s] backward
+[4462s] will be
+[4463s] this function this is what it will do
+[4466s] now we have to be careful because
+[4469s] there's a times out.grad
+[4471s] and out.grad remember is initialized to
+[4474s] zero
+[4478s] so here we see grad zero so as a base
+[4481s] case we need to set both.grad to 1.0
+[4486s] to initialize this with 1
+[4493s] and then once this is 1 we can call oda
+[4496s] backward
+[4497s] and what that should do is it should
+[4498s] propagate this grad through 10h
+[4502s] so the local derivative times
+[4504s] the global derivative which is
+[4505s] initialized at one so
+[4508s] this should
+[4511s] um
+[4515s] a dope
+[4517s] so i thought about redoing it but i
+[4519s] figured i should just leave the error in
+[4520s] here because it's pretty funny why is
+[4522s] anti-object not callable
+[4524s] uh it's because
+[4527s] i screwed up we're trying to save these
+[4529s] functions so this is correct
+[4531s] this here
+[4533s] we don't want to call the function
+[4534s] because that returns none these
+[4536s] functions return none we just want to
+[4538s] store the function
+[4539s] so let me redefine the value object
+[4542s] and then we're going to come back in
+[4543s] redefine the expression draw a dot
+[4546s] everything is great o dot grad is one
+[4550s] o dot grad is one and now
+[4553s] now this should work of course
+[4555s] okay so all that backward should
+[4558s] this grant should now be 0.5 if we
+[4560s] redraw and if everything went correctly
+[4563s] 0.5 yay
+[4565s] okay so now we need to call ns.grad
+[4570s] and it's not awkward sorry
+[4573s] ends backward
+[4574s] so that seems to have worked
+[4577s] so instead backward routed the gradient
+[4581s] to both of these so this is looking
+[4582s] great
+[4584s] now we could of course called uh called
+[4586s] b grad
+[4587s] beat up backwards sorry
+[4590s] what's gonna happen
+[4592s] well b doesn't have it backward b is
+[4594s] backward
+[4595s] because b is a leaf node
+[4597s] b's backward is by initialization the
+[4600s] empty function
+[4601s] so nothing would happen but we can call
+[4604s] call it on it
+[4605s] but when we call
+[4608s] this one
+[4610s] it's backward
+[4613s] then we expect this 0.5 to get further
+[4616s] routed
+[4617s] right so there we go 0.5.5
+[4620s] and then finally
+[4622s] we want to call
+[4625s] it here on x2 w2
+[4630s] and on x1 w1
+[4636s] do both of those
+[4637s] and there we go
+[4639s] so we get 0 0.5 negative 1.5 and 1
+[4643s] exactly as we did before but now
+[4646s] we've done it through
+[4648s] calling that backward um
+[4650s] sort of manually
+[4652s] so we have the lamp one last piece to
+[4654s] get rid of which is us calling
+[4656s] underscore backward manually so let's
+[4658s] think through what we are actually doing
+[4660s] um
+[4661s] we've laid out a mathematical expression
+[4663s] and now we're trying to go backwards
+[4664s] through that expression
+[4666s] um so going backwards through the
+[4668s] expression just means that we never want
+[4670s] to call a dot backward for any node
+[4674s] before
+[4675s] we've done a sort of um everything after
+[4678s] it
+[4679s] so we have to do everything after it
+[4681s] before we're ever going to call that
+[4682s] backward on any one node we have to get
+[4684s] all of its full dependencies everything
+[4686s] that it depends on has to
+[4688s] propagate to it before we can continue
+[4690s] back propagation so this ordering of
+[4694s] graphs can be achieved using something
+[4696s] called topological sort
+[4697s] so topological sort
+[4700s] is basically a laying out of a graph
+[4703s] such that all the edges go only from
+[4704s] left to right basically
+[4706s] so here we have a graph it's a directory
+[4709s] a cyclic graph a dag
+[4711s] and this is two different topological
+[4714s] orders of it i believe where basically
+[4716s] you'll see that it's laying out of the
+[4717s] notes such that all the edges go only
+[4719s] one way from left to right
+[4721s] and implementing topological sort you
+[4724s] can look in wikipedia and so on i'm not
+[4726s] going to go through it in detail
+[4728s] but basically this is what builds a
+[4731s] topological graph
+[4734s] we maintain a set of visited nodes and
+[4736s] then we are
+[4739s] going through starting at some root node
+[4742s] which for us is o that's where we want
+[4743s] to start the topological sort
+[4745s] and starting at o we go through all of
+[4748s] its children and we need to lay them out
+[4750s] from left to right
+[4752s] and basically this starts at o
+[4754s] if it's not visited then it marks it as
+[4757s] visited and then it iterates through all
+[4759s] of its children
+[4760s] and calls build topological on them
+[4764s] and then uh after it's gone through all
+[4766s] the children it adds itself
+[4768s] so basically
+[4769s] this node that we're going to call it on
+[4771s] like say o is only going to add itself
+[4774s] to the topo list after all of the
+[4777s] children have been processed and that's
+[4779s] how this function is guaranteeing
+[4781s] that you're only going to be in the list
+[4783s] once all your children are in the list
+[4785s] and that's the invariant that is being
+[4786s] maintained so if we built upon o and
+[4789s] then inspect this list
+[4792s] we're going to see that it ordered our
+[4794s] value objects
+[4796s] and the last one
+[4798s] is the value of 0.707 which is the
+[4800s] output
+[4801s] so this is o and then this is n
+[4804s] and then all the other nodes get laid
+[4807s] out before it
+[4809s] so that builds the topological graph and
+[4812s] really what we're doing now is we're
+[4813s] just calling dot underscore backward on
+[4816s] all of the nodes in a topological order
+[4819s] so if we just reset the gradients
+[4822s] they're all zero
+[4823s] what did we do
+[4824s] we started by
+[4827s] setting o dot grad
+[4829s] to b1
+[4831s] that's the base case
+[4833s] then we built the topological order
+[4838s] and then we went for node
+[4841s] in
+[4842s] reversed
+[4844s] of topo
+[4846s] now
+[4847s] in in the reverse order because this
+[4849s] list goes from
+[4850s] you know we need to go through it in
+[4852s] reversed order
+[4853s] so starting at o
+[4856s] note that backward
+[4858s] and this should be
+[4861s] it
+[4863s] there we go
+[4865s] those are the correct derivatives
+[4867s] finally we are going to hide this
+[4868s] functionality
+[4870s] so i'm going to
+[4871s] copy this and we're going to hide it
+[4873s] inside the valley class because we don't
+[4875s] want to have all that code lying around
+[4878s] so instead of an underscore backward
+[4879s] we're now going to define an actual
+[4881s] backward so that's backward without the
+[4883s] underscore
+[4886s] and that's going to do all the stuff
+[4887s] that we just arrived
+[4889s] so let me just clean this up a little
+[4890s] bit so
+[4892s] we're first going to
+[4897s] build a topological graph
+[4898s] starting at self
+[4901s] so build topo of self
+[4904s] will populate the topological order into
+[4906s] the topo list which is a local variable
+[4909s] then we set self.grad to be one
+[4912s] and then for each node in the reversed
+[4915s] list so starting at us and going to all
+[4917s] the children
+[4920s] underscore backward
+[4922s] and
+[4923s] that should be it so
+[4926s] save
+[4928s] come down here
+[4929s] redefine
+[4929s] [Music]
+[4931s] okay all the grands are zero
+[4933s] and now what we can do is oh that
+[4935s] backward without the underscore
+[4937s] and
+[4941s] there we go
+[4942s] and that's uh that's back propagation
+[4946s] place for one neuron
+[4948s] now we shouldn't be too happy with
+[4949s] ourselves actually because we have a bad
+[4952s] bug um and we have not surfaced the bug
+[4955s] because of some specific conditions that
+[4956s] we are we have to think about right now
+[4959s] so here's the simplest case that shows
+[4962s] the bug
+[4963s] say i create a single node a
+[4968s] and then i create a b that is a plus a
+[4971s] and then i called backward
+[4974s] so what's going to happen is a is 3
+[4977s] and then a b is a plus a so there's two
+[4980s] arrows on top of each other here
+[4983s] then we can see that b is of course the
+[4985s] forward pass works
+[4986s] b is just
+[4988s] a plus a which is six
+[4990s] but the gradient here is not actually
+[4991s] correct
+[4992s] that we calculate it automatically
+[4995s] and that's because
+[4997s] um
+[4999s] of course uh
+[5000s] just doing calculus in your head the
+[5002s] derivative of b with respect to a
+[5004s] should be uh two
+[5007s] one plus one
+[5008s] it's not one
+[5010s] intuitively what's happening here right
+[5012s] so b is the result of a plus a and then
+[5014s] we call backward on it
+[5016s] so let's go up and see what that does
+[5022s] um
+[5023s] b is a result of addition
+[5025s] so out as
+[5026s] b and then when we called backward what
+[5029s] happened is
+[5030s] self.grad was set
+[5033s] to one
+[5034s] and then other that grad was set to one
+[5037s] but because we're doing a plus a
+[5039s] self and other are actually the exact
+[5042s] same object
+[5043s] so we are overriding the gradient we are
+[5046s] setting it to one and then we are
+[5047s] setting it again to one and that's why
+[5050s] it stays
+[5051s] at one
+[5053s] so that's a problem
+[5054s] there's another way to see this in a
+[5056s] little bit more complicated expression
+[5061s] so here we have
+[5063s] a and b
+[5065s] and then uh d will be the multiplication
+[5068s] of the two and e will be the addition of
+[5070s] the two
+[5072s] and
+[5073s] then we multiply e times d to get f and
+[5075s] then we called fda backward
+[5077s] and these gradients if you check will be
+[5079s] incorrect
+[5080s] so fundamentally what's happening here
+[5082s] again is
+[5085s] basically we're going to see an issue
+[5086s] anytime we use a variable more than once
+[5089s] until now in these expressions above
+[5091s] every variable is used exactly once so
+[5093s] we didn't see the issue
+[5094s] but here if a variable is used more than
+[5096s] once what's going to happen during
+[5097s] backward pass we're backpropagating from
+[5100s] f to e to d so far so good but now
+[5103s] equals it backward and it deposits its
+[5105s] gradients to a and b but then we come
+[5108s] back to d
+[5109s] and call backward and it overwrites
+[5111s] those gradients at a and b
+[5114s] so that's obviously a problem
+[5117s] and the solution here if you look at
+[5119s] the multivariate case of the chain rule
+[5122s] and its generalization there
+[5123s] the solution there is basically that we
+[5126s] have to accumulate these gradients these
+[5128s] gradients add
+[5130s] and so instead of setting those
+[5132s] gradients
+[5134s] we can simply do plus equals we need to
+[5137s] accumulate those gradients
+[5139s] plus equals plus equals
+[5141s] plus equals
+[5144s] plus equals
+[5146s] and this will be okay remember because
+[5148s] we are initializing them at zero so they
+[5150s] start at zero
+[5151s] and then any
+[5153s] contribution
+[5154s] that flows backwards
+[5157s] will simply add
+[5158s] so now if we redefine
+[5161s] this one
+[5163s] because the plus equals this now works
+[5166s] because a.grad started at zero and we
+[5168s] called beta backward we deposit one and
+[5171s] then we deposit one again and now this
+[5173s] is two which is correct
+[5174s] and here this will also work and we'll
+[5176s] get correct gradients
+[5178s] because when we call eta backward we
+[5180s] will deposit the gradients from this
+[5181s] branch and then we get to back into
+[5183s] detail backward it will deposit its own
+[5186s] gradients and then those gradients
+[5188s] simply add on top of each other and so
+[5190s] we just accumulate those gradients and
+[5191s] that fixes the issue okay now before we
+[5194s] move on let me actually do a bit of
+[5195s] cleanup here and delete some of these
+[5198s] some of this intermediate work so
+[5201s] we're not gonna need any of this now
+[5202s] that we've derived all of it
+[5204s] um
+[5205s] we are going to keep this because i want
+[5208s] to come back to it
+[5209s] delete the 10h
+[5211s] delete our morning example
+[5213s] delete the step
+[5215s] delete this keep the code that draws
+[5219s] and then delete this example
+[5222s] and leave behind only the definition of
+[5223s] value
+[5225s] and now let's come back to this
+[5226s] non-linearity here that we implemented
+[5228s] the tanh now i told you that we could
+[5230s] have broken down 10h into its explicit
+[5233s] atoms in terms of other expressions if
+[5236s] we had the x function so if you remember
+[5238s] tan h is defined like this and we chose
+[5240s] to develop tan h as a single function
+[5242s] and we can do that because we know its
+[5244s] derivative and we can back propagate
+[5246s] through it
+[5246s] but we can also break down tan h into
+[5249s] and express it as a function of x and i
+[5251s] would like to do that now because i want
+[5253s] to prove to you that you get all the
+[5254s] same results and all those ingredients
+[5256s] but also because it forces us to
+[5258s] implement a few more expressions it
+[5260s] forces us to do exponentiation addition
+[5262s] subtraction division and things like
+[5264s] that and i think it's a good exercise to
+[5266s] go through a few more of these
+[5268s] okay so let's scroll up
+[5270s] to the definition of value
+[5272s] and here one thing that we currently
+[5273s] can't do is we can do like a value of
+[5276s] say 2.0
+[5278s] but we can't do you know here for
+[5280s] example we want to add constant one and
+[5282s] we can't do something like this
+[5285s] and we can't do it because it says
+[5286s] object has no attribute data that's
+[5288s] because a plus one comes right here to
+[5291s] add
+[5292s] and then other is the integer one and
+[5294s] then here python is trying to access
+[5296s] one.data and that's not a thing and
+[5298s] that's because basically one is not a
+[5300s] value object and we only have addition
+[5302s] for value objects so as a matter of
+[5304s] convenience so that we can create
+[5306s] expressions like this and make them make
+[5308s] sense
+[5309s] we can simply do something like this
+[5312s] basically
+[5313s] we let other alone if other is an
+[5315s] instance of value but if it's not an
+[5317s] instance of value we're going to assume
+[5319s] that it's a number like an integer float
+[5320s] and we're going to simply wrap it in in
+[5323s] value and then other will just become
+[5325s] value of other and then other will have
+[5326s] a data attribute and this should work so
+[5329s] if i just say this predefined value then
+[5331s] this should work
+[5333s] there we go okay now let's do the exact
+[5335s] same thing for multiply because we can't
+[5337s] do something like this
+[5338s] again
+[5339s] for the exact same reason so we just
+[5341s] have to go to mole and if other is
+[5344s] not a value then let's wrap it in value
+[5347s] let's redefine value and now this works
+[5350s] now here's a kind of unfortunate and not
+[5352s] obvious part a times two works we saw
+[5355s] that but two times a is that gonna work
+[5359s] you'd expect it to right but actually it
+[5361s] will not
+[5362s] and the reason it won't is because
+[5364s] python doesn't know
+[5366s] like when when you do a times two
+[5368s] basically um so a times two python will
+[5371s] go and it will basically do something
+[5372s] like a dot mul
+[5374s] of two that's basically what it will
+[5376s] call but to it 2 times a is the same as
+[5379s] 2 dot mol of a
+[5381s] and it doesn't 2 can't multiply
+[5384s] value and so it's really confused about
+[5386s] that
+[5387s] so instead what happens is in python the
+[5389s] way this works is you are free to define
+[5391s] something called the r mold
+[5394s] and our mole
+[5395s] is kind of like a fallback so if python
+[5398s] can't do 2 times a it will check if um
+[5402s] if by any chance a knows how to multiply
+[5405s] two and that will be called into our
+[5407s] mole
+[5408s] so because python can't do two times a
+[5411s] it will check is there an our mole in
+[5412s] value and because there is it will now
+[5415s] call that
+[5416s] and what we'll do here is we will swap
+[5418s] the order of the operands so basically
+[5421s] two times a will redirect to armel and
+[5423s] our mole will basically call a times two
+[5426s] and that's how that will work
+[5428s] so
+[5429s] redefining now with armor two times a
+[5431s] becomes four okay now looking at the
+[5433s] other elements that we still need we
+[5434s] need to know how to exponentiate and how
+[5436s] to divide so let's first the explanation
+[5438s] to the exponentiation part we're going
+[5440s] to introduce
+[5441s] a single
+[5442s] function x here
+[5445s] and x is going to mirror 10h in the
+[5447s] sense that it's a simple single function
+[5449s] that transforms a single scalar value
+[5451s] and outputs a single scalar value
+[5453s] so we pop out the python number we use
+[5456s] math.x to exponentiate it create a new
+[5458s] value object
+[5459s] everything that we've seen before the
+[5460s] tricky part of course is how do you
+[5462s] propagate through e to the x
+[5464s] and
+[5465s] so here you can potentially pause the
+[5467s] video and think about what should go
+[5469s] here
+[5473s] okay so basically we need to know what
+[5475s] is the local derivative of e to the x so
+[5478s] d by d x of e to the x is famously just
+[5481s] e to the x and we've already just
+[5483s] calculated e to the x and it's inside
+[5485s] out that data so we can do up that data
+[5487s] times
+[5488s] and
+[5489s] out that grad that's the chain rule
+[5492s] so we're just chaining on to the current
+[5493s] running grad
+[5495s] and this is what the expression looks
+[5496s] like it looks a little confusing but
+[5498s] this is what it is and that's the
+[5500s] exponentiation
+[5501s] so redefining we should now be able to
+[5503s] call a.x
+[5505s] and
+[5506s] hopefully the backward pass works as
+[5507s] well okay and the last thing we'd like
+[5509s] to do of course is we'd like to be able
+[5510s] to divide
+[5512s] now
+[5513s] i actually will implement something
+[5514s] slightly more powerful than division
+[5516s] because division is just a special case
+[5517s] of something a bit more powerful
+[5519s] so in particular just by rearranging
+[5522s] if we have some kind of a b equals
+[5524s] value of 4.0 here we'd like to basically
+[5527s] be able to do a divide b and we'd like
+[5529s] this to be able to give us 0.5
+[5531s] now division actually can be reshuffled
+[5534s] as follows if we have a divide b that's
+[5537s] actually the same as a multiplying one
+[5538s] over b
+[5539s] and that's the same as a multiplying b
+[5541s] to the power of negative one
+[5544s] and so what i'd like to do instead is i
+[5545s] basically like to implement the
+[5547s] operation of x to the k for some
+[5549s] constant uh k so it's an integer or a
+[5552s] float um and we would like to be able to
+[5555s] differentiate this and then as a special
+[5556s] case uh negative one will be division
+[5560s] and so i'm doing that just because uh
+[5562s] it's more general and um yeah you might
+[5565s] as well do it that way so basically what
+[5566s] i'm saying is we can redefine
+[5569s] uh division
+[5571s] which we will put here somewhere
+[5574s] yeah we can put it here somewhere what
+[5576s] i'm saying is that we can redefine
+[5578s] division so self-divide other
+[5580s] can actually be rewritten as self times
+[5583s] other to the power of negative one
+[5585s] and now
+[5587s] a value raised to the power of negative
+[5589s] one we have now defined that
+[5591s] so
+[5592s] here's
+[5593s] so we need to implement the pow function
+[5595s] where am i going to put the power
+[5597s] function maybe here somewhere
+[5600s] this is the skeleton for it
+[5602s] so this function will be called when we
+[5604s] try to raise a value to some power and
+[5606s] other will be that power
+[5608s] now i'd like to make sure that other is
+[5610s] only an int or a float usually other is
+[5613s] some kind of a different value object
+[5615s] but here other will be forced to be an
+[5617s] end or a float otherwise the math
+[5620s] won't work for
+[5622s] for or try to achieve in the specific
+[5623s] case that would be a different
+[5625s] derivative expression if we wanted other
+[5627s] to be a value
+[5629s] so here we create the output value which
+[5631s] is just uh you know this data raised to
+[5633s] the power of other and other here could
+[5635s] be for example negative one that's what
+[5636s] we are hoping to achieve
+[5639s] and then uh this is the backwards stub
+[5641s] and this is the fun part which is what
+[5643s] is the uh chain rule expression here for
+[5647s] back for um
+[5649s] back propagating through the power
+[5651s] function where the power is to the power
+[5653s] of some kind of a constant
+[5655s] so this is the exercise and maybe pause
+[5657s] the video here and see if you can figure
+[5658s] it out yourself as to what we should put
+[5660s] here
+[5666s] okay so
+[5669s] you can actually go here and look at
+[5670s] derivative rules as an example and we
+[5672s] see lots of derivatives that you can
+[5674s] hopefully know from calculus in
+[5676s] particular what we're looking for is the
+[5677s] power rule
+[5679s] because that's telling us that if we're
+[5680s] trying to take d by dx of x to the n
+[5682s] which is what we're doing here
+[5684s] then that is just n times x to the n
+[5686s] minus 1
+[5688s] right
+[5689s] okay
+[5690s] so
+[5691s] that's telling us about the local
+[5693s] derivative of this power operation
+[5695s] so all we want here
+[5698s] basically n is now other
+[5700s] and self.data is x
+[5703s] and so this now becomes
+[5706s] other which is n times
+[5708s] self.data
+[5710s] which is now a python in torah float
+[5713s] it's not a valley object we're accessing
+[5714s] the data attribute
+[5716s] raised
+[5717s] to the power of other minus one or n
+[5719s] minus one
+[5721s] i can put brackets around this but this
+[5722s] doesn't matter because
+[5725s] power takes precedence over multiply and
+[5727s] python so that would have been okay
+[5729s] and that's the local derivative only but
+[5731s] now we have to chain it and we change
+[5733s] just simply by multiplying by output
+[5734s] grad that's chain rule
+[5736s] and this should technically work
+[5740s] and we're going to find out soon but now
+[5742s] if we
+[5743s] do this this should now work
+[5746s] and we get 0.5 so the forward pass works
+[5749s] but does the backward pass work and i
+[5751s] realize that we actually also have to
+[5752s] know how to subtract so
+[5754s] right now a minus b will not work
+[5757s] to make it work we need one more
+[5760s] piece of code here
+[5761s] and
+[5762s] basically this is the
+[5765s] subtraction and the way we're going to
+[5766s] implement subtraction is we're going to
+[5768s] implement it by addition of a negation
+[5770s] and then to implement negation we're
+[5772s] gonna multiply by negative one so just
+[5774s] again using the stuff we've already
+[5775s] built and just um expressing it in terms
+[5777s] of what we have and a minus b is now
+[5780s] working okay so now let's scroll again
+[5782s] to this expression here for this neuron
+[5785s] and let's just
+[5786s] compute the backward pass here once
+[5788s] we've defined o
+[5790s] and let's draw it
+[5792s] so here's the gradients for all these
+[5793s] leaf nodes for this two-dimensional
+[5795s] neuron that has a 10h that we've seen
+[5797s] before so now what i'd like to do is i'd
+[5799s] like to break up this 10h
+[5801s] into this expression here
+[5804s] so let me copy paste this
+[5806s] here
+[5807s] and now instead of we'll preserve the
+[5809s] label
+[5810s] and we will change how we define o
+[5813s] so in particular we're going to
+[5815s] implement this formula here
+[5816s] so we need e to the 2x
+[5818s] minus 1 over e to the x plus 1. so e to
+[5821s] the 2x we need to take 2 times n and we
+[5824s] need to exponentiate it that's e to the
+[5827s] two x and then because we're using it
+[5828s] twice let's create an intermediate
+[5830s] variable e
+[5832s] and then define o as
+[5834s] e plus one over
+[5836s] e minus one over e plus one
+[5839s] e minus one over e plus one
+[5842s] and that should be it and then we should
+[5844s] be able to draw that of o
+[5846s] so now before i run this what do we
+[5849s] expect to see
+[5850s] number one we're expecting to see a much
+[5852s] longer
+[5853s] graph here because we've broken up 10h
+[5855s] into a bunch of other operations
+[5857s] but those operations are mathematically
+[5859s] equivalent and so what we're expecting
+[5861s] to see is number one the same
+[5863s] result here so the forward pass works
+[5865s] and number two because of that
+[5867s] mathematical equivalence we expect to
+[5869s] see the same backward pass and the same
+[5871s] gradients on these leaf nodes so these
+[5873s] gradients should be identical
+[5875s] so let's run this
+[5878s] so number one let's verify that instead
+[5880s] of a single 10h node we have now x and
+[5883s] we have plus we have times negative one
+[5886s] uh this is the division
+[5888s] and we end up with the same forward pass
+[5890s] here
+[5891s] and then the gradients we have to be
+[5893s] careful because they're in slightly
+[5894s] different order potentially the
+[5896s] gradients for w2x2 should be 0 and 0.5
+[5899s] w2 and x2 are 0 and 0.5
+[5902s] and w1 x1 are 1 and negative 1.5
+[5905s] 1 and negative 1.5
+[5907s] so that means that both our forward
+[5908s] passes and backward passes were correct
+[5911s] because this turned out to be equivalent
+[5913s] to
+[5914s] 10h before
+[5915s] and so the reason i wanted to go through
+[5917s] this exercise is number one we got to
+[5919s] practice a few more operations and uh
+[5921s] writing more backwards passes and number
+[5923s] two i wanted to illustrate the point
+[5925s] that
+[5926s] the um
+[5927s] the level at which you implement your
+[5929s] operations is totally up to you you can
+[5931s] implement backward passes for tiny
+[5933s] expressions like a single individual
+[5934s] plus or a single times
+[5936s] or you can implement them for say
+[5938s] 10h
+[5940s] which is a kind of a potentially you can
+[5941s] see it as a composite operation because
+[5943s] it's made up of all these more atomic
+[5945s] operations but really all of this is
+[5947s] kind of like a fake concept all that
+[5948s] matters is we have some kind of inputs
+[5950s] and some kind of an output and this
+[5951s] output is a function of the inputs in
+[5953s] some way and as long as you can do
+[5954s] forward pass and the backward pass of
+[5956s] that little operation it doesn't matter
+[5959s] what that operation is
+[5961s] and how composite it is
+[5963s] if you can write the local gradients you
+[5964s] can chain the gradient and you can
+[5966s] continue back propagation so the design
+[5968s] of what those functions are is
+[5970s] completely up to you
+[5971s] so now i would like to show you how you
+[5973s] can do the exact same thing by using a
+[5975s] modern deep neural network library like
+[5977s] for example pytorch which i've roughly
+[5980s] modeled micrograd
+[5981s] by
+[5982s] and so
+[5983s] pytorch is something you would use in
+[5984s] production and i'll show you how you can
+[5986s] do the exact same thing but in pytorch
+[5988s] api so i'm just going to copy paste it
+[5990s] in and walk you through it a little bit
+[5992s] this is what it looks like
+[5994s] so we're going to import pi torch and
+[5996s] then we need to define these
+[5999s] value objects like we have here
+[6001s] now micrograd is a scalar valued
+[6004s] engine so we only have scalar values
+[6007s] like 2.0 but in pi torch everything is
+[6010s] based around tensors and like i
+[6011s] mentioned tensors are just n-dimensional
+[6013s] arrays of scalars
+[6015s] so that's why things get a little bit
+[6017s] more complicated here i just need a
+[6019s] scalar value to tensor a tensor with
+[6021s] just a single element
+[6023s] but by default when you work with
+[6025s] pytorch you would use um
+[6028s] more complicated tensors like this so if
+[6030s] i import pytorch
+[6033s] then i can create tensors like this and
+[6036s] this tensor for example is a two by
+[6038s] three array
+[6039s] of scalar
+[6041s] scalars
+[6042s] in a single compact representation so we
+[6045s] can check its shape we see that it's a
+[6046s] two by three array
+[6048s] and so on
+[6049s] so this is usually what you would work
+[6050s] with um in the actual libraries so here
+[6054s] i'm creating
+[6055s] a tensor that has only a single element
+[6058s] 2.0
+[6060s] and then i'm casting it to be double
+[6063s] because python is by default using
+[6065s] double precision for its floating point
+[6067s] numbers so i'd like everything to be
+[6068s] identical by default the data type of
+[6072s] these tensors will be float32 so it's
+[6074s] only using a single precision float so
+[6076s] i'm casting it to double
+[6078s] so that we have float64 just like in
+[6081s] python
+[6082s] so i'm casting to double and then we get
+[6084s] something similar to value of two the
+[6088s] next thing i have to do is because these
+[6089s] are leaf nodes by default pytorch
+[6091s] assumes that they do not require
+[6092s] gradients so i need to explicitly say
+[6095s] that all of these nodes require
+[6096s] gradients
+[6097s] okay so this is going to construct
+[6099s] scalar valued one element tensors
+[6103s] make sure that fighters knows that they
+[6104s] require gradients now by default these
+[6107s] are set to false by the way because of
+[6108s] efficiency reasons because usually you
+[6110s] would not want gradients for leaf nodes
+[6113s] like the inputs to the network and this
+[6115s] is just trying to be efficient in the
+[6117s] most common cases
+[6119s] so once we've defined all of our values
+[6121s] in python we can perform arithmetic just
+[6123s] like we can here in microgradlend so
+[6126s] this will just work and then there's a
+[6127s] torch.10h also
+[6129s] and when we get back is a tensor again
+[6132s] and we can
+[6133s] just like in micrograd it's got a data
+[6135s] attribute and it's got grant attributes
+[6138s] so these tensor objects just like in
+[6139s] micrograd have a dot data and a dot grad
+[6142s] and
+[6143s] the only difference here is that we need
+[6145s] to call it that item because otherwise
+[6148s] um pi torch
+[6150s] that item basically takes
+[6152s] a single tensor of one element and it
+[6154s] just returns that element stripping out
+[6156s] the tensor
+[6157s] so let me just run this and hopefully we
+[6159s] are going to get this is going to print
+[6161s] the forward pass
+[6162s] which is 0.707
+[6164s] and this will be the gradients which
+[6166s] hopefully are
+[6168s] 0.5 0 negative 1.5 and 1.
+[6171s] so if we just run this
+[6173s] there we go
+[6174s] 0.7 so the forward pass agrees and then
+[6177s] point five zero negative one point five
+[6179s] and one
+[6180s] so pi torch agrees with us
+[6182s] and just to show you here basically o
+[6185s] here's a tensor with a single element
+[6188s] and it's a double
+[6189s] and we can call that item on it to just
+[6192s] get the single number out
+[6194s] so that's what item does and o is a
+[6196s] tensor object like i mentioned and it's
+[6198s] got a backward function just like we've
+[6200s] implemented
+[6202s] and then all of these also have a dot
+[6203s] graph so like x2 for example in the grad
+[6206s] and it's a tensor and we can pop out the
+[6208s] individual number with that actin
+[6211s] so basically
+[6212s] torches torch can do what we did in
+[6215s] micrograph is a special case when your
+[6217s] tensors are all single element tensors
+[6220s] but the big deal with pytorch is that
+[6222s] everything is significantly more
+[6223s] efficient because we are working with
+[6225s] these tensor objects and we can do lots
+[6227s] of operations in parallel on all of
+[6229s] these tensors
+[6231s] but otherwise what we've built very much
+[6233s] agrees with the api of pytorch
+[6235s] okay so now that we have some machinery
+[6237s] to build out pretty complicated
+[6238s] mathematical expressions we can also
+[6240s] start building out neural nets and as i
+[6242s] mentioned neural nets are just a
+[6243s] specific class of mathematical
+[6245s] expressions
+[6247s] so we're going to start building out a
+[6248s] neural net piece by piece and eventually
+[6249s] we'll build out a two-layer multi-layer
+[6252s] layer perceptron as it's called and i'll
+[6254s] show you exactly what that means
+[6255s] let's start with a single individual
+[6257s] neuron we've implemented one here but
+[6259s] here i'm going to implement one that
+[6261s] also subscribes to the pytorch api in
+[6264s] how it designs its neural network
+[6266s] modules
+[6267s] so just like we saw that we can like
+[6268s] match the api of pytorch
+[6271s] on the auto grad side we're going to try
+[6273s] to do that on the neural network modules
+[6275s] so here's class neuron
+[6278s] and just for the sake of efficiency i'm
+[6280s] going to copy paste some sections that
+[6282s] are relatively straightforward
+[6285s] so the constructor will take
+[6287s] number of inputs to this neuron which is
+[6289s] how many inputs come to a neuron so this
+[6292s] one for example has three inputs
+[6295s] and then it's going to create a weight
+[6297s] there is some random number between
+[6298s] negative one and one for every one of
+[6300s] those inputs
+[6301s] and a bias that controls the overall
+[6303s] trigger happiness of this neuron
+[6306s] and then we're going to implement a def
+[6308s] underscore underscore call
+[6311s] of self and x some input x
+[6314s] and really what we don't do here is w
+[6315s] times x plus b
+[6317s] where w times x here is a dot product
+[6319s] specifically
+[6321s] now if you haven't seen
+[6322s] call
+[6324s] let me just return 0.0 here for now the
+[6326s] way this works now is we can have an x
+[6328s] which is say like 2.0 3.0 then we can
+[6331s] initialize a neuron that is
+[6332s] two-dimensional
+[6333s] because these are two numbers and then
+[6335s] we can feed those two numbers into that
+[6337s] neuron to get an output
+[6339s] and so when you use this notation n of x
+[6342s] python will use call
+[6345s] so currently call just return 0.0
+[6350s] now we'd like to actually do the forward
+[6352s] pass of this neuron instead
+[6354s] so we're going to do here first is we
+[6357s] need to basically multiply all of the
+[6358s] elements of w with all of the elements
+[6361s] of x pairwise we need to multiply them
+[6364s] so the first thing we're going to do is
+[6365s] we're going to zip up
+[6367s] celta w and x
+[6369s] and in python zip takes two iterators
+[6372s] and it creates a new iterator that
+[6374s] iterates over the tuples of the
+[6376s] corresponding entries
+[6377s] so for example just to show you we can
+[6380s] print this list
+[6382s] and still return 0.0 here
+[6390s] sorry
+[6394s] so we see that these w's are paired up
+[6396s] with the x's w with x
+[6401s] and now what we want to do is
+[6407s] for w i x i in
+[6410s] we want to multiply w times
+[6412s] w wi times x i
+[6414s] and then we want to sum all of that
+[6416s] together
+[6417s] to come up with an activation
+[6419s] and add also subnet b on top
+[6422s] so that's the raw activation and then of
+[6424s] course we need to pass that through a
+[6425s] non-linearity so what we're going to be
+[6427s] returning is act.10h
+[6429s] and here's out
+[6432s] so
+[6433s] now we see that we are getting some
+[6434s] outputs and we get a different output
+[6436s] from a neuron each time because we are
+[6437s] initializing different weights and by
+[6439s] and biases
+[6441s] and then to be a bit more efficient here
+[6442s] actually sum by the way takes a second
+[6445s] optional parameter which is the start
+[6448s] and by default the start is zero so
+[6451s] these elements of this sum will be added
+[6454s] on top of zero to begin with but
+[6455s] actually we can just start with cell dot
+[6457s] b
+[6458s] and then we just have an expression like
+[6459s] this
+[6465s] and then the generator expression here
+[6467s] must be parenthesized in python
+[6469s] there we go
+[6473s] yep so now we can forward a single
+[6475s] neuron next up we're going to define a
+[6477s] layer of neurons so here we have a
+[6479s] schematic for a mlb
+[6482s] so we see that these mlps each layer
+[6485s] this is one layer has actually a number
+[6487s] of neurons and they're not connected to
+[6488s] each other but all of them are fully
+[6489s] connected to the input
+[6491s] so what is a layer of neurons it's just
+[6493s] it's just a set of neurons evaluated
+[6495s] independently
+[6496s] so
+[6497s] in the interest of time i'm going to do
+[6500s] something fairly straightforward here
+[6503s] it's um
+[6505s] literally a layer is just a list of
+[6507s] neurons
+[6508s] and then how many neurons do we have we
+[6510s] take that as an input argument here how
+[6512s] many neurons do you want in your layer
+[6514s] number of outputs in this layer
+[6516s] and so we just initialize completely
+[6518s] independent neurons with this given
+[6520s] dimensionality and when we call on it we
+[6523s] just independently
+[6524s] evaluate them so now instead of a neuron
+[6527s] we can make a layer of neurons they are
+[6529s] two-dimensional neurons and let's have
+[6531s] three of them
+[6532s] and now we see that we have three
+[6533s] independent evaluations of three
+[6535s] different neurons
+[6537s] right
+[6538s] okay finally let's complete this picture
+[6540s] and define an entire multi-layer
+[6542s] perceptron or mlp
+[6544s] and as we can see here in an mlp these
+[6546s] layers just feed into each other
+[6547s] sequentially
+[6549s] so let's come here and i'm just going to
+[6551s] copy the code here in interest of time
+[6554s] so an mlp is very similar
+[6556s] we're taking the number of inputs
+[6558s] as before but now instead of taking a
+[6560s] single n out which is number of neurons
+[6562s] in a single layer we're going to take a
+[6564s] list of an outs and this list defines
+[6566s] the sizes of all the layers that we want
+[6568s] in our mlp
+[6570s] so here we just put them all together
+[6571s] and then iterate over consecutive pairs
+[6574s] of these sizes and create layer objects
+[6576s] for them
+[6577s] and then in the call function we are
+[6579s] just calling them sequentially so that's
+[6581s] an mlp really
+[6582s] and let's actually re-implement this
+[6584s] picture so we want three input neurons
+[6586s] and then two layers of four and an
+[6588s] output unit
+[6589s] so
+[6590s] we want
+[6592s] a three-dimensional input say this is an
+[6594s] example input we want three inputs into
+[6597s] two layers of four and one output
+[6600s] and this of course is an mlp
+[6603s] and there we go that's a forward pass of
+[6605s] an mlp
+[6606s] to make this a little bit nicer you see
+[6608s] how we have just a single element but
+[6609s] it's wrapped in a list because layer
+[6611s] always returns lists
+[6613s] circle for convenience
+[6615s] return outs at zero if len out is
+[6618s] exactly a single element
+[6620s] else return fullest
+[6622s] and this will allow us to just get a
+[6623s] single value out at the last layer that
+[6625s] only has a single neuron
+[6628s] and finally we should be able to draw
+[6629s] dot of n of x
+[6631s] and
+[6632s] as you might imagine
+[6634s] these expressions are now getting
+[6636s] relatively involved
+[6638s] so this is an entire mlp that we're
+[6640s] defining now
+[6645s] all the way until a single output
+[6648s] okay
+[6649s] and so obviously you would never
+[6650s] differentiate on pen and paper these
+[6652s] expressions but with micrograd we will
+[6655s] be able to back propagate all the way
+[6656s] through this
+[6658s] and back propagate
+[6659s] into
+[6660s] these weights of all these neurons so
+[6662s] let's see how that works okay so let's
+[6664s] create ourselves a very simple
+[6666s] example data set here
+[6668s] so this data set has four examples
+[6671s] and so we have four possible
+[6673s] inputs into the neural net
+[6675s] and we have four desired targets so we'd
+[6677s] like the neural net to assign
+[6681s] or output 1.0 when it's fed this example
+[6684s] negative one when it's fed these
+[6685s] examples and one when it's fed this
+[6686s] example so it's a very simple binary
+[6688s] classifier neural net basically that we
+[6690s] would like here
+[6692s] now let's think what the neural net
+[6693s] currently thinks about these four
+[6694s] examples we can just get their
+[6696s] predictions
+[6697s] um basically we can just call n of x for
+[6700s] x in axis
+[6702s] and then we can
+[6703s] print
+[6705s] so these are the outputs of the neural
+[6706s] net on those four examples
+[6708s] so
+[6710s] the first one is 0.91 but we'd like it
+[6712s] to be one so we should push this one
+[6715s] higher this one we want to be higher
+[6718s] this one says 0.88 and we want this to
+[6720s] be negative one
+[6722s] this is 0.8 we want it to be negative
+[6724s] one
+[6725s] and this one is 0.8 we want it to be one
+[6728s] so how do we make the neural net and how
+[6730s] do we tune the weights
+[6732s] to
+[6732s] better predict the desired targets
+[6736s] and the trick used in deep learning to
+[6738s] achieve this is to
+[6740s] calculate a single number that somehow
+[6742s] measures the total performance of your
+[6744s] neural net and we call this single
+[6745s] number the loss
+[6748s] so the loss
+[6749s] first
+[6751s] is is a single number that we're going
+[6752s] to define that basically measures how
+[6754s] well the neural net is performing right
+[6756s] now we have the intuitive sense that
+[6757s] it's not performing very well because
+[6758s] we're not very much close to this
+[6760s] so the loss will be high and we'll want
+[6763s] to minimize the loss
+[6764s] so in particular in this case what we're
+[6766s] going to do is we're going to implement
+[6767s] the mean squared error loss
+[6769s] so this is doing is we're going to
+[6771s] basically iterate um
+[6774s] for y ground truth
+[6776s] and y output in zip of um
+[6779s] wise and white red so we're going to
+[6781s] pair up the
+[6783s] ground truths with the predictions
+[6786s] and this zip iterates over tuples of
+[6787s] them
+[6788s] and for each
+[6791s] y ground truth and y output we're going
+[6793s] to subtract them
+[6796s] and square them
+[6798s] so let's first see what these losses are
+[6800s] these are individual loss components
+[6802s] and so basically for each
+[6805s] one of the four
+[6806s] we are taking the prediction and the
+[6808s] ground truth we are subtracting them and
+[6810s] squaring them
+[6812s] so because
+[6813s] this one is so close to its target 0.91
+[6816s] is almost one
+[6818s] subtracting them gives a very small
+[6820s] number
+[6821s] so here we would get like a negative
+[6823s] point one and then squaring it
+[6825s] just makes sure
+[6827s] that regardless of whether we are more
+[6829s] negative or more positive we always get
+[6831s] a positive
+[6832s] number instead of squaring we should we
+[6835s] could also take for example the absolute
+[6836s] value we need to discard the sign
+[6839s] and so you see that the expression is
+[6840s] ranged so that you only get zero exactly
+[6843s] when y out is equal to y ground truth
+[6846s] when those two are equal so your
+[6847s] prediction is exactly the target you are
+[6849s] going to get zero
+[6850s] and if your prediction is not the target
+[6852s] you are going to get some other number
+[6855s] so here for example we are way off and
+[6857s] so that's why the loss is quite high
+[6859s] and the more off we are the greater the
+[6862s] loss will be
+[6864s] so we don't want high loss we want low
+[6866s] loss
+[6867s] and so the final loss here will be just
+[6870s] the sum
+[6872s] of all of these
+[6873s] numbers
+[6874s] so you see that this should be zero
+[6876s] roughly plus zero roughly
+[6878s] but plus
+[6879s] seven
+[6880s] so loss should be about seven
+[6883s] here
+[6884s] and now we want to minimize the loss we
+[6887s] want the loss to be low
+[6889s] because if loss is low
+[6891s] then every one of the predictions is
+[6894s] equal to its target
+[6896s] so the loss the lowest it can be is zero
+[6898s] and the greater it is the worse off the
+[6901s] neural net is predicting
+[6904s] so now of course if we do lost that
+[6905s] backward
+[6907s] something magical happened when i hit
+[6909s] enter
+[6910s] and the magical thing of course that
+[6912s] happened is that we can look at
+[6914s] end.layers.neuron and that layers at say
+[6916s] like the the first layer
+[6918s] that neurons at zero
+[6922s] because remember that mlp has the layers
+[6924s] which is a list
+[6926s] and each layer has a neurons which is a
+[6928s] list and that gives us an individual
+[6929s] neuron
+[6930s] and then it's got some weights
+[6932s] and so we can for example look at the
+[6934s] weights at zero
+[6938s] um
+[6940s] oops it's not called weights it's called
+[6942s] w
+[6944s] and that's a value but now this value
+[6946s] also has a groud because of the backward
+[6948s] pass
+[6950s] and so we see that because this gradient
+[6952s] here on this particular weight of this
+[6954s] particular neuron of this particular
+[6956s] layer is negative
+[6957s] we see that its influence on the loss is
+[6960s] also negative so slightly increasing
+[6962s] this particular weight of this neuron of
+[6964s] this layer would make the loss go down
+[6968s] and we actually have this information
+[6970s] for every single one of our neurons and
+[6972s] all their parameters actually it's worth
+[6973s] looking at also the draw dot loss by the
+[6976s] way
+[6977s] so previously we looked at the draw dot
+[6979s] of a single neural neuron forward pass
+[6981s] and that was already a large expression
+[6983s] but what is this expression we actually
+[6985s] forwarded
+[6987s] every one of those four examples and
+[6989s] then we have the loss on top of them
+[6990s] with the mean squared error
+[6992s] and so this is a really massive graph
+[6996s] because this graph that we've built up
+[6998s] now
+[6999s] oh my gosh this graph that we've built
+[7001s] up now
+[7002s] which is kind of excessive it's
+[7004s] excessive because it has four forward
+[7006s] passes of a neural net for every one of
+[7008s] the examples and then it has the loss on
+[7010s] top
+[7011s] and it ends with the value of the loss
+[7013s] which was 7.12
+[7015s] and this loss will now back propagate
+[7016s] through all the four forward passes all
+[7018s] the way through just every single
+[7020s] intermediate value of the neural net
+[7023s] all the way back to of course the
+[7025s] parameters of the weights which are the
+[7026s] input
+[7027s] so these weight parameters here are
+[7030s] inputs to this neural net
+[7032s] and
+[7033s] these numbers here these scalars are
+[7035s] inputs to the neural net
+[7036s] so if we went around here
+[7038s] we'll probably find
+[7040s] some of these examples this 1.0
+[7042s] potentially maybe this 1.0 or you know
+[7045s] some of the others and you'll see that
+[7046s] they all have gradients as well
+[7048s] the thing is these gradients on the
+[7050s] input data are not that useful to us
+[7053s] and that's because the input data seems
+[7056s] to be not changeable it's it's a given
+[7058s] to the problem and so it's a fixed input
+[7060s] we're not going to be changing it or
+[7062s] messing with it even though we do have
+[7063s] gradients for it
+[7066s] but some of these gradients here
+[7069s] will be for the neural network
+[7070s] parameters the ws and the bs and those
+[7073s] we of course we want to change
+[7075s] okay so now we're going to want some
+[7078s] convenience code to gather up all of the
+[7079s] parameters of the neural net so that we
+[7081s] can operate on all of them
+[7083s] simultaneously and every one of them we
+[7085s] will nudge a tiny amount
+[7088s] based on the gradient information
+[7090s] so let's collect the parameters of the
+[7091s] neural net all in one array
+[7094s] so let's create a parameters of self
+[7097s] that just
+[7098s] returns celta w which is a list
+[7102s] concatenated with
+[7104s] a list of self.b
+[7107s] so this will just return a list
+[7109s] list plus list just you know gives you a
+[7111s] list
+[7112s] so that's parameters of neuron and i'm
+[7115s] calling it this way because also pi
+[7116s] torch has a parameters on every single
+[7118s] and in module
+[7120s] and uh it does exactly what we're doing
+[7122s] here it just returns the
+[7124s] parameter tensors for us as the
+[7126s] parameter scalars
+[7128s] now layer is also a module so it will
+[7130s] have parameters
+[7132s] itself
+[7134s] and basically what we want to do here is
+[7136s] something like this like
+[7140s] params is here and then for
+[7143s] neuron in salt out neurons
+[7147s] we want to get neuron.parameters
+[7150s] and we want to params.extend
+[7154s] right so these are the parameters of
+[7156s] this neuron and then we want to put them
+[7157s] on top of params so params dot extend
+[7161s] of peace
+[7162s] and then we want to return brands
+[7165s] so this is way too much code so actually
+[7168s] there's a way to simplify this which is
+[7171s] return
+[7173s] p
+[7175s] for neuron in self
+[7178s] neurons
+[7179s] for
+[7181s] p in neuron dot parameters
+[7185s] so it's a single list comprehension in
+[7187s] python you can sort of nest them like
+[7189s] this and you can um
+[7191s] then create
+[7192s] uh the desired
+[7194s] array so this is these are identical
+[7197s] we can take this out
+[7200s] and then let's do the same here
+[7204s] def parameters
+[7206s] self
+[7207s] and return
+[7209s] a parameter for layer in self dot layers
+[7213s] for
+[7215s] p in layer dot parameters
+[7220s] and that should be good
+[7223s] now let me pop out this so
+[7226s] we don't re-initialize our network
+[7228s] because we need to re-initialize
+[7231s] our
+[7235s] okay so unfortunately we will have to
+[7237s] probably re-initialize the network
+[7238s] because we just add functionality
+[7241s] because this class of course we i want
+[7243s] to get all the and that parameters but
+[7245s] that's not going to work because this is
+[7247s] the old class
+[7249s] okay
+[7250s] so unfortunately we do have to
+[7252s] reinitialize the network which will
+[7253s] change some of the numbers
+[7255s] but let me do that so that we pick up
+[7257s] the new api we can now do in the
+[7258s] parameters
+[7260s] and these are all the weights and biases
+[7262s] inside the entire neural net
+[7265s] so in total this mlp has 41 parameters
+[7271s] and
+[7272s] now we'll be able to change them
+[7275s] if we recalculate the loss here we see
+[7278s] that unfortunately we have slightly
+[7279s] different
+[7282s] predictions and slightly different laws
+[7286s] but that's okay
+[7288s] okay so we see that this neurons
+[7291s] gradient is slightly negative we can
+[7293s] also look at its data right now
+[7296s] which is 0.85 so this is the current
+[7298s] value of this neuron and this is its
+[7300s] gradient on the loss
+[7303s] so what we want to do now is we want to
+[7305s] iterate for every p in
+[7307s] n dot parameters so for all the 41
+[7309s] parameters in this neural net
+[7311s] we actually want to change p data
+[7315s] slightly
+[7316s] according to the gradient information
+[7319s] okay so
+[7320s] dot dot to do here
+[7322s] but this will be basically a tiny update
+[7325s] in this gradient descent scheme in
+[7328s] gradient descent we are thinking of the
+[7330s] gradient as a vector pointing in the
+[7333s] direction
+[7334s] of
+[7335s] increased
+[7336s] loss
+[7339s] and so
+[7340s] in gradient descent we are modifying
+[7342s] p data
+[7344s] by a small step size in the direction of
+[7346s] the gradient so the step size as an
+[7348s] example could be like a very small
+[7349s] number like 0.01 is the step size times
+[7352s] p dot grad
+[7355s] right
+[7356s] but we have to think through some of the
+[7357s] signs here
+[7358s] so uh
+[7360s] in particular working with this specific
+[7363s] example here
+[7364s] we see that if we just left it like this
+[7367s] then this neuron's value
+[7369s] would be currently increased by a tiny
+[7371s] amount of the gradient
+[7373s] the grain is negative so this value of
+[7376s] this neuron would go slightly down it
+[7378s] would become like 0.8 you know four or
+[7380s] something like that
+[7382s] but if this neuron's value goes lower
+[7386s] that would actually
+[7388s] increase the loss
+[7390s] that's because
+[7392s] the derivative of this neuron is
+[7394s] negative so increasing
+[7396s] this makes the loss go down so
+[7399s] increasing it is what we want to do
+[7401s] instead of decreasing it so basically
+[7403s] what we're missing here is we're
+[7404s] actually missing a negative sign
+[7406s] and again this other interpretation
+[7409s] and that's because we want to minimize
+[7410s] the loss we don't want to maximize the
+[7411s] loss we want to decrease it
+[7413s] and the other interpretation as i
+[7414s] mentioned is you can think of the
+[7416s] gradient vector
+[7417s] so basically just the vector of all the
+[7419s] gradients
+[7420s] as pointing in the direction of
+[7422s] increasing
+[7424s] the loss but then we want to decrease it
+[7426s] so we actually want to go in the
+[7427s] opposite direction
+[7429s] and so you can convince yourself that
+[7430s] this sort of plug does the right thing
+[7431s] here with the negative because we want
+[7433s] to minimize the loss
+[7435s] so if we nudge all the parameters by
+[7437s] tiny amount
+[7440s] then we'll see that
+[7442s] this data will have changed a little bit
+[7444s] so now this neuron
+[7446s] is a tiny amount greater
+[7448s] value so 0.854 went to 0.857
+[7453s] and that's a good thing because slightly
+[7456s] increasing this neuron
+[7458s] uh
+[7458s] data makes the loss go down according to
+[7461s] the gradient and so the correct thing
+[7463s] has happened sign wise
+[7466s] and so now what we would expect of
+[7467s] course is that
+[7469s] because we've changed all these
+[7470s] parameters we expect that the loss
+[7472s] should have gone down a bit
+[7475s] so we want to re-evaluate the loss let
+[7477s] me basically
+[7479s] this is just a data definition that
+[7481s] hasn't changed but the forward pass here
+[7484s] of the network we can recalculate
+[7489s] and actually let me do it outside here
+[7491s] so that we can compare the two loss
+[7492s] values
+[7494s] so here if i recalculate the loss
+[7497s] we'd expect the new loss now to be
+[7499s] slightly lower than this number so
+[7501s] hopefully what we're getting now is a
+[7503s] tiny bit lower than 4.84
+[7506s] 4.36
+[7508s] okay and remember the way we've arranged
+[7510s] this is that low loss means that our
+[7512s] predictions are matching the targets so
+[7515s] our predictions now are probably
+[7516s] slightly closer to the
+[7518s] targets and now all we have to do is we
+[7522s] have to iterate this process
+[7524s] so again um we've done the forward pass
+[7526s] and this is the loss
+[7528s] now we can lost that backward
+[7530s] let me take these out and we can do a
+[7532s] step size
+[7534s] and now we should have a slightly lower
+[7535s] loss 4.36 goes to 3.9
+[7539s] and okay so
+[7541s] we've done the forward pass here's the
+[7543s] backward pass
+[7544s] nudge
+[7545s] and now the loss is 3.66
+[7550s] 3.47
+[7552s] and you get the idea we just continue
+[7554s] doing this and this is uh gradient
+[7556s] descent we're just iteratively doing
+[7558s] forward pass backward pass update
+[7561s] forward pass backward pass update and
+[7562s] the neural net is improving its
+[7564s] predictions
+[7565s] so here if we look at why pred now
+[7569s] like red
+[7572s] we see that um
+[7574s] this value should be getting closer to
+[7576s] one
+[7576s] so this value should be getting more
+[7577s] positive these should be getting more
+[7579s] negative and this one should be also
+[7580s] getting more positive so if we just
+[7582s] iterate this
+[7583s] a few more times
+[7586s] actually we may be able to afford go to
+[7588s] go a bit faster let's try a slightly
+[7590s] higher learning rate
+[7594s] oops okay there we go so now we're at
+[7595s] 0.31
+[7599s] if you go too fast by the way if you try
+[7601s] to make it too big of a step you may
+[7603s] actually overstep
+[7607s] it's overconfidence because again
+[7608s] remember we don't actually know exactly
+[7610s] about the loss function the loss
+[7611s] function has all kinds of structure and
+[7613s] we only know about the very local
+[7615s] dependence of all these parameters on
+[7617s] the loss but if we step too far
+[7619s] we may step into you know a part of the
+[7621s] loss that is completely different
+[7623s] and that can destabilize training and
+[7624s] make your loss actually blow up even
+[7628s] so the loss is now 0.04 so actually the
+[7631s] predictions should be really quite close
+[7633s] let's take a look
+[7635s] so you see how this is almost one
+[7637s] almost negative one almost one we can
+[7639s] continue going
+[7641s] uh so
+[7642s] yep backward
+[7644s] update
+[7645s] oops there we go so we went way too fast
+[7648s] and um
+[7649s] we actually overstepped
+[7651s] so we got two uh too eager where are we
+[7654s] now oops
+[7656s] okay
+[7657s] seven e negative nine so this is very
+[7659s] very low loss
+[7661s] and the predictions
+[7663s] are basically perfect
+[7665s] so somehow we
+[7667s] basically we were doing way too big
+[7668s] updates and we briefly exploded but then
+[7670s] somehow we ended up getting into a
+[7671s] really good spot so usually this
+[7674s] learning rate and the tuning of it is a
+[7676s] subtle art you want to set your learning
+[7678s] rate if it's too low you're going to
+[7680s] take way too long to converge but if
+[7682s] it's too high the whole thing gets
+[7683s] unstable and you might actually even
+[7685s] explode the loss
+[7687s] depending on your loss function
+[7688s] so finding the step size to be just
+[7690s] right it's it's a pretty subtle art
+[7692s] sometimes when you're using sort of
+[7694s] vanilla gradient descent
+[7695s] but we happen to get into a good spot we
+[7697s] can look at
+[7699s] n-dot parameters
+[7702s] so this is the setting of weights and
+[7705s] biases
+[7706s] that makes our network
+[7709s] predict
+[7710s] the desired targets
+[7711s] very very close
+[7713s] and
+[7715s] basically we've successfully trained
+[7717s] neural net
+[7718s] okay let's make this a tiny bit more
+[7720s] respectable and implement an actual
+[7721s] training loop and what that looks like
+[7723s] so this is the data definition that
+[7725s] stays this is the forward pass
+[7727s] um so
+[7729s] for uh k in range you know we're going
+[7732s] to
+[7733s] take a bunch of steps
+[7737s] first you do the forward pass
+[7740s] we validate the loss
+[7743s] let's re-initialize the neural net from
+[7745s] scratch
+[7746s] and here's the data
+[7748s] and we first do before pass then we do
+[7751s] the backward pass
+[7759s] and then we do an update that's gradient
+[7761s] descent
+[7766s] and then we should be able to iterate
+[7767s] this and we should be able to print the
+[7769s] current step
+[7770s] the current loss um let's just print the
+[7773s] sort of
+[7774s] number of the loss
+[7776s] and
+[7778s] that should be it
+[7780s] and then the learning rate 0.01 is a
+[7782s] little too small 0.1 we saw is like a
+[7784s] little bit dangerously too high let's go
+[7786s] somewhere in between
+[7787s] and we'll optimize this for
+[7790s] not 10 steps but let's go for say 20
+[7792s] steps
+[7794s] let me erase all of this junk
+[7799s] and uh let's run the optimization
+[7803s] and you see how we've actually converged
+[7805s] slower in a more controlled manner and
+[7808s] got to a loss that is very low
+[7811s] so
+[7812s] i expect white bread to be quite good
+[7815s] there we go
+[7819s] um
+[7822s] and
+[7823s] that's it
+[7824s] okay so this is kind of embarrassing but
+[7825s] we actually have a really terrible bug
+[7828s] in here and it's a subtle bug and it's a
+[7831s] very common bug and i can't believe i've
+[7833s] done it for the 20th time in my life
+[7836s] especially on camera and i could have
+[7838s] reshot the whole thing but i think it's
+[7839s] pretty funny and you know you get to
+[7841s] appreciate a bit what um working with
+[7844s] neural nets maybe
+[7845s] is like sometimes
+[7847s] we are guilty of
+[7850s] come bug i've actually tweeted
+[7852s] the most common neural net mistakes a
+[7854s] long time ago now
+[7856s] uh and
+[7857s] i'm not really
+[7859s] gonna explain any of these except for we
+[7861s] are guilty of number three you forgot to
+[7863s] zero grad
+[7864s] before that backward what is that
+[7869s] basically what's happening and it's a
+[7870s] subtle bug and i'm not sure if you saw
+[7872s] it
+[7872s] is that
+[7874s] all of these
+[7875s] weights here have a dot data and a dot
+[7877s] grad
+[7879s] and that grad starts at zero
+[7882s] and then we do backward and we fill in
+[7884s] the gradients
+[7885s] and then we do an update on the data but
+[7887s] we don't flush the grad
+[7889s] it stays there
+[7891s] so when we do the second
+[7893s] forward pass and we do backward again
+[7895s] remember that all the backward
+[7896s] operations do a plus equals on the grad
+[7899s] and so these gradients just
+[7901s] add up and they never get reset to zero
+[7904s] so basically we didn't zero grad so
+[7907s] here's how we zero grad before
+[7910s] backward
+[7911s] we need to iterate over all the
+[7912s] parameters
+[7914s] and we need to make sure that p dot grad
+[7916s] is set to zero
+[7918s] we need to reset it to zero just like it
+[7920s] is in the constructor
+[7922s] so remember all the way here for all
+[7924s] these value nodes grad is reset to zero
+[7927s] and then all these backward passes do a
+[7929s] plus equals from that grad
+[7931s] but we need to make sure that
+[7933s] we reset these graphs to zero so that
+[7935s] when we do backward
+[7937s] all of them start at zero and the actual
+[7938s] backward pass accumulates um
+[7941s] the loss derivatives into the grads
+[7945s] so this is zero grad in pytorch
+[7948s] and uh
+[7950s] we will slightly get we'll get a
+[7951s] slightly different optimization let's
+[7953s] reset the neural net
+[7954s] the data is the same this is now i think
+[7957s] correct
+[7958s] and we get a much more
+[7960s] you know we get a much more
+[7962s] slower descent
+[7964s] we still end up with pretty good results
+[7966s] and we can continue this a bit more
+[7968s] to get down lower
+[7970s] and lower
+[7971s] and lower
+[7974s] yeah
+[7976s] so the only reason that the previous
+[7977s] thing worked it's extremely buggy um the
+[7979s] only reason that worked is that
+[7983s] this is a very very simple problem
+[7985s] and it's very easy for this neural net
+[7987s] to fit this data
+[7989s] and so the grads ended up accumulating
+[7992s] and it effectively gave us a massive
+[7993s] step size and it made us converge
+[7996s] extremely fast
+[7999s] but basically now we have to do more
+[8000s] steps to get to very low values of loss
+[8004s] and get wipe red to be really good we
+[8006s] can try to
+[8007s] step a bit greater
+[8014s] yeah we're gonna get closer and closer
+[8016s] to one minus one and one
+[8018s] so
+[8019s] working with neural nets is sometimes
+[8021s] tricky because
+[8023s] uh
+[8024s] you may have lots of bugs in the code
+[8027s] and uh your network might actually work
+[8029s] just like ours worked
+[8031s] but chances are is that if we had a more
+[8033s] complex problem then actually this bug
+[8035s] would have made us not optimize the loss
+[8037s] very well and we were only able to get
+[8039s] away with it because
+[8041s] the problem is very simple
+[8043s] so let's now bring everything together
+[8044s] and summarize what we learned
+[8046s] what are neural nets neural nets are
+[8049s] these mathematical expressions
+[8051s] fairly simple mathematical expressions
+[8053s] in the case of multi-layer perceptron
+[8055s] that take
+[8056s] input as the data and they take input
+[8059s] the weights and the parameters of the
+[8060s] neural net mathematical expression for
+[8062s] the forward pass followed by a loss
+[8064s] function and the loss function tries to
+[8066s] measure the accuracy of the predictions
+[8069s] and usually the loss will be low when
+[8071s] your predictions are matching your
+[8072s] targets or where the network is
+[8074s] basically behaving well so we we
+[8077s] manipulate the loss function so that
+[8078s] when the loss is low the network is
+[8080s] doing what you want it to do on your
+[8082s] problem
+[8084s] and then we backward the loss
+[8086s] use backpropagation to get the gradient
+[8088s] and then we know how to tune all the
+[8090s] parameters to decrease the loss locally
+[8092s] but then we have to iterate that process
+[8094s] many times in what's called the gradient
+[8095s] descent
+[8096s] so we simply follow the gradient
+[8098s] information and that minimizes the loss
+[8101s] and the loss is arranged so that when
+[8102s] the loss is minimized the network is
+[8104s] doing what you want it to do
+[8106s] and yeah so we just have a blob of
+[8109s] neural stuff and we can make it do
+[8111s] arbitrary things and that's what gives
+[8113s] neural nets their power um
+[8115s] it's you know this is a very tiny
+[8116s] network with 41 parameters
+[8119s] but you can build significantly more
+[8120s] complicated neural nets with billions
+[8124s] at this point almost trillions of
+[8125s] parameters and it's a massive blob of
+[8128s] neural tissue simulated neural tissue
+[8131s] roughly speaking
+[8132s] and you can make it do extremely complex
+[8134s] problems and these neurons then have all
+[8137s] kinds of very fascinating emergent
+[8139s] properties
+[8140s] in
+[8141s] when you try to make them do
+[8143s] significantly hard problems as in the
+[8145s] case of gpt for example
+[8147s] we have massive amounts of text from the
+[8149s] internet and we're trying to get a
+[8151s] neural net to predict to take like a few
+[8153s] words and try to predict the next word
+[8155s] in a sequence that's the learning
+[8156s] problem
+[8157s] and it turns out that when you train
+[8158s] this on all of internet the neural net
+[8160s] actually has like really remarkable
+[8162s] emergent properties but that neural net
+[8164s] would have hundreds of billions of
+[8165s] parameters
+[8167s] but it works on fundamentally the exact
+[8169s] same principles
+[8170s] the neural net of course will be a bit
+[8172s] more complex but otherwise the
+[8175s] value in the gradient is there
+[8177s] and would be identical and the gradient
+[8179s] descent would be there and would be
+[8181s] basically identical but people usually
+[8183s] use slightly different updates this is a
+[8185s] very simple stochastic gradient descent
+[8187s] update
+[8188s] um
+[8189s] and the loss function would not be mean
+[8190s] squared error they would be using
+[8192s] something called the cross-entropy loss
+[8194s] for predicting the next token so there's
+[8196s] a few more details but fundamentally the
+[8197s] neural network setup and neural network
+[8199s] training is identical and pervasive and
+[8202s] now you understand intuitively
+[8204s] how that works under the hood in the
+[8206s] beginning of this video i told you that
+[8207s] by the end of it you would understand
+[8208s] everything in micrograd and then we'd
+[8210s] slowly build it up let me briefly prove
+[8212s] that to you
+[8214s] so i'm going to step through all the
+[8215s] code that is in micrograd as of today
+[8217s] actually potentially some of the code
+[8219s] will change by the time you watch this
+[8220s] video because i intend to continue
+[8221s] developing micrograd
+[8223s] but let's look at what we have so far at
+[8225s] least init.pi is empty when you go to
+[8227s] engine.pi that has the value
+[8230s] everything here you should mostly
+[8231s] recognize so we have the data.grad
+[8233s] attributes we have the backward function
+[8235s] uh we have the previous set of children
+[8237s] and the operation that produced this
+[8239s] value
+[8240s] we have addition multiplication and
+[8242s] raising to a scalar power
+[8245s] we have the relu non-linearity which is
+[8247s] slightly different type of nonlinearity
+[8248s] than 10h that we used in this video
+[8250s] both of them are non-linearities and
+[8252s] notably 10h is not actually present in
+[8254s] micrograd as of right now but i intend
+[8257s] to add it later
+[8258s] with the backward which is identical and
+[8260s] then all of these other operations which
+[8262s] are built up on top of operations here
+[8265s] so values should be very recognizable
+[8267s] except for the non-linearity used in
+[8268s] this video
+[8270s] um there's no massive difference between
+[8272s] relu and 10h and sigmoid and these other
+[8274s] non-linearities they're all roughly
+[8275s] equivalent and can be used in mlps so i
+[8278s] use 10h because it's a bit smoother and
+[8280s] because it's a little bit more
+[8281s] complicated than relu and therefore it's
+[8283s] stressed a little bit more the
+[8285s] local gradients and working with those
+[8287s] derivatives which i thought would be
+[8289s] useful
+[8290s] and then that pi is the neural networks
+[8292s] library as i mentioned so you should
+[8294s] recognize identical implementation of
+[8296s] neuron layer and mlp
+[8298s] notably or not so much
+[8300s] we have a class module here there is a
+[8302s] parent class of all these modules i did
+[8304s] that because there's an nn.module class
+[8307s] in pytorch and so this exactly matches
+[8309s] that api and end.module and pytorch has
+[8311s] also a zero grad which i've refactored
+[8313s] out here
+[8316s] so that's the end of micrograd really
+[8318s] then there's a test
+[8320s] which you'll see
+[8321s] basically creates
+[8322s] two chunks of code one in micrograd and
+[8325s] one in pi torch and we'll make sure that
+[8327s] the forward and the backward pass agree
+[8329s] identically
+[8330s] for a slightly less complicated
+[8331s] expression a slightly more complicated
+[8333s] expression everything
+[8335s] agrees so we agree with pytorch on all
+[8337s] of these operations
+[8338s] and finally there's a demo.ipymb here
+[8341s] and it's a bit more complicated binary
+[8343s] classification demo than the one i
+[8344s] covered in this lecture so we only had a
+[8347s] tiny data set of four examples um here
+[8349s] we have a bit more complicated example
+[8351s] with lots of blue points and lots of red
+[8353s] points and we're trying to again build a
+[8355s] binary classifier to distinguish uh two
+[8358s] dimensional points as red or blue
+[8360s] it's a bit more complicated mlp here
+[8362s] with it's a bigger mlp
+[8364s] the loss is a bit more complicated
+[8366s] because
+[8367s] it supports batches
+[8369s] so because our dataset was so tiny we
+[8371s] always did a forward pass on the entire
+[8372s] data set of four examples but when your
+[8375s] data set is like a million examples what
+[8377s] we usually do in practice is we chair we
+[8379s] basically pick out some random subset we
+[8381s] call that a batch and then we only
+[8383s] process the batch forward backward and
+[8385s] update so we don't have to forward the
+[8387s] entire training set
+[8389s] so this supports batching because
+[8391s] there's a lot more examples here
+[8393s] we do a forward pass the loss is
+[8395s] slightly more different this is a max
+[8397s] margin loss that i implement here
+[8400s] the one that we used was the mean
+[8401s] squared error loss because it's the
+[8403s] simplest one
+[8404s] there's also the binary cross entropy
+[8406s] loss all of them can be used for binary
+[8408s] classification and don't make too much
+[8410s] of a difference in the simple examples
+[8411s] that we looked at so far
+[8413s] there's something called l2
+[8414s] regularization used here this has to do
+[8417s] with generalization of the neural net
+[8419s] and controls the overfitting in machine
+[8421s] learning setting but i did not cover
+[8423s] these concepts and concepts in this
+[8424s] video potentially later
+[8426s] and the training loop you should
+[8427s] recognize so forward backward with zero
+[8431s] grad
+[8432s] and update and so on you'll notice that
+[8435s] in the update here the learning rate is
+[8436s] scaled as a function of number of
+[8438s] iterations and it
+[8440s] shrinks
+[8441s] and this is something called learning
+[8443s] rate decay so in the beginning you have
+[8444s] a high learning rate and as the network
+[8447s] sort of stabilizes near the end you
+[8449s] bring down the learning rate to get some
+[8450s] of the fine details in the end
+[8453s] and in the end we see the decision
+[8454s] surface of the neural net and we see
+[8456s] that it learns to separate out the red
+[8458s] and the blue area based on the data
+[8460s] points
+[8461s] so that's the slightly more complicated
+[8463s] example and then we'll demo that hyper
+[8465s] ymb that you're free to go over
+[8467s] but yeah as of today that is micrograd i
+[8470s] also wanted to show you a little bit of
+[8471s] real stuff so that you get to see how
+[8473s] this is actually implemented in
+[8474s] production grade library like by torch
+[8476s] uh so in particular i wanted to show i
+[8478s] wanted to find and show you the backward
+[8480s] pass for 10h in pytorch so here in
+[8483s] micrograd we see that the backward
+[8485s] password 10h is one minus t square
+[8488s] where t is the output of the tanh of x
+[8493s] times of that grad which is the chain
+[8494s] rule so we're looking for something that
+[8496s] looks like this
+[8498s] now
+[8499s] i went to pytorch um which has an open
+[8502s] source github codebase and uh i looked
+[8505s] through a lot of its code
+[8507s] and honestly i i i spent about 15
+[8509s] minutes and i couldn't find 10h
+[8511s] and that's because these libraries
+[8513s] unfortunately they grow in size and
+[8515s] entropy and if you just search for 10h
+[8517s] you get apparently 2 800 results and 400
+[8521s] and 406 files so i don't know what these
+[8524s] files are doing honestly
+[8527s] and why there are so many mentions of
+[8529s] 10h but unfortunately these libraries
+[8531s] are quite complex they're meant to be
+[8532s] used not really inspected um
+[8535s] eventually i did stumble on someone
+[8538s] who tries to change the 10 h backward
+[8541s] code for some reason
+[8542s] and someone here pointed to the cpu
+[8544s] kernel and the kuda kernel for 10 inch
+[8546s] backward
+[8547s] so this so basically depends on if
+[8549s] you're using pi torch on a cpu device or
+[8551s] on a gpu which these are different
+[8553s] devices and i haven't covered this but
+[8555s] this is the 10 h backwards kernel
+[8557s] for uh cpu
+[8560s] and the reason it's so large is that
+[8563s] number one this is like if you're using
+[8565s] a complex type which we haven't even
+[8566s] talked about if you're using a specific
+[8568s] data type of b-float 16 which we haven't
+[8570s] talked about
+[8572s] and then if you're not then this is the
+[8574s] kernel and deep here we see something
+[8577s] that resembles our backward pass so they
+[8580s] have a times one minus
+[8582s] b square uh so this b
+[8585s] b here must be the output of the 10h and
+[8587s] this is the health.grad so here we found
+[8590s] it
+[8591s] uh deep inside
+[8594s] pi torch from this location for some
+[8595s] reason inside binaryops kernel when 10h
+[8598s] is not actually a binary op
+[8601s] and then this is the gpu kernel
+[8605s] we're not complex
+[8606s] we're
+[8607s] here and here we go with one line of
+[8609s] code
+[8610s] so we did find it but basically
+[8613s] unfortunately these codepieces are very
+[8614s] large and
+[8616s] micrograd is very very simple but if you
+[8618s] actually want to use real stuff uh
+[8620s] finding the code for it you'll actually
+[8621s] find that difficult
+[8623s] i also wanted to show you a little
+[8625s] example here where pytorch is showing
+[8627s] you how can you can register a new type
+[8629s] of function that you want to add to
+[8631s] pytorch as a lego building block
+[8633s] so here if you want to for example add a
+[8635s] gender polynomial 3
+[8639s] here's how you could do it you will
+[8640s] register it as a class that
+[8643s] subclasses storage.org that function
+[8646s] and then you have to tell pytorch how to
+[8647s] forward your new function
+[8650s] and how to backward through it
+[8652s] so as long as you can do the forward
+[8654s] pass of this little function piece that
+[8655s] you want to add and as long as you know
+[8657s] the the local derivative the local
+[8659s] gradients which are implemented in the
+[8660s] backward pi torch will be able to back
+[8662s] propagate through your function and then
+[8664s] you can use this as a lego block in a
+[8666s] larger lego castle of all the different
+[8668s] lego blocks that pytorch already has
+[8671s] and so that's the only thing you have to
+[8672s] tell pytorch and everything would just
+[8673s] work and you can register new types of
+[8675s] functions
+[8676s] in this way following this example
+[8678s] and that is everything that i wanted to
+[8680s] cover in this lecture
+[8681s] so i hope you enjoyed building out
+[8682s] micrograd with me i hope you find it
+[8684s] interesting insightful
+[8686s] and
+[8687s] yeah i will post a lot of the links
+[8690s] that are related to this video in the
+[8691s] video description below i will also
+[8693s] probably post a link to a discussion
+[8695s] forum
+[8696s] or discussion group where you can ask
+[8698s] questions related to this video and then
+[8700s] i can answer or someone else can answer
+[8702s] your questions and i may also do a
+[8704s] follow-up video that answers some of the
+[8706s] most common questions
+[8708s] but for now that's it i hope you enjoyed
+[8710s] it if you did then please like and
+[8711s] subscribe so that youtube knows to
+[8713s] feature this video to more people
+[8715s] and that's it for now i'll see you later
+[8722s] now here's the problem
+[8724s] we know
+[8725s] dl by
+[8728s] wait what is the problem
+[8731s] and that's everything i wanted to cover
+[8733s] in this lecture
+[8734s] so i hope
+[8735s] you enjoyed us building up microcraft
+[8738s] micro crab
+[8742s] okay now let's do the exact same thing
+[8743s] for multiply because we can't do
+[8744s] something like a times two
+[8747s] oops
+[8750s] i know what happened there

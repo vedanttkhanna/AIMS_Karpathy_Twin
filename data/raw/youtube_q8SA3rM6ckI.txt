@@ -1,0 +1,3099 @@
+SOURCE: https://www.youtube.com/watch?v=q8SA3rM6ckI
+
+[0s] hi everyone so today we are once again
+[2s] continuing our implementation of make
+[4s] more now so far we've come up to here
+[7s] montalia perceptrons and our neural net
+[9s] looked like this and we were
+[11s] implementing this over the last few
+[12s] lectures
+[13s] now I'm sure everyone is very excited to
+[15s] go into recurring neural networks and
+[16s] all of their variants and how they work
+[18s] and the diagrams look cool and it's very
+[20s] exciting and interesting and we're going
+[21s] to get a better result but unfortunately
+[23s] I think we have to remain here for one
+[25s] more lecture and the reason for that is
+[28s] we've already trained this multilio
+[30s] perceptron right and we are getting
+[31s] pretty good loss and I think we have a
+[33s] pretty decent understanding of the
+[34s] architecture and how it works but the
+[37s] line of code here that I take an issue
+[39s] with is here lost up backward that is we
+[42s] are taking a pytorch auto grad and using
+[45s] it to calculate all of our gradients
+[46s] along the way and I would like to remove
+[48s] the use of lost at backward and I would
+[50s] like us to write our backward pass
+[52s] manually on the level of tensors and I
+[55s] think that this is a very useful
+[56s] exercise for the following reasons
+[58s] I actually have an entire blog post on
+[60s] this topic but I'd like to call back
+[62s] propagation a leaky abstraction
+[65s] and what I mean by that is back
+[67s] propagation does doesn't just make your
+[69s] neural networks just work magically it's
+[71s] not the case they can just Stack Up
+[72s] arbitrary Lego blocks of differentiable
+[74s] functions and just cross your fingers
+[76s] and back propagate and everything is
+[77s] great things don't just work
+[79s] automatically it is a leaky abstraction
+[82s] in the sense that you can shoot yourself
+[83s] in the foot if you do not understanding
+[85s] its internals it will magically not work
+[88s] or not work optimally and you will need
+[91s] to understand how it works under the
+[92s] hood if you're hoping to debug it and if
+[94s] you are hoping to address it in your
+[96s] neural nut
+[97s] um so this blog post here from a while
+[99s] ago goes into some of those examples so
+[102s] for example we've already covered them
+[103s] some of them already for example the
+[106s] flat tails of these functions and how
+[108s] you do not want to saturate them too
+[111s] much because your gradients will die the
+[113s] case of dead neurons which I've already
+[115s] covered as well
+[116s] the case of exploding or Vanishing
+[118s] gradients in the case of repair neural
+[120s] networks which we are about to cover
+[122s] and then also you will often come across
+[125s] some examples in the wild
+[127s] this is a snippet that I found uh in a
+[130s] random code base on the internet where
+[131s] they actually have like a very subtle
+[133s] but pretty major bug in their
+[135s] implementation and the bug points at the
+[138s] fact that the author of this code does
+[140s] not actually understand by propagation
+[141s] so they're trying to do here is they're
+[143s] trying to clip the loss at a certain
+[145s] maximum value but actually what they're
+[147s] trying to do is they're trying to
+[148s] collect the gradients to have a maximum
+[150s] value instead of trying to clip the loss
+[152s] at a maximum value and
+[154s] um indirectly they're basically causing
+[156s] some of the outliers to be actually
+[158s] ignored because when you clip a loss of
+[161s] an outlier you are setting its gradient
+[163s] to zero and so have a look through this
+[166s] and read through it but there's
+[168s] basically a bunch of subtle issues that
+[170s] you're going to avoid if you actually
+[171s] know what you're doing and that's why I
+[173s] don't think it's the case that because
+[175s] pytorch or other Frameworks offer
+[176s] autograd it is okay for us to ignore how
+[179s] it works
+[180s] now we've actually already covered
+[182s] covered autograd and we wrote micrograd
+[184s] but micrograd was an autograd engine
+[187s] only on the level of individual scalars
+[189s] so the atoms were single individual
+[191s] numbers and uh you know I don't think
+[193s] it's enough and I'd like us to basically
+[194s] think about back propagation on level of
+[196s] tensors as well and so in a summary I
+[199s] think it's a good exercise I think it is
+[201s] very very valuable you're going to
+[203s] become better at debugging neural
+[205s] networks and making sure that you
+[207s] understand what you're doing it is going
+[208s] to make everything fully explicit so
+[210s] you're not going to be nervous about
+[211s] what is hidden away from you and
+[213s] basically in general we're going to
+[214s] emerge stronger and so let's get into it
+[217s] a bit of a fun historical note here is
+[220s] that today writing your backward pass by
+[222s] hand and manually is not recommended and
+[223s] no one does it except for the purposes
+[225s] of exercise but about 10 years ago in
+[228s] deep learning this was fairly standard
+[229s] and in fact pervasive so at the time
+[232s] everyone used to write their own
+[233s] backward pass by hand manually including
+[235s] myself and it's just what you would do
+[237s] so we used to ride backward pass by hand
+[239s] and now everyone just calls lost that
+[241s] backward uh we've lost something I want
+[244s] to give you a few examples of this so
+[247s] here's a 2006 paper from Jeff Hinton and
+[251s] Russell selectinov in science that was
+[253s] influential at the time and this was
+[255s] training some architectures called
+[257s] restricted bolstery machines and
+[259s] basically it's an auto encoder trained
+[262s] here and this is from roughly 2010 I had
+[266s] a library for training researchable
+[267s] machines and this was at the time
+[270s] written in Matlab so python was not used
+[272s] for deep learning pervasively it was all
+[274s] Matlab and Matlab was this a scientific
+[276s] Computing package that everyone would
+[279s] use so we would write Matlab which is
+[281s] barely a programming language as well
+[284s] but I've had a very convenient tensor
+[286s] class and was this a Computing
+[288s] environment and you would run here it
+[289s] would all run on a CPU of course but you
+[291s] would have very nice plots to go with it
+[293s] and a built-in debugger and it was
+[294s] pretty nice now the code in this package
+[297s] in 2010 that I wrote for fitting
+[300s] research multiple machines to a large
+[303s] extent is recognizable but I wanted to
+[305s] show you how you would well I'm creating
+[307s] the data in the XY batches I'm
+[309s] initializing the neural nut so it's got
+[311s] weights and biases just like we're used
+[313s] to and then this is the training Loop
+[315s] where we actually do the forward pass
+[317s] and then here at this time they didn't
+[319s] even necessarily use back propagation to
+[321s] train neural networks so this in
+[323s] particular implements contrastive
+[325s] Divergence which estimates a gradient
+[328s] and then here we take that gradient and
+[330s] use it for a parameter update along the
+[332s] lines that we're used to
+[334s] um yeah here
+[336s] but you can see that basically people
+[338s] are meddling with these gradients uh
+[339s] directly and inline and themselves uh it
+[341s] wasn't that common to use an auto grad
+[343s] engine here's one more example from a
+[345s] paper of mine from 2014
+[347s] um called the fragmented embeddings
+[349s] and here what I was doing is I was
+[351s] aligning images and text
+[353s] um and so it's kind of like a clip if
+[355s] you're familiar with it but instead of
+[356s] working on the level of entire images
+[358s] and entire sentences it was working on
+[360s] the level of individual objects and
+[361s] little pieces of sentences and I was
+[363s] embedding them and then calculating very
+[365s] much like a clip-like loss and I dig up
+[368s] the code from 2014 of how I implemented
+[370s] this and it was already in numpy and
+[373s] python
+[374s] and here I'm planting the cost function
+[376s] and it was standard to implement not
+[379s] just the cost but also the backward pass
+[380s] manually so here I'm calculating the
+[383s] image embeddings sentence embeddings the
+[386s] loss function I calculate this course
+[388s] this is the loss function and then once
+[391s] I have the loss function I do the
+[392s] backward pass right here so I backward
+[394s] through the loss function and through
+[396s] the neural nut and I append
+[398s] regularization so everything was done by
+[401s] hand manually and you were just right
+[402s] out the backward pass and then you would
+[404s] use a gradient Checker to make sure that
+[406s] your numerical estimate of the gradient
+[407s] agrees with the one you calculated
+[409s] during back propagation so this was very
+[411s] standard for a long time but today of
+[413s] course it is standard to use an auto
+[415s] grad engine
+[416s] um but it was definitely useful and I
+[418s] think people sort of understood how
+[419s] these neural networks work on a very
+[421s] intuitive level and so I think it's a
+[423s] good exercise again and this is where we
+[424s] want to be okay so just as a reminder
+[426s] from our previous lecture this is The
+[428s] jupyter Notebook that we implemented at
+[429s] the time and
+[431s] we're going to keep everything the same
+[433s] so we're still going to have a two layer
+[435s] multiplayer perceptron with a batch
+[436s] normalization layer so the forward pass
+[438s] will be basically identical to this
+[440s] lecture but here we're going to get rid
+[442s] of lost and backward and instead we're
+[443s] going to write the backward pass
+[444s] manually
+[446s] now here's the starter code for this
+[447s] lecture we are becoming a back prop
+[449s] ninja in this notebook
+[451s] and the first few cells here are
+[454s] identical to what we are used to so we
+[456s] are doing some imports loading the data
+[457s] set and processing the data set none of
+[460s] this changed
+[461s] now here I'm introducing a utility
+[463s] function that we're going to use later
+[464s] to compare the gradients so in
+[466s] particular we are going to have the
+[467s] gradients that we estimate manually
+[469s] ourselves and we're going to have
+[470s] gradients that Pi torch calculates and
+[473s] we're going to be checking for
+[474s] correctness assuming of course that
+[475s] pytorch is correct
+[478s] um then here we have the initialization
+[480s] that we are quite used to so we have our
+[483s] embedding table for the characters the
+[485s] first layer second layer and the batch
+[486s] normalization in between
+[488s] and here's where we create all the
+[489s] parameters now you will note that I
+[491s] changed the initialization a little bit
+[493s] uh to be small numbers so normally you
+[496s] would set the biases to be all zero here
+[498s] I am setting them to be small random
+[500s] numbers and I'm doing this because
+[502s] if your variables are initialized to
+[504s] exactly zero sometimes what can happen
+[506s] is that can mask an incorrect
+[508s] implementation of a gradient
+[510s] um because uh when everything is zero it
+[512s] sort of like simplifies and gives you a
+[514s] much simpler expression of the gradient
+[515s] than you would otherwise get and so by
+[517s] making it small numbers I'm trying to
+[519s] unmask those potential errors in these
+[521s] calculations
+[523s] you also notice that I'm using uh B1 in
+[526s] the first layer I'm using a bias despite
+[528s] batch normalization right afterwards
+[530s] um so this would typically not be what
+[532s] you do because we talked about the fact
+[534s] that you don't need the bias but I'm
+[535s] doing this here just for fun
+[537s] um because we're going to have a
+[538s] gradient with respect to it and we can
+[540s] check that we are still calculating it
+[541s] correctly even though this bias is
+[543s] asparious
+[545s] so here I'm calculating a single batch
+[547s] and then here I'm doing a forward pass
+[550s] now you'll notice that the forward pass
+[551s] is significantly expanded from what we
+[553s] are used to here the forward pass was
+[555s] just
+[556s] um here
+[557s] now the reason that the forward pass is
+[559s] longer is for two reasons number one
+[562s] here we just had an F dot cross entropy
+[564s] but here I am bringing back a explicit
+[566s] implementation of the loss function
+[568s] and number two
+[569s] I've broken up the implementation into
+[572s] manageable chunks so we have a lot a lot
+[575s] more intermediate tensors along the way
+[577s] in the forward pass and that's because
+[578s] we are about to go backwards and
+[580s] calculate the gradients in this back
+[582s] propagation from the bottom to the top
+[585s] so we're going to go upwards and just
+[588s] like we have for example the lock props
+[589s] tensor in a forward pass in the backward
+[591s] pass we're going to have a d-lock probes
+[593s] which is going to store the derivative
+[595s] of the loss with respect to the lock
+[596s] props tensor and so we're going to be
+[598s] prepending D to every one of these
+[600s] tensors and calculating it along the way
+[602s] of this back propagation
+[604s] so as an example we have a b and raw
+[607s] here we're going to be calculating a DB
+[609s] in raw so here I'm telling pytorch that
+[612s] we want to retain the grad of all these
+[614s] intermediate values because here in
+[616s] exercise one we're going to calculate
+[618s] the backward pass so we're going to
+[620s] calculate all these D values D variables
+[622s] and use the CNP function I've introduced
+[625s] above to check our correctness with
+[626s] respect to what pi torch is telling us
+[629s] this is going to be exercise one uh
+[631s] where we sort of back propagate through
+[632s] this entire graph
+[634s] now just to give you a very quick
+[636s] preview of what's going to happen in
+[637s] exercise two and below here we have
+[640s] fully broken up the loss and back
+[643s] propagated through it manually in all
+[645s] the little Atomic pieces that make it up
+[647s] but here we're going to collapse the
+[649s] laws into a single cross-entropy call
+[650s] and instead we're going to analytically
+[653s] derive using math and paper and pencil
+[656s] the gradient of the loss with respect to
+[659s] the logits and instead of back
+[661s] propagating through all of its little
+[662s] chunks one at a time we're just going to
+[664s] analytically derive what that gradient
+[665s] is and we're going to implement that
+[667s] which is much more efficient as we'll
+[669s] see in the in a bit
+[670s] then we're going to do the exact same
+[672s] thing for patch normalization so instead
+[674s] of breaking up bass drum into all the
+[676s] old tiny components we're going to use
+[678s] uh pen and paper and Mathematics and
+[680s] calculus to derive the gradient through
+[682s] the bachelor Bachelor layer so we're
+[685s] going to calculate the backward
+[687s] passthrough bathroom layer in a much
+[688s] more efficient expression instead of
+[690s] backward propagating through all of its
+[691s] little pieces independently
+[693s] so there's going to be exercise three
+[696s] and then in exercise four we're going to
+[698s] put it all together and this is the full
+[700s] code of training this two layer MLP and
+[702s] we're going to basically insert our
+[704s] manual back prop and we're going to take
+[706s] out lost it backward and you will
+[708s] basically see that you can get all the
+[710s] same results using fully your own code
+[713s] and the only thing we're using from
+[715s] pytorch is the torch.tensor to make the
+[719s] calculations efficient but otherwise you
+[721s] will understand fully what it means to
+[723s] forward and backward and neural net and
+[724s] train it and I think that'll be awesome
+[726s] so let's get to it
+[728s] okay so I read all the cells of this
+[730s] notebook all the way up to here and I'm
+[733s] going to erase this and I'm going to
+[734s] start implementing backward pass
+[735s] starting with d lock problems so we want
+[738s] to understand what should go here to
+[740s] calculate the gradient of the loss with
+[742s] respect to all the elements of the log
+[743s] props tensor
+[745s] now I'm going to give away the answer
+[746s] here but I wanted to put a quick note
+[748s] here that I think would be most
+[750s] pedagogically useful for you is to
+[752s] actually go into the description of this
+[754s] video and find the link to this Jupiter
+[756s] notebook you can find it both on GitHub
+[758s] but you can also find Google collab with
+[760s] it so you don't have to install anything
+[761s] you'll just go to a website on Google
+[763s] collab and you can try to implement
+[765s] these derivatives or gradients yourself
+[767s] and then if you are not able to come to
+[770s] my video and see me do it and so work in
+[773s] Tandem and try it first yourself and
+[775s] then see me give away the answer and I
+[777s] think that'll be most valuable to you
+[779s] and that's how I recommend you go
+[780s] through this lecture
+[781s] so we are starting here with d-log props
+[783s] now d-lock props will hold the
+[786s] derivative of the loss with respect to
+[788s] all the elements of log props
+[791s] what is inside log blobs the shape of
+[793s] this is 32 by 27. so it's not going to
+[798s] surprise you that D log props should
+[799s] also be an array of size 32 by 27
+[801s] because we want the derivative loss with
+[803s] respect to all of its elements so the
+[806s] sizes of those are always going to be
+[807s] equal
+[809s] now how how does log props influence the
+[813s] loss okay loss is negative block probes
+[816s] indexed with range of N and YB and then
+[820s] the mean of that now just as a reminder
+[822s] YB is just a basically an array of all
+[827s] the correct indices
+[831s] um so what we're doing here is we're
+[832s] taking the lock props array of size 32
+[834s] by 27.
+[837s] right
+[838s] and then we are going in every single
+[840s] row and in each row we are plugging
+[843s] plucking out the index eight and then 14
+[846s] and 15 and so on so we're going down the
+[847s] rows that's the iterator range of N and
+[850s] then we are always plucking out the
+[852s] index of the column specified by this
+[855s] tensor YB so in the zeroth row we are
+[857s] taking the eighth column in the first
+[860s] row we're taking the 14th column Etc and
+[863s] so log props at this plugs out
+[866s] all those
+[868s] log probabilities of the correct next
+[870s] character in a sequence
+[872s] so that's what that does and the shape
+[874s] of this or the size of it is of course
+[876s] 32 because our batch size is 32.
+[880s] so these elements get plugged out and
+[883s] then their mean and the negative of that
+[885s] becomes loss
+[887s] so I always like to work with simpler
+[889s] examples to understand the numerical
+[892s] form of derivative what's going on here
+[895s] is once we've plucked out these examples
+[898s] um we're taking the mean and then the
+[900s] negative so the loss basically
+[902s] I can write it this way is the negative
+[904s] of say a plus b plus c
+[907s] and the mean of those three numbers
+[909s] would be say negative would divide three
+[911s] that would be how we achieve the mean of
+[913s] three numbers ABC although we actually
+[915s] have 32 numbers here
+[916s] and so what is basically the loss by say
+[920s] like d a right
+[922s] well if we simplify this expression
+[924s] mathematically this is negative one over
+[926s] three of A and negative plus negative
+[928s] one over three of B
+[930s] plus negative 1 over 3 of c and so what
+[933s] is D loss by D A it's just negative one
+[935s] over three
+[936s] and so you can see that if we don't just
+[938s] have a b and c but we have 32 numbers
+[940s] then D loss by D
+[943s] um you know every one of those numbers
+[945s] is going to be one over N More generally
+[947s] because n is the um the size of the
+[950s] batch 32 in this case
+[953s] so D loss by
+[955s] um D Lock probs is negative 1 over n
+[959s] in all these places
+[962s] now what about the other elements inside
+[964s] lock problems because lock props is
+[965s] large array you see that lock problems
+[967s] at shape is 32 by 27. but only 32 of
+[971s] them participate in the loss calculation
+[973s] so what's the derivative of all the
+[975s] other most of the elements that do not
+[978s] get plucked out here
+[980s] while their loss intuitively is zero
+[982s] sorry they're gradient intuitively is
+[984s] zero and that's because they did not
+[985s] participate in the loss
+[987s] so most of these numbers inside this
+[989s] tensor does not feed into the loss and
+[992s] so if we were to change these numbers
+[993s] then the loss doesn't change which is
+[996s] the equivalent of way of saying that the
+[998s] derivative of the loss with respect to
+[999s] them is zero they don't impact it
+[1003s] so here's a way to implement this
+[1005s] derivative then we start out with
+[1007s] torch.zeros of shape 32 by 27 or let's
+[1010s] just say instead of doing this because
+[1012s] we don't want to hard code numbers let's
+[1014s] do torch.zeros like
+[1017s] block probs so basically this is going
+[1019s] to create an array of zeros exactly in
+[1020s] the shape of log probs
+[1022s] and then we need to set the derivative
+[1025s] of negative 1 over n inside exactly
+[1027s] these locations so here's what we can do
+[1029s] the lock props indexed in The Identical
+[1032s] way
+[1034s] will be just set to negative one over
+[1036s] zero divide n
+[1039s] right just like we derived here
+[1042s] so now let me erase all this reasoning
+[1045s] and then this is the candidate
+[1047s] derivative for D log props let's
+[1049s] uncomment the first line and check that
+[1051s] this is correct
+[1054s] okay so CMP ran and let's go back to CMP
+[1059s] and you see that what it's doing is it's
+[1061s] calculating if
+[1062s] the calculated value by us which is DT
+[1066s] is exactly equal to T dot grad as
+[1068s] calculated by pi torch and then this is
+[1071s] making sure that all the elements are
+[1072s] exactly equal and then converting this
+[1074s] to a single Boolean value because we
+[1077s] don't want the Boolean tensor we just
+[1078s] want to Boolean value
+[1080s] and then here we are making sure that
+[1082s] okay if they're not exactly equal maybe
+[1084s] they are approximately equal because of
+[1086s] some floating Point issues but they're
+[1087s] very very close
+[1089s] so here we are using torch.allclose
+[1090s] which has a little bit of a wiggle
+[1093s] available because sometimes you can get
+[1095s] very very close but if you use a
+[1097s] slightly different calculation because a
+[1099s] floating Point arithmetic you can get a
+[1102s] slightly different result so this is
+[1104s] checking if you get an approximately
+[1105s] close result
+[1107s] and then here we are checking the
+[1108s] maximum uh basically the value that has
+[1111s] the highest difference and what is the
+[1114s] difference in the absolute value
+[1115s] difference between those two and so we
+[1117s] are printing whether we have an exact
+[1119s] equality an approximate equality and
+[1122s] what is the largest difference
+[1125s] and so here
+[1126s] we see that we actually have exact
+[1128s] equality and so therefore of course we
+[1130s] also have an approximate equality and
+[1132s] the maximum difference is exactly zero
+[1134s] so basically our d-log props is exactly
+[1137s] equal to what pytors calculated to be
+[1140s] lockprops.grad in its back propagation
+[1143s] so so far we're working pretty well okay
+[1146s] so let's now continue our back
+[1147s] propagation
+[1148s] we have that lock props depends on
+[1150s] probes through a log
+[1152s] so all the elements of probes are being
+[1154s] element wise applied log to
+[1157s] now if we want deep props then then
+[1159s] remember your micrograph training
+[1162s] we have like a log node it takes in
+[1164s] probs and creates log probs and the
+[1167s] props will be the local derivative of
+[1170s] that individual Operation Log times the
+[1173s] derivative loss with respect to its
+[1174s] output which in this case is D log props
+[1177s] so what is the local derivative of this
+[1179s] operation well we are taking log element
+[1181s] wise and we can come here and we can see
+[1183s] well from alpha is your friend that d by
+[1185s] DX of log of x is just simply one of our
+[1187s] X
+[1188s] so therefore in this case X is problems
+[1191s] so we have d by DX is one over X which
+[1194s] is one of our probes and then this is
+[1196s] the local derivative and then times we
+[1198s] want to chain it
+[1200s] so this is chain rule
+[1201s] times do log props
+[1203s] let me uncomment this and let me run the
+[1206s] cell in place and we see that the
+[1208s] derivative of props as we calculated
+[1210s] here is exactly correct
+[1212s] and so notice here how this works probes
+[1215s] that are props is going to be inverted
+[1218s] and then element was multiplied here
+[1220s] so if your probes is very very close to
+[1223s] one that means you are your network is
+[1225s] currently predicting the character
+[1226s] correctly then this will become one over
+[1228s] one and D log probes just gets passed
+[1230s] through
+[1231s] but if your probabilities are
+[1233s] incorrectly assigned so if the correct
+[1235s] character here is getting a very low
+[1237s] probability then 1.0 dividing by it will
+[1241s] boost this
+[1243s] and then multiply by the log props so
+[1245s] basically what this line is doing
+[1246s] intuitively is it's taking the examples
+[1249s] that have a very low probability
+[1250s] currently assigned and it's boosting
+[1252s] their gradient uh you can you can look
+[1255s] at it that way next up is Count some imp
+[1259s] so we want the river of this now let me
+[1262s] just pause here and kind of introduce
+[1265s] What's Happening Here in general because
+[1266s] I know it's a little bit confusing we
+[1268s] have the locusts that come out of the
+[1269s] neural nut here what I'm doing is I'm
+[1271s] finding the maximum in each row and I'm
+[1275s] subtracting it for the purposes of
+[1276s] numerical stability and we talked about
+[1278s] how if you do not do this you run
+[1280s] numerical issues if some of the logits
+[1282s] take on two large values because we end
+[1284s] up exponentiating them
+[1286s] so this is done just for safety
+[1288s] numerically then here's the
+[1290s] exponentiation of all the sort of like
+[1292s] logits to create our accounts and then
+[1295s] we want to take the some of these counts
+[1298s] and normalize so that all of the probes
+[1300s] sum to one
+[1301s] now here instead of using one over count
+[1303s] sum I use uh raised to the power of
+[1306s] negative one mathematically they are
+[1307s] identical I just found that there's
+[1309s] something wrong with the pytorch
+[1310s] implementation of the backward pass of
+[1312s] division
+[1313s] um and it gives like a real result but
+[1315s] that doesn't happen for star star native
+[1318s] one that's why I'm using this formula
+[1319s] instead but basically all that's
+[1321s] happening here is we got the logits
+[1324s] we're going to exponentiate all of them
+[1325s] and want to normalize the counts to
+[1327s] create our probabilities it's just that
+[1329s] it's happening across multiple lines
+[1332s] so now
+[1334s] here
+[1337s] we want to First Take the derivative we
+[1340s] want to back propagate into account
+[1341s] sumiv and then into counts as well
+[1344s] so what should be the count sum M now we
+[1348s] actually have to be careful here because
+[1349s] we have to scrutinize and be careful
+[1352s] with the shapes so counts that shape and
+[1355s] then count some inverse shape
+[1359s] are different
+[1360s] so in particular counts as 32 by 27 but
+[1363s] this count sum m is 32 by 1. and so in
+[1367s] this multiplication here we also have an
+[1369s] implicit broadcasting that pytorch will
+[1372s] do because it needs to take this column
+[1373s] tensor of 32 numbers and replicate it
+[1375s] horizontally 27 times to align these two
+[1378s] tensors so it can do an element twice
+[1380s] multiply
+[1381s] so really what this looks like is the
+[1383s] following using a toy example again
+[1386s] what we really have here is just props
+[1388s] is counts times conservative so it's a C
+[1390s] equals a times B
+[1391s] but a is 3 by 3 and b is just three by
+[1395s] one a column tensor and so pytorch
+[1397s] internally replicated this elements of B
+[1399s] and it did that across all the columns
+[1402s] so for example B1 which is the first
+[1404s] element of B would be replicated here
+[1406s] across all the columns in this
+[1407s] multiplication
+[1409s] and now we're trying to back propagate
+[1411s] through this operation to count some m
+[1414s] so when we're calculating this
+[1415s] derivative
+[1417s] it's important to realize that these two
+[1419s] this looks like a single operation but
+[1421s] actually is two operations applied
+[1424s] sequentially the first operation that
+[1426s] pytorch did is it took this column
+[1428s] tensor and replicated it across all the
+[1432s] um across all the columns basically 27
+[1434s] times so that's the first operation it's
+[1435s] a replication and then the second
+[1437s] operation is the multiplication so let's
+[1439s] first background through the
+[1441s] multiplication
+[1442s] if these two arrays are of the same size
+[1445s] and we just have a and b of both of them
+[1448s] three by three then how do we mult how
+[1451s] do we back propagate through a
+[1452s] multiplication so if we just have
+[1454s] scalars and not tensors then if you have
+[1456s] C equals a times B then what is uh the
+[1459s] order of the of C with respect to B well
+[1461s] it's just a and so that's the local
+[1463s] derivative
+[1464s] so here in our case undoing the
+[1467s] multiplication and back propagating
+[1469s] through just the multiplication itself
+[1470s] which is element wise is going to be the
+[1473s] local derivative which in this case is
+[1476s] simply counts because counts is the a
+[1480s] so this is the local derivative and then
+[1482s] times because the chain rule D props
+[1486s] so this here is the derivative or the
+[1488s] gradient but with respect to replicated
+[1490s] B
+[1492s] but we don't have a replicated B we just
+[1494s] have a single B column so how do we now
+[1496s] back propagate through the replication
+[1499s] and intuitively this B1 is the same
+[1502s] variable and it's just reused multiple
+[1504s] times
+[1504s] and so you can look at it
+[1507s] as being equivalent to a case we've
+[1509s] encountered in micrograd
+[1510s] and so here I'm just pulling out a
+[1512s] random graph we used in micrograd we had
+[1514s] an example where a single node
+[1517s] has its output feeding into two branches
+[1519s] of basically the graph until the last
+[1522s] function and we're talking about how the
+[1525s] correct thing to do in the backward pass
+[1526s] is we need to sum all the gradients that
+[1529s] arrive at any one node so across these
+[1531s] different branches the gradients would
+[1533s] sum
+[1534s] so if a node is used multiple times the
+[1537s] gradients for all of its uses sum during
+[1539s] back propagation
+[1541s] so here B1 is used multiple times in all
+[1544s] these columns and therefore the right
+[1545s] thing to do here is to sum
+[1548s] horizontally across all the rows so I'm
+[1551s] going to sum in
+[1552s] Dimension one but we want to retain this
+[1555s] Dimension so that the uh so that counts
+[1558s] some end and its gradient are going to
+[1560s] be exactly the same shape so we want to
+[1562s] make sure that we keep them as true so
+[1564s] we don't lose this dimension and this
+[1567s] will make the count sum M be exactly
+[1568s] shape 32 by 1.
+[1571s] so revealing this comparison as well and
+[1574s] running this we see that we get an exact
+[1577s] match
+[1578s] so this derivative is exactly correct
+[1582s] and let me erase
+[1584s] this now let's also back propagate into
+[1586s] counts which is the other variable here
+[1589s] to create probes so from props to count
+[1592s] some INF we just did that let's go into
+[1593s] counts as well
+[1595s] so decounts will be
+[1599s] the chances are a so DC by d a is just B
+[1603s] so therefore it's count summative
+[1607s] um and then times chain rule the props
+[1611s] now councilman is three two by One D
+[1614s] probs is 32 by 27.
+[1617s] so
+[1619s] um those will broadcast fine and will
+[1622s] give us decounts there's no additional
+[1624s] summation required here
+[1626s] um there will be a broadcasting that
+[1628s] happens in this multiply here because
+[1631s] count some M needs to be replicated
+[1632s] again to correctly multiply D props but
+[1636s] that's going to give the correct result
+[1638s] so as far as the single operation is
+[1640s] concerned so we back probably go from
+[1643s] props to counts but we can't actually
+[1645s] check the derivative counts uh I have it
+[1649s] much later on and the reason for that is
+[1651s] because count sum in depends on counts
+[1654s] and so there's a second Branch here that
+[1656s] we have to finish because can't summon
+[1658s] back propagates into account sum and
+[1660s] count sum will buy properly into counts
+[1662s] and so counts is a node that is being
+[1664s] used twice it's used right here in two
+[1666s] props and it goes through this other
+[1668s] Branch through count summative
+[1670s] so even though we've calculated the
+[1672s] first contribution of it we still have
+[1674s] to calculate the second contribution of
+[1675s] it later
+[1677s] okay so we're continuing with this
+[1678s] Branch we have the derivative for count
+[1680s] sum if now we want the derivative of
+[1682s] count sum so D count sum equals what is
+[1685s] the local derivative of this operation
+[1687s] so this is basically an element wise one
+[1689s] over counts sum
+[1691s] so count sum raised to the power of
+[1693s] negative one is the same as one over
+[1695s] count sum if we go to all from alpha we
+[1697s] see that x to the negative one D by D by
+[1700s] D by DX of it is basically Negative X to
+[1703s] the negative 2. right one negative one
+[1705s] over squared is the same as Negative X
+[1707s] to the negative two
+[1709s] so D count sum here will be local
+[1712s] derivative is going to be negative
+[1715s] um
+[1716s] counts sum to the negative two that's
+[1719s] the local derivative times chain rule
+[1721s] which is D count sum in
+[1726s] so that's D count sum
+[1729s] let's uncomment this and check that I am
+[1731s] correct okay so we have perfect equality
+[1735s] and there's no sketchiness going on here
+[1738s] with any shapes because these are of the
+[1739s] same shape okay next up we want to back
+[1742s] propagate through this line we have that
+[1744s] count sum it's count.sum along the rows
+[1747s] so I wrote out
+[1749s] um some help here we have to keep in
+[1751s] mind that counts of course is 32 by 27
+[1753s] and count sum is 32 by 1. so in this
+[1757s] back propagation we need to take this
+[1759s] column of derivatives and transform it
+[1762s] into a array of derivatives
+[1764s] two-dimensional array
+[1766s] so what is this operation doing we're
+[1768s] taking in some kind of an input like say
+[1771s] a three by three Matrix a and we are
+[1772s] summing up the rows into a column tells
+[1776s] her B1 b2b3 that is basically this
+[1779s] so now we have the derivatives of the
+[1781s] loss with respect to B all the elements
+[1784s] of B
+[1785s] and now we want to derivative loss with
+[1787s] respect to all these little A's
+[1789s] so how do the B's depend on the ace is
+[1792s] basically what we're after what is the
+[1794s] local derivative of this operation
+[1796s] well we can see here that B1 only
+[1798s] depends on these elements here the
+[1801s] derivative of B1 with respect to all of
+[1803s] these elements down here is zero but for
+[1806s] these elements here like a11 a12 Etc the
+[1809s] local derivative is one right so DB 1 by
+[1813s] D A 1 1 for example is one so it's one
+[1816s] one and one
+[1818s] so when we have the derivative of loss
+[1819s] with respect to B1
+[1821s] did a local derivative of B1 with
+[1823s] respect to these inputs is zeros here
+[1825s] but it's one on these guys
+[1827s] so in the chain rule
+[1829s] we have the local derivative uh times
+[1832s] sort of the derivative of B1 and so
+[1835s] because the local derivative is one on
+[1837s] these three elements the look of them
+[1839s] are multiplying the derivative of B1
+[1841s] will just be the derivative of B1 and so
+[1845s] you can look at it as a router basically
+[1847s] an addition is a router of gradient
+[1850s] whatever gradient comes from above it
+[1852s] just gets routed equally to all the
+[1853s] elements that participate in that
+[1855s] addition
+[1856s] so in this case the derivative of B1
+[1858s] will just flow equally to the derivative
+[1860s] of a11 a12 and a13
+[1863s] . so if we have a derivative of all the
+[1865s] elements of B and in this column tensor
+[1867s] which is D counts sum that we've
+[1870s] calculated just now
+[1871s] we basically see that what that amounts
+[1874s] to is all of these are now flowing to
+[1877s] all these elements of a and they're
+[1879s] doing that horizontally
+[1881s] so basically what we want is we want to
+[1882s] take the decount sum of size 30 by 1 and
+[1886s] we just want to replicate it 27 times
+[1888s] horizontally to create 32 by 27 array
+[1892s] so there's many ways to implement this
+[1893s] operation you could of course just
+[1895s] replicate the tensor but I think maybe
+[1897s] one clean one is that the counts is
+[1900s] simply torch dot once like
+[1903s] so just an two-dimensional arrays of
+[1905s] ones in the shape of counts so 32 by 27
+[1909s] times D counts sum so this way we're
+[1913s] letting the broadcasting here basically
+[1916s] implement the replication you can look
+[1918s] at it that way
+[1919s] but then we have to also be careful
+[1922s] because decounts was already calculated
+[1925s] we calculated earlier here and that was
+[1928s] just the first branch and we're now
+[1929s] finishing the second Branch so we need
+[1931s] to make sure that these gradients add so
+[1933s] plus equals
+[1934s] and then here
+[1936s] um let's comment out the comparison and
+[1940s] let's make sure crossing fingers that we
+[1943s] have the correct result so pytorch
+[1945s] agrees with us on this gradient as well
+[1948s] okay hopefully we're getting a hang of
+[1949s] this now counts as an element-wise X of
+[1952s] Norm legits so now we want D Norm logits
+[1956s] and because it's an element price
+[1958s] operation everything is very simple what
+[1960s] is the local derivative of e to the X
+[1961s] it's famously just e to the x so this is
+[1965s] the local derivative
+[1968s] that is the local derivative now we
+[1970s] already calculated it and it's inside
+[1971s] counts so we may as well potentially
+[1973s] just reuse counts that is the local
+[1975s] derivative
+[1976s] times uh D counts
+[1981s] funny as that looks constant decount is
+[1984s] derivative on the normal objects and now
+[1987s] let's erase this and let's verify and it
+[1990s] looks good
+[1992s] so that's uh normal agents
+[1994s] okay so we are here on this line now the
+[1997s] normal objects
+[1998s] we have that and we're trying to
+[2000s] calculate the logits and deloget Maxes
+[2002s] so back propagating through this line
+[2005s] now we have to be careful here because
+[2006s] the shapes again are not the same and so
+[2009s] there's an implicit broadcasting
+[2010s] Happening Here
+[2012s] so normal jits has this shape 32 by 27
+[2014s] logist does as well but logit Maxis is
+[2017s] only 32 by one so there's a broadcasting
+[2020s] here in the minus
+[2022s] now here I try to sort of write out a
+[2025s] two example again we basically have that
+[2028s] this is our C equals a minus B
+[2030s] and we see that because of the shape
+[2032s] these are three by three but this one is
+[2034s] just a column
+[2035s] and so for example every element of C we
+[2037s] have to look at how it uh came to be and
+[2040s] every element of C is just the
+[2041s] corresponding element of a minus uh
+[2044s] basically that associated b
+[2048s] so it's very clear now that the
+[2050s] derivatives of every one of these c's
+[2053s] with respect to their inputs are one for
+[2056s] the corresponding a
+[2058s] and it's a negative one for the
+[2060s] corresponding B
+[2062s] and so therefore
+[2064s] um
+[2065s] the derivatives on the C will flow
+[2067s] equally to the corresponding Ace and
+[2070s] then also to the corresponding base but
+[2073s] then in addition to that the B's are
+[2075s] broadcast so we'll have to do the
+[2076s] additional sum just like we did before
+[2079s] and of course the derivatives for B's
+[2081s] will undergo a minus because the local
+[2083s] derivative here is uh negative one
+[2086s] so DC three two by D B3 is negative one
+[2090s] so let's just Implement that basically
+[2092s] delugits will be uh exactly copying the
+[2096s] derivative on normal objects
+[2098s] so
+[2099s] delugits equals the norm logits and I'll
+[2103s] do a DOT clone for safety so we're just
+[2105s] making a copy
+[2106s] and then we have that the loaded Maxis
+[2109s] will be the negative of the non-legits
+[2113s] because of the negative sign
+[2115s] and then we have to be careful because
+[2117s] logic Maxis is a column
+[2120s] and so just like we saw before because
+[2123s] we keep replicating the same elements
+[2126s] across all the columns
+[2128s] then in the backward pass because we
+[2131s] keep reusing this these are all just
+[2133s] like separate branches of use of that
+[2135s] one variable and so therefore we have to
+[2137s] do a Sum along one would keep them
+[2139s] equals true so that we don't destroy
+[2142s] this dimension
+[2143s] and then the logic Maxes will be the
+[2145s] same shape now we have to be careful
+[2147s] because this deloaches is not the final
+[2149s] deloaches and that's because not only do
+[2152s] we get gradient signal into logits
+[2154s] through here but the logic Maxes as a
+[2156s] function of logits and that's a second
+[2158s] Branch into logits so this is not yet
+[2161s] our final derivative for logits we will
+[2163s] come back later for the second branch
+[2165s] for now the logic Maxis is the final
+[2167s] derivative so let me uncomment this CMP
+[2170s] here and let's just run this
+[2172s] and logit Maxes hit by torch agrees with
+[2175s] us
+[2176s] so that was the derivative into through
+[2179s] this line
+[2181s] now before we move on I want to pause
+[2182s] here briefly and I want to look at these
+[2184s] logic Maxes and especially their
+[2186s] gradients
+[2187s] we've talked previously in the previous
+[2188s] lecture that the only reason we're doing
+[2191s] this is for the numerical stability of
+[2193s] the softmax that we are implementing
+[2194s] here and we talked about how if you take
+[2197s] these logents for any one of these
+[2199s] examples so one row of this logit's
+[2201s] tensor if you add or subtract any value
+[2204s] equally to all the elements then the
+[2207s] value of the probes will be unchanged
+[2209s] you're not changing soft Max the only
+[2211s] thing that this is doing is it's making
+[2213s] sure that X doesn't overflow and the
+[2215s] reason we're using a Max is because then
+[2217s] we are guaranteed that each row of
+[2218s] logits the highest number is zero and so
+[2221s] this will be safe
+[2223s] and so
+[2225s] um
+[2226s] basically what that has repercussions
+[2229s] if it is the case that changing logit
+[2231s] Maxis does not change the props and
+[2233s] therefore there's not change the loss
+[2235s] then the gradient on logic masses should
+[2237s] be zero right because saying those two
+[2240s] things is the same
+[2241s] so indeed we hope that this is very very
+[2243s] small numbers so indeed we hope this is
+[2245s] zero now because of floating Point uh
+[2248s] sort of wonkiness
+[2250s] um this doesn't come out exactly zero
+[2251s] only in some of the rows it does but we
+[2253s] get extremely small values like one e
+[2255s] negative nine or ten and so this is
+[2257s] telling us that the values of loaded
+[2259s] Maxes are not impacting the loss as they
+[2262s] shouldn't
+[2263s] it feels kind of weird to back propagate
+[2264s] through this branch honestly because
+[2268s] if you have any implementation of like f
+[2270s] dot cross entropy and pytorch and you
+[2272s] you block together all these elements
+[2274s] and you're not doing the back
+[2274s] propagation piece by piece then you
+[2277s] would probably assume that the
+[2279s] derivative through here is exactly zero
+[2281s] uh so you would be sort of
+[2283s] um skipping this branch because it's
+[2287s] only done for numerical stability but
+[2289s] it's interesting to see that even if you
+[2290s] break up everything into the full atoms
+[2293s] and you still do the computation as
+[2294s] you'd like with respect to numerical
+[2296s] stability uh the correct thing happens
+[2297s] and you still get a very very small
+[2300s] gradients here
+[2301s] um basically reflecting the fact that
+[2303s] the values of these do not matter with
+[2306s] respect to the final loss
+[2307s] okay so let's now continue back
+[2309s] propagation through this line here we've
+[2311s] just calculated the logit Maxis and now
+[2313s] we want to back prop into logits through
+[2315s] this second branch
+[2316s] now here of course we took legits and we
+[2318s] took the max along all the rows and then
+[2321s] we looked at its values here now the way
+[2323s] this works is that in pytorch
+[2327s] this thing here
+[2329s] the max returns both the values and it
+[2332s] Returns the indices at which those
+[2333s] values to count the maximum value
+[2335s] now in the forward pass we only used
+[2337s] values because that's all we needed but
+[2340s] in the backward pass it's extremely
+[2341s] useful to know about where those maximum
+[2344s] values occurred and we have the indices
+[2346s] at which they occurred and this will of
+[2348s] course helps us to help us do the back
+[2350s] propagation because what should the
+[2352s] backward pass be here in this case we
+[2354s] have the largest tensor which is 32 by
+[2356s] 27 and in each row we find the maximum
+[2358s] value and then that value gets plucked
+[2360s] out into loaded Maxis and so intuitively
+[2364s] um basically the derivative flowing
+[2367s] through here then should be one
+[2371s] times the look of derivatives is 1 for
+[2374s] the appropriate entry that was plucked
+[2375s] out
+[2376s] and then times the global derivative of
+[2379s] the logic axis
+[2380s] so really what we're doing here if you
+[2382s] think through it is we need to take the
+[2384s] deloachet Maxis and we need to scatter
+[2386s] it to the correct positions in these
+[2390s] logits from where the maximum values
+[2392s] came
+[2393s] and so
+[2394s] um
+[2396s] I came up with one line of code sort of
+[2398s] that does that let me just erase a bunch
+[2399s] of stuff here so the line of uh you
+[2402s] could do it kind of very similar to what
+[2403s] we've done here where we create a zeros
+[2405s] and then we populate uh the correct
+[2407s] elements uh so we use the indices here
+[2410s] and we would set them to be one but you
+[2413s] can also use one hot
+[2415s] so F dot one hot and then I'm taking the
+[2418s] lowest of Max over the First Dimension
+[2421s] dot indices and I'm telling uh pytorch
+[2424s] that the dimension of every one of these
+[2427s] tensors should be
+[2429s] um
+[2429s] 27 and so what this is going to do
+[2433s] is okay I apologize this is crazy filthy
+[2437s] that I am sure of this
+[2439s] it's really just a an array of where the
+[2441s] Maxes came from in each row and that
+[2444s] element is one and the all the other
+[2445s] elements are zero so it's a one-half
+[2447s] Vector in each row and these indices are
+[2450s] now populating a single one in the
+[2453s] proper place
+[2454s] and then what I'm doing here is I'm
+[2456s] multiplying by the logit Maxis and keep
+[2458s] in mind that this is a column
+[2461s] of 32 by 1. and so when I'm doing this
+[2465s] times the logic Maxis the logic Maxes
+[2468s] will broadcast and that column will you
+[2470s] know get replicated and in an element
+[2472s] wise multiply will ensure that each of
+[2475s] these just gets routed to whichever one
+[2477s] of these bits is turned on
+[2479s] and so that's another way to implement
+[2481s] uh this kind of a this kind of a
+[2483s] operation and both of these can be used
+[2486s] I just thought I would show an
+[2488s] equivalent way to do it and I'm using
+[2490s] plus equals because we already
+[2491s] calculated the logits here and this is
+[2493s] not the second branch
+[2495s] so let's
+[2497s] look at logits and make sure that this
+[2499s] is correct
+[2500s] and we see that we have exactly the
+[2502s] correct answer
+[2504s] next up we want to continue with logits
+[2506s] here that is an outcome of a matrix
+[2509s] multiplication and a bias offset in this
+[2511s] linear layer
+[2513s] so I've printed out the shapes of all
+[2516s] these intermediate tensors we see that
+[2518s] logits is of course 32 by 27 as we've
+[2520s] just seen
+[2521s] then the H here is 32 by 64. so these
+[2525s] are 64 dimensional hidden States and
+[2528s] then this W Matrix projects those 64
+[2530s] dimensional vectors into 27 dimensions
+[2532s] and then there's a 27 dimensional offset
+[2535s] which is a one-dimensional vector
+[2538s] now we should note that this plus here
+[2540s] actually broadcasts because H multiplied
+[2543s] by by W2 will give us a 32 by 27. and so
+[2547s] then this plus B2 is a 27 dimensional
+[2551s] lecture here
+[2552s] now in the rules of broadcasting what's
+[2553s] going to happen with this bias Vector is
+[2555s] that this one-dimensional Vector of 27
+[2557s] will get aligned with a padded dimension
+[2561s] of one on the left and it will basically
+[2563s] become a row vector and then it will get
+[2565s] replicated vertically 32 times to make
+[2568s] it 32 by 27 and then there's an
+[2570s] element-wise multiply
+[2572s] now
+[2574s] the question is how do we back propagate
+[2576s] from logits to the hidden States the
+[2579s] weight Matrix W2 and the bias B2
+[2582s] and you might think that we need to go
+[2583s] to some Matrix calculus and then we have
+[2587s] to look up the derivative for a matrix
+[2589s] multiplication but actually you don't
+[2591s] have to do any of that and you can go
+[2592s] back to First principles and derive this
+[2594s] yourself on a piece of paper and
+[2597s] specifically what I like to do and I
+[2598s] what I find works well for me is you
+[2600s] find a specific small example that you
+[2603s] then fully write out and then in the
+[2605s] process of analyzing how that individual
+[2607s] small example works you will understand
+[2608s] the broader pattern and you'll be able
+[2610s] to generalize and write out the full
+[2612s] general formula for what how these
+[2615s] derivatives flow in an expression like
+[2617s] this so let's try that out
+[2619s] so pardon the low budget production here
+[2621s] but what I've done here is I'm writing
+[2623s] it out on a piece of paper really what
+[2625s] we are interested in is we have a
+[2626s] multiply B plus C and that creates a d
+[2630s] and we have the derivative of the loss
+[2633s] with respect to D and we'd like to know
+[2634s] what the derivative of the losses with
+[2635s] respect to a b and c
+[2637s] now these here are little
+[2640s] two-dimensional examples of a matrix
+[2641s] multiplication Two by Two Times a two by
+[2643s] two
+[2644s] plus a 2 a vector of just two elements
+[2647s] C1 and C2 gives me a two by two
+[2650s] now notice here that I have a bias
+[2654s] Vector here called C and the bisex
+[2657s] vector is C1 and C2 but as I described
+[2659s] over here that bias Vector will become a
+[2661s] row Vector in the broadcasting and will
+[2663s] replicate vertically so that's what's
+[2664s] happening here as well C1 C2 is
+[2667s] replicated vertically and we see how we
+[2669s] have two rows of C1 C2 as a result
+[2673s] so now when I say write it out I just
+[2675s] mean like this basically break up this
+[2677s] matrix multiplication into the actual
+[2680s] thing that that's going on under the
+[2681s] hood so as a result of matrix
+[2684s] multiplication and how it works d11 is
+[2686s] the result of a DOT product between the
+[2688s] first row of a and the First Column of B
+[2691s] so a11 b11 plus a12 B21 plus C1
+[2697s] and so on so forth for all the other
+[2699s] elements of D and once you actually
+[2702s] write it out it becomes obvious this is
+[2703s] just a bunch of multipliers and
+[2706s] um adds and we know from micrograd how
+[2709s] to differentiate multiplies and adds and
+[2711s] so this is not scary anymore it's not
+[2713s] just matrix multiplication it's just uh
+[2715s] tedious unfortunately but this is
+[2717s] completely tractable we have DL by D for
+[2720s] all of these and we want DL by uh all
+[2723s] these little other variables so how do
+[2725s] we achieve that and how do we actually
+[2726s] get the gradients okay so the low budget
+[2729s] production continues here
+[2730s] so let's for example derive the
+[2732s] derivative of the loss with respect to
+[2734s] a11
+[2736s] we see here that a11 occurs twice in our
+[2738s] simple expression right here right here
+[2740s] and influences d11 and D12
+[2743s] . so this is so what is DL by d a one
+[2746s] one well it's DL by d11 times the local
+[2751s] derivative of d11 which in this case is
+[2753s] just b11 because that's what's
+[2755s] multiplying a11 here
+[2757s] so uh and likewise here the local
+[2760s] derivative of D12 with respect to a11 is
+[2762s] just B12 and so B12 well in the chain
+[2765s] rule therefore multiply the L by d 1 2.
+[2768s] and then because a11 is used both to
+[2771s] produce d11 and D12 we need to add up
+[2775s] the contributions of both of those sort
+[2778s] of chains that are running in parallel
+[2780s] and that's why we get a plus just adding
+[2782s] up those two
+[2784s] um those two contributions and that
+[2786s] gives us DL by d a one one we can do the
+[2789s] exact same analysis for the other one
+[2791s] for all the other elements of a and when
+[2794s] you simply write it out it's just super
+[2796s] simple
+[2797s] um taking of gradients on you know
+[2800s] expressions like this
+[2802s] you find that
+[2804s] this Matrix DL by D A that we're after
+[2807s] right if we just arrange all the all of
+[2809s] them in the same shape as a takes so a
+[2812s] is just too much Matrix so d l by D A
+[2815s] here will be also just the same shape
+[2819s] tester with the derivatives now so deal
+[2823s] by D a11 Etc
+[2825s] and we see that actually we can express
+[2826s] what we've written out here as a matrix
+[2829s] multiplied
+[2830s] and so it just so happens that D all by
+[2833s] that all of these formulas that we've
+[2835s] derived here by taking gradients can
+[2837s] actually be expressed as a matrix
+[2839s] multiplication and in particular we see
+[2841s] that it is the matrix multiplication of
+[2842s] these two array matrices
+[2845s] so it is the um DL by D and then Matrix
+[2850s] multiplying B but B transpose actually
+[2852s] so you see that B21 and b12 have changed
+[2857s] place
+[2858s] whereas before we had of course b11 B12
+[2861s] B2 on B22 so you see that this other
+[2865s] Matrix B is transposed
+[2867s] and so basically what we have long story
+[2869s] short just by doing very simple
+[2870s] reasoning here by breaking up the
+[2872s] expression in the case of a very simple
+[2874s] example is that DL by d a is which is
+[2878s] this is simply equal to DL by DD Matrix
+[2882s] multiplied with B transpose
+[2885s] so that is what we have so far now we
+[2888s] also want the derivative with respect to
+[2890s] um B and C now
+[2893s] for B I'm not actually doing the full
+[2895s] derivation because honestly it's um it's
+[2898s] not deep it's just uh annoying it's
+[2900s] exhausting you can actually do this
+[2902s] analysis yourself you'll also find that
+[2904s] if you take this these expressions and
+[2906s] you differentiate with respect to b
+[2907s] instead of a you will find that DL by DB
+[2910s] is also a matrix multiplication in this
+[2913s] case you have to take the Matrix a and
+[2915s] transpose it and Matrix multiply that
+[2917s] with bl by DD
+[2919s] and that's what gives you a deal by DB
+[2922s] and then here for the offsets C1 and C2
+[2926s] if you again just differentiate with
+[2927s] respect to C1 you will find an
+[2930s] expression like this
+[2932s] and C2 an expression like this
+[2935s] and basically you'll find the DL by DC
+[2937s] is simply because they're just
+[2939s] offsetting these Expressions you just
+[2941s] have to take the deal by DD Matrix
+[2944s] of the derivatives of D and you just
+[2947s] have to sum across the columns and that
+[2951s] gives you the derivatives for C
+[2953s] so long story short
+[2955s] the backward Paths of a matrix multiply
+[2958s] is a matrix multiply
+[2960s] and instead of just like we had D equals
+[2962s] a times B plus C in the scalar case uh
+[2965s] we sort of like arrive at something very
+[2967s] very similar but now uh with a matrix
+[2969s] multiplication instead of a scalar
+[2971s] multiplication
+[2972s] so the derivative of D with respect to a
+[2976s] is
+[2977s] DL by DD Matrix multiplied B trespose
+[2981s] and here it's a transpose multiply deal
+[2984s] by DD but in both cases it's a matrix
+[2986s] multiplication with the derivative and
+[2989s] the other term in the multiplication
+[2993s] and for C it is a sum
+[2995s] now I'll tell you a secret I can never
+[2998s] remember the formulas that we just
+[3000s] arrived for back proper gain information
+[3001s] multiplication and I can back propagate
+[3003s] through these Expressions just fine and
+[3005s] the reason this works is because the
+[3007s] dimensions have to work out
+[3009s] uh so let me give you an example say I
+[3011s] want to create DH
+[3013s] then what should the H be number one I
+[3016s] have to know that the shape of DH must
+[3019s] be the same as the shape of H
+[3021s] and the shape of H is 32 by 64. and then
+[3024s] the other piece of information I know is
+[3026s] that DH must be some kind of matrix
+[3028s] multiplication of the logits with W2
+[3032s] and delojits is 32 by 27 and W2 is a 64
+[3037s] by 27. there is only a single way to
+[3040s] make the shape work out in this case and
+[3043s] it is indeed the correct result in
+[3045s] particular here H needs to be 32 by 64.
+[3048s] the only way to achieve that is to take
+[3050s] a deluges
+[3052s] and Matrix multiply it with you see how
+[3055s] I have to take W2 but I have to
+[3057s] transpose it to make the dimensions work
+[3058s] out
+[3059s] so w to transpose and it's the only way
+[3062s] to make these to Matrix multiply those
+[3064s] two pieces to make the shapes work out
+[3066s] and that turns out to be the correct
+[3068s] formula so if we come here we want DH
+[3071s] which is d a and we see that d a is DL
+[3075s] by DD Matrix multiply B transpose
+[3078s] so that's Delo just multiply and B is W2
+[3081s] so W2 transpose which is exactly what we
+[3084s] have here so there's no need to remember
+[3086s] these formulas similarly now if I want
+[3090s] dw2 well I know that it must be a matrix
+[3093s] multiplication of D logits and H
+[3097s] and maybe there's a few transpose like
+[3099s] there's one transpose in there as well
+[3100s] and I don't know which way it is so I
+[3102s] have to come to W2 and I see that its
+[3104s] shape is 64 by 27
+[3107s] and that has to come from some interest
+[3109s] multiplication of these two
+[3111s] and so to get a 64 by 27 I need to take
+[3115s] um
+[3116s] H I need to transpose it
+[3119s] and then I need to Matrix multiply it
+[3121s] um so that will become 64 by 32 and then
+[3124s] I need to make sure to multiply with the
+[3125s] 32 by 27 and that's going to give me a
+[3127s] 64 by 27. so I need to make sure it's
+[3129s] multiplied this with the logist that
+[3131s] shape just like that that's the only way
+[3133s] to make the dimensions work out and just
+[3135s] use matrix multiplication and if we come
+[3137s] here we see that that's exactly what's
+[3139s] here so a transpose a for us is H
+[3143s] multiplied with deloaches
+[3145s] so that's W2 and then db2
+[3150s] is just the um
+[3153s] vertical sum and actually in the same
+[3155s] way there's only one way to make the
+[3157s] shapes work out I don't have to remember
+[3158s] that it's a vertical Sum along the zero
+[3160s] axis because that's the only way that
+[3162s] this makes sense because B2 shape is 27
+[3165s] so in order to get a um delugits
+[3170s] here is 30 by 27 so knowing that it's
+[3174s] just sum over deloaches in some
+[3176s] Direction
+[3179s] that direction must be zero because I
+[3182s] need to eliminate this Dimension so it's
+[3184s] this
+[3186s] so this is so let's kind of like the
+[3188s] hacky way let me copy paste and delete
+[3190s] that and let me swing over here and this
+[3193s] is our backward pass for the linear
+[3194s] layer uh hopefully
+[3197s] so now let's uncomment
+[3199s] these three and we're checking that we
+[3201s] got all the three derivatives correct
+[3204s] and run
+[3206s] and we see that h wh and B2 are all
+[3210s] exactly correct so we back propagated
+[3213s] through a linear layer
+[3216s] now next up we have derivative for the h
+[3219s] already and we need to back propagate
+[3221s] through 10h into h preact
+[3223s] so we want to derive DH preact
+[3227s] and here we have to back propagate
+[3228s] through a 10 H and we've already done
+[3230s] this in micrograd and we remember that
+[3232s] 10h has a very simple backward formula
+[3234s] now unfortunately if I just put in D by
+[3236s] DX of 10 h of X into both from alpha it
+[3239s] lets us down it tells us that it's a
+[3240s] hyperbolic secant function squared of X
+[3243s] it's not exactly helpful but luckily
+[3246s] Google image search does not let us down
+[3248s] and it gives us the simpler formula and
+[3250s] in particular if you have that a is
+[3252s] equal to 10 h of Z then d a by DZ by
+[3256s] propagating through 10 H is just one
+[3257s] minus a square and take note that 1
+[3261s] minus a square a here is the output of
+[3263s] the 10h not the input to the 10h Z so
+[3267s] the D A by DZ is here formulated in
+[3269s] terms of the output of that 10h
+[3271s] and here also in Google image search we
+[3274s] have the full derivation if you want to
+[3275s] actually take the actual definition of
+[3278s] 10h and work through the math to figure
+[3279s] out 1 minus standard square of Z
+[3282s] so 1 minus a square is the local
+[3285s] derivative in our case that is 1 minus
+[3289s] uh the output of 10 H squared which here
+[3292s] is H
+[3293s] so it's h squared and that is the local
+[3296s] derivative and then times the chain rule
+[3298s] DH
+[3300s] so that is going to be our candidate
+[3302s] implementation so if we come here
+[3305s] and then uncomment this let's hope for
+[3308s] the best
+[3309s] and we have the right answer
+[3312s] okay next up we have DH preact and we
+[3315s] want to back propagate into the gain the
+[3317s] B and raw and the B and bias
+[3319s] so here this is the bathroom parameters
+[3321s] being gained in bias inside the bash
+[3323s] term that take the B and raw that is
+[3325s] exact unit caution and then scale it and
+[3328s] shift it
+[3329s] and these are the parameters of The
+[3330s] Bachelor now here we have a
+[3333s] multiplication but it's worth noting
+[3335s] that this multiply is very very
+[3336s] different from this Matrix multiply here
+[3338s] Matrix multiply are DOT products between
+[3341s] rows and Columns of these matrices
+[3343s] involved this is an element twice
+[3345s] multiply so things are quite a bit
+[3346s] simpler
+[3347s] now we do have to be careful with some
+[3349s] of the broadcasting happening in this
+[3351s] line of code though so you see how BN
+[3353s] gain and B and bias are 1 by 64. but H
+[3358s] preact and B and raw are 32 by 64.
+[3362s] so we have to be careful with that and
+[3364s] make sure that all the shapes work out
+[3365s] fine and that the broadcasting is
+[3366s] correctly back propagated
+[3368s] so in particular let's start with the B
+[3370s] and Gain so DB and gain should be
+[3374s] and here this is again elementorized
+[3377s] multiply and whenever we have a times b
+[3379s] equals c we saw that the local
+[3381s] derivative here is just if this is a the
+[3383s] local derivative is just the B the other
+[3385s] one so the local derivative is just B
+[3387s] and raw and then times chain rule
+[3391s] so DH preact
+[3394s] so this is the candidate gradient now
+[3398s] again we have to be careful because B
+[3400s] and Gain Is of size 1 by 64. but this
+[3404s] here would be 32 by 64.
+[3408s] and so
+[3409s] um the correct thing to do in this case
+[3411s] of course is that b and gain here is a
+[3413s] rule Vector of 64 numbers it gets
+[3415s] replicated vertically in this operation
+[3418s] and so therefore the correct thing to do
+[3420s] is to sum because it's being replicated
+[3423s] and therefore all the gradients in each
+[3426s] of the rows that are now flowing
+[3427s] backwards need to sum up to that same
+[3430s] tensor DB and Gain so we have to sum
+[3433s] across all the zero all the examples
+[3436s] basically
+[3437s] which is the direction in which this
+[3439s] gets replicated
+[3440s] and now we have to be also careful
+[3441s] because we
+[3443s] um being gain is of shape 1 by 64. so in
+[3446s] fact I need to keep them as true
+[3449s] otherwise I would just get 64.
+[3451s] now I don't actually really remember why
+[3454s] the being gain and the BN bias I made
+[3456s] them be 1 by 64.
+[3460s] um
+[3461s] but the biases B1 and B2 I just made
+[3464s] them be one-dimensional vectors they're
+[3465s] not two-dimensional tensors so I can't
+[3467s] recall exactly why I left the gain and
+[3471s] the bias as two-dimensional but it
+[3473s] doesn't really matter as long as you are
+[3474s] consistent and you're keeping it the
+[3475s] same
+[3476s] so in this case we want to keep the
+[3478s] dimension so that the tensor shapes work
+[3481s] next up we have B and raw so DB and raw
+[3485s] will be BN gain
+[3489s] multiplying
+[3491s] dhreact that's our chain rule now what
+[3495s] about the
+[3497s] um
+[3498s] dimensions of this we have to be careful
+[3500s] right so DH preact is 32 by 64. B and
+[3504s] gain is 1 by 64. so it will just get
+[3507s] replicated and to create this
+[3509s] multiplication which is the correct
+[3511s] thing because in a forward pass it also
+[3513s] gets replicated in just the same way
+[3515s] so in fact we don't need the brackets
+[3517s] here we're done
+[3518s] and the shapes are already correct
+[3520s] and finally for the bias
+[3523s] very similar this bias here is very very
+[3526s] similar to the bias we saw when you
+[3527s] layer in the linear layer and we see
+[3529s] that the gradients from each preact will
+[3531s] simply flow into the biases and add up
+[3534s] because these are just these are just
+[3535s] offsets
+[3537s] and so basically we want this to be DH
+[3539s] preact but it needs to Sum along the
+[3541s] right Dimension and in this case similar
+[3544s] to the gain we need to sum across the
+[3546s] zeroth dimension the examples because of
+[3549s] the way that the bias gets replicated
+[3550s] vertically
+[3551s] and we also want to have keep them as
+[3554s] true
+[3555s] and so this will basically take this and
+[3557s] sum it up and give us a 1 by 64.
+[3560s] so this is the candidate implementation
+[3563s] it makes all the shapes work
+[3565s] let me bring it up down here and then
+[3568s] let me uncomment these three lines
+[3572s] to check that we are getting the correct
+[3573s] result for all the three tensors and
+[3576s] indeed we see that all of that got back
+[3578s] propagated correctly so now we get to
+[3580s] the batch Norm layer we see how here
+[3582s] being gay and being bias are the
+[3584s] parameters so the back propagation ends
+[3586s] but B and raw now is the output of the
+[3590s] standardization
+[3591s] so here what I'm doing of course is I'm
+[3593s] breaking up the batch form into
+[3594s] manageable pieces so we can back
+[3595s] propagate through each line individually
+[3597s] but basically what's happening is BN
+[3600s] mean I is the sum
+[3603s] so this is the B and mean I I apologize
+[3606s] for the variable naming B and diff is x
+[3610s] minus mu
+[3611s] B and div 2 is x minus mu squared here
+[3615s] inside the variance
+[3616s] B and VAR is the variance so uh Sigma
+[3620s] Square this is B and bar and it's
+[3622s] basically the sum of squares
+[3625s] so this is the x minus mu squared and
+[3628s] then the sum now you'll notice one
+[3630s] departure here
+[3632s] here it is normalized as 1 over m
+[3634s] uh which is number of examples here I'm
+[3637s] normalizing as one over n minus 1
+[3639s] instead of N and this is deliberate and
+[3642s] I'll come back to that in a bit when we
+[3643s] are at this line it is something called
+[3645s] the bezels correction
+[3647s] but this is how I want it in our case
+[3651s] bienvar inv then becomes basically
+[3653s] bienvar plus Epsilon Epsilon is one
+[3656s] negative five and then it's one over
+[3658s] square root
+[3659s] is the same as raising to the power of
+[3662s] negative 0.5 right because 0.5 is square
+[3665s] root and then negative makes it one over
+[3667s] square root
+[3668s] so BM Bar M is a one over this uh
+[3672s] denominator here and then we can see
+[3674s] that b and raw which is the X hat here
+[3676s] is equal to the BN diff the numerator
+[3679s] multiplied by the
+[3682s] um BN bar in
+[3684s] and this line here that creates pre-h
+[3687s] pre-act was the last piece we've already
+[3689s] back propagated through it
+[3691s] so now what we want to do is we are here
+[3694s] and we have B and raw and we have to
+[3695s] first back propagate into B and diff and
+[3698s] B and Bar M
+[3700s] so now we're here and we have DB and raw
+[3703s] and we need to back propagate through
+[3705s] this line
+[3706s] now I've written out the shapes here and
+[3709s] indeed bien VAR m is a shape 1 by 64. so
+[3713s] there is a broadcasting happening here
+[3715s] that we have to be careful with but it
+[3717s] is just an element-wise simple
+[3718s] multiplication by now we should be
+[3720s] pretty comfortable with that to get DB
+[3722s] and diff we know that this is just B and
+[3725s] varm
+[3726s] multiplied with
+[3728s] DP and raw
+[3731s] and conversely to get dbmring
+[3735s] we need to take the end if
+[3737s] and multiply that by DB and raw
+[3742s] so this is the candidate but of course
+[3744s] we need to make sure that broadcasting
+[3746s] is obeyed so in particular B and VAR M
+[3749s] multiplying with DB and raw
+[3751s] will be okay and give us 32 by 64 as we
+[3755s] expect
+[3756s] but dbm VAR inv would be taking a 32 by
+[3760s] 64.
+[3762s] multiplying it by 32 by 64. so this is a
+[3765s] 32 by 64. but of course DB this uh B and
+[3769s] VAR in is only 1 by 64. so the second
+[3772s] line here needs a sum across the
+[3775s] examples and because there's this
+[3777s] Dimension here we need to make sure that
+[3780s] keep them is true
+[3782s] so this is the candidate
+[3784s] let's erase this and let's swing down
+[3787s] here
+[3789s] and implement it and then let's comment
+[3791s] out dbm barif and DB and diff
+[3796s] now we'll actually notice that DB and
+[3798s] diff by the way is going to be incorrect
+[3802s] so when I run this
+[3804s] BMR m is correct B and diff is not
+[3807s] correct and this is actually expected
+[3810s] because we're not done with b and diff
+[3814s] so in particular when we slide here we
+[3816s] see here that b and raw as a function of
+[3817s] B and diff but actually B and far of is
+[3820s] a function of B of R which is a function
+[3822s] of B and df2 which is a function of B
+[3824s] and diff
+[3825s] so it comes here so bdn diff
+[3828s] um these variable names are crazy I'm
+[3830s] sorry it branches out into two branches
+[3833s] and we've only done one branch of it we
+[3835s] have to continue our back propagation
+[3837s] and eventually come back to B and diff
+[3838s] and then we'll be able to do a plus
+[3840s] equals and get the actual card gradient
+[3842s] for now it is good to verify that CMP
+[3845s] also works it doesn't just lie to us and
+[3847s] tell us that everything is always
+[3848s] correct it can in fact detect when your
+[3851s] gradient is not correct so it's that's
+[3853s] good to see as well okay so now we have
+[3855s] the derivative here and we're trying to
+[3857s] back propagate through this line
+[3858s] and because we're raising to a power of
+[3861s] negative 0.5 I brought up the power rule
+[3863s] and we see that basically we have that
+[3865s] the BM bar will now be we bring down the
+[3868s] exponent so negative 0.5 times
+[3871s] uh X which is this
+[3874s] and now raised to the power of negative
+[3876s] 0.5 minus 1 which is negative 1.5
+[3879s] now we would have to also apply a small
+[3882s] chain rule here in our head because we
+[3885s] need to take further the derivative of B
+[3888s] and VAR with respect to this expression
+[3889s] here inside the bracket but because this
+[3891s] is an elementalized operation and
+[3893s] everything is fairly simple that's just
+[3894s] one and so there's nothing to do there
+[3897s] so this is the local derivative and then
+[3900s] times the global derivative to create
+[3901s] the chain rule this is just times the BM
+[3904s] bar have
+[3905s] so this is our candidate let me bring
+[3908s] this down
+[3910s] and uncommon to the check
+[3914s] and we see that we have the correct
+[3916s] result
+[3917s] now before we propagate through the next
+[3919s] line I want to briefly talk about the
+[3920s] note here where I'm using the bezels
+[3922s] correction dividing by n minus 1 instead
+[3924s] of dividing by n when I normalize here
+[3927s] the sum of squares
+[3929s] now you'll notice that this is departure
+[3931s] from the paper which uses one over n
+[3933s] instead not one over n minus one their m
+[3936s] is RN
+[3938s] and
+[3939s] um so it turns out that there are two
+[3940s] ways of estimating variance of an array
+[3943s] one is the biased estimate which is one
+[3946s] over n and the other one is the unbiased
+[3949s] estimate which is one over n minus one
+[3951s] now confusingly in the paper this is uh
+[3954s] not very clearly described and also it's
+[3956s] a detail that kind of matters I think
+[3958s] um they are using the biased version
+[3960s] training time but later when they are
+[3962s] talking about the inference they are
+[3964s] mentioning that when they do the
+[3966s] inference they are using the unbiased
+[3968s] estimate which is the n minus one
+[3970s] version in
+[3972s] um
+[3972s] basically for inference
+[3975s] and to calibrate the running mean and
+[3978s] the running variance basically and so
+[3980s] they they actually introduce a trained
+[3982s] test mismatch where in training they use
+[3984s] the biased version and in the in test
+[3986s] time they use the unbiased version I
+[3988s] find this extremely confusing you can
+[3990s] read more about the bezels correction
+[3992s] and why uh dividing by n minus one gives
+[3995s] you a better estimate of the variance in
+[3997s] a case where you have population size or
+[3999s] samples for the population
+[4001s] that are very small and that is indeed
+[4004s] the case for us because we are dealing
+[4006s] with many patches and these mini matches
+[4008s] are a small sample of a larger
+[4010s] population which is the entire training
+[4012s] set and so it just turns out that if you
+[4015s] just estimate it using one over n that
+[4017s] actually almost always underestimates
+[4018s] the variance and it is a biased
+[4020s] estimator and it is advised that you use
+[4022s] the unbiased version and divide by n
+[4024s] minus one and you can go through this
+[4026s] article here that I liked that actually
+[4028s] describes the full reasoning and I'll
+[4029s] link it in the video description
+[4032s] now when you calculate the torture
+[4033s] variance
+[4035s] you'll notice that they take the
+[4036s] unbiased flag whether or not you want to
+[4038s] divide by n or n minus one confusingly
+[4041s] they do not mention what the default is
+[4044s] for unbiased but I believe unbiased by
+[4046s] default is true I'm not sure why the
+[4049s] docs here don't cite that
+[4051s] now in The Bachelor
+[4053s] 1D the documentation again is kind of
+[4055s] wrong and confusing it says that the
+[4058s] standard deviation is calculated via the
+[4059s] biased estimator
+[4061s] but this is actually not exactly right
+[4063s] and people have pointed out that it is
+[4064s] not right in a number of issues since
+[4066s] then because actually the rabbit hole is
+[4069s] deeper and they follow the paper exactly
+[4072s] and they use the biased version for
+[4074s] training but when they're estimating the
+[4076s] running standard deviation we are using
+[4078s] the unbiased version so again there's
+[4080s] the train test mismatch so long story
+[4082s] short I'm not a fan of trained test
+[4085s] discrepancies I basically kind of
+[4087s] consider
+[4088s] the fact that we use the bias version
+[4090s] the training time and the unbiased test
+[4093s] time I basically consider this to be a
+[4094s] bug and I don't think that there's a
+[4096s] good reason for that it's not really
+[4098s] they don't really go into the detail of
+[4099s] the reasoning behind it in this paper so
+[4102s] that's why I basically prefer to use the
+[4104s] bestless correction in my own work
+[4106s] unfortunately Bastion does not take a
+[4109s] keyword argument that tells you whether
+[4110s] or not you want to use the unbiased
+[4113s] version of the bias version in both
+[4114s] train and test and so therefore anyone
+[4116s] using batch normalization basically in
+[4118s] my view has a bit of a bug in the code
+[4121s] um
+[4122s] and this turns out to be much less of a
+[4124s] problem if your batch mini batch sizes
+[4126s] are a bit larger but still I just might
+[4128s] kind of uh unpardable so maybe someone
+[4131s] can explain why this is okay but for now
+[4133s] I prefer to use the unbiased version
+[4135s] consistently both during training and at
+[4137s] this time and that's why I'm using one
+[4140s] over n minus one here
+[4141s] okay so let's now actually back
+[4143s] propagate through this line
+[4145s] so
+[4147s] the first thing that I always like to do
+[4148s] is I like to scrutinize the shapes first
+[4150s] so in particular here looking at the
+[4152s] shapes of what's involved I see that b
+[4154s] and VAR shape is 1 by 64. so it's a row
+[4158s] vector and BND if two dot shape is 32 by
+[4161s] 64.
+[4162s] so clearly here we're doing a sum over
+[4165s] the zeroth axis to squash the first
+[4168s] dimension of of the shapes here using a
+[4172s] sum so that right away actually hints to
+[4175s] me that there will be some kind of a
+[4176s] replication or broadcasting in the
+[4178s] backward pass and maybe you're noticing
+[4180s] the pattern here but basically anytime
+[4182s] you have a sum in the forward pass that
+[4185s] turns into a replication or broadcasting
+[4187s] in the backward pass along the same
+[4189s] Dimension and conversely when we have a
+[4192s] replication or a broadcasting in the
+[4194s] forward pass that indicates a variable
+[4197s] reuse and so in the backward pass that
+[4199s] turns into a sum over the exact same
+[4201s] dimension
+[4202s] and so hopefully you're noticing that
+[4204s] Duality that those two are kind of like
+[4206s] the opposite of each other in the
+[4207s] forward and backward pass
+[4209s] now once we understand the shapes the
+[4211s] next thing I like to do always is I like
+[4212s] to look at a toy example in my head to
+[4215s] sort of just like understand roughly how
+[4216s] uh the variable the variable
+[4218s] dependencies go in the mathematical
+[4219s] formula
+[4221s] so here we have a two-dimensional array
+[4224s] of the end of two which we are scaling
+[4226s] by a constant and then we are summing uh
+[4229s] vertically over the columns so if we
+[4232s] have a two by two Matrix a and then we
+[4233s] sum over the columns and scale we would
+[4236s] get a row Vector B1 B2 and B1 depends on
+[4239s] a in this way whereas just sum they're
+[4242s] scaled of a and B2 in this way where
+[4245s] it's the second column sump and scale
+[4248s] and so looking at this basically
+[4252s] what we want to do now is we have the
+[4253s] derivatives on B1 and B2 and we want to
+[4255s] back propagate them into Ace and so it's
+[4258s] clear that just differentiating in your
+[4259s] head the local derivative here is one
+[4261s] over n minus 1 times uh one
+[4265s] uh for each one of these A's and um
+[4269s] basically the derivative of B1 has to
+[4271s] flow through The Columns of a
+[4273s] scaled by one over n minus one
+[4276s] and that's roughly What's Happening Here
+[4278s] so intuitively the derivative flow tells
+[4281s] us that DB and diff2
+[4284s] will be the local derivative of this
+[4287s] operation and there are many ways to do
+[4289s] this by the way but I like to do
+[4291s] something like this torch dot once like
+[4293s] of bndf2 so I'll create a large array
+[4297s] two-dimensional of ones
+[4299s] and then I will scale it so 1.0 divided
+[4302s] by n minus 1.
+[4304s] so this is a array of
+[4306s] um one over n minus one and that's sort
+[4309s] of like the local derivative
+[4310s] and now for the chain rule I will simply
+[4313s] just multiply it by dbm bar
+[4318s] and notice here what's going to happen
+[4320s] this is 32 by 64 and this is just 1 by
+[4322s] 64. so I'm letting the broadcasting do
+[4326s] the replication because internally in
+[4328s] pytorch basically dbnbar which is 1 by
+[4331s] 64 row vector
+[4333s] well in this multiplication get
+[4335s] um copied vertically until the two are
+[4338s] of the same shape and then there will be
+[4339s] an element wise multiply and so that uh
+[4342s] so that the broadcasting is basically
+[4343s] doing the replication
+[4345s] and I will end up with the derivatives
+[4347s] of DB and diff2 here
+[4350s] so this is the candidate solution let's
+[4352s] bring it down here
+[4353s] let's uncomment this line where we check
+[4356s] it and let's hope for the best
+[4359s] and indeed we see that this is the
+[4361s] correct formula next up let's
+[4363s] differentiate here and to be in this
+[4365s] so here we have that b and diff is
+[4368s] element y squared to create B and F2
+[4370s] so this is a relatively simple
+[4372s] derivative because it's a simple element
+[4374s] wise operation so it's kind of like the
+[4376s] scalar case and we have that DB and div
+[4379s] should be if this is x squared then the
+[4382s] derivative of this is 2x right so it's
+[4384s] simply 2 times B and if that's the local
+[4387s] derivative
+[4388s] and then times chain Rule and the shape
+[4391s] of these is the same they are of the
+[4393s] same shape so times this
+[4395s] so that's the backward pass for this
+[4397s] variable let me bring that down here
+[4400s] and now we have to be careful because we
+[4402s] already calculated dbm depth right so
+[4404s] this is just the end of the other uh you
+[4407s] know other Branch coming back to B and
+[4410s] diff
+[4410s] because B and diff was already back
+[4412s] propagated to way over here
+[4414s] from being raw so we now completed the
+[4417s] second branch and so that's why I have
+[4419s] to do plus equals and if you recall we
+[4422s] had an incorrect derivative for being
+[4423s] diff before and I'm hoping that once we
+[4426s] append this last missing piece we have
+[4428s] the exact correctness so let's run
+[4431s] ambient to be in div now actually shows
+[4435s] the exact correct derivative
+[4437s] um so that's comforting okay so let's
+[4440s] now back propagate through this line
+[4441s] here
+[4443s] um the first thing we do of course is we
+[4444s] check the shapes and I wrote them out
+[4447s] here and basically the shape of this is
+[4448s] 32 by 64. hpbn is the same shape
+[4452s] but B and mean I is a row Vector 1 by
+[4455s] 64. so this minus here will actually do
+[4457s] broadcasting and so we have to be
+[4459s] careful with that and as a hint to us
+[4461s] again because of The Duality a
+[4463s] broadcasting and the forward pass means
+[4465s] a variable reuse and therefore there
+[4467s] will be a sum in the backward pass
+[4470s] so let's write out the backward pass
+[4471s] here now
+[4473s] um
+[4474s] back propagate into the hpbn
+[4477s] because this is these are the same shape
+[4479s] then the local derivative for each one
+[4481s] of the elements here is just one for the
+[4483s] corresponding element in here
+[4485s] so basically what this means is that the
+[4487s] gradient just simply copies it's just a
+[4490s] variable assignment it's quality so I'm
+[4492s] just going to clone this tensor just for
+[4494s] safety to create an exact copy of DB and
+[4498s] div
+[4500s] and then here to back propagate into
+[4501s] this one what I'm inclined to do here is
+[4507s] will basically be
+[4509s] uh what is the local derivative well
+[4512s] it's negative torch.1's like
+[4516s] of the shape of uh B and diff
+[4519s] right
+[4522s] and then times
+[4524s] the um
+[4527s] the derivative here dbf
+[4532s] and this here is the back propagation
+[4534s] for the replicated B and mean I
+[4537s] so I still have to back propagate
+[4539s] through the uh replication in the
+[4542s] broadcasting and I do that by doing a
+[4543s] sum so I'm going to take this whole
+[4545s] thing and I'm going to do a sum over the
+[4547s] zeroth dimension which was the
+[4549s] replication
+[4553s] so if you scrutinize this by the way
+[4555s] you'll notice that this is the same
+[4557s] shape as that and so what I'm doing uh
+[4560s] what I'm doing here doesn't actually
+[4561s] make that much sense because it's just a
+[4563s] array of ones multiplying DP and diff so
+[4566s] in fact I can just do this
+[4570s] um and that is equivalent
+[4572s] so this is the candidate backward pass
+[4575s] let me copy it here and then let me
+[4578s] comment out this one and this one
+[4582s] enter
+[4584s] and it's wrong
+[4587s] damn
+[4589s] actually sorry this is supposed to be
+[4591s] wrong and it's supposed to be wrong
+[4593s] because
+[4594s] we are back propagating from a b and
+[4596s] diff into hpbn and but we're not done
+[4599s] because B and mean I depends on hpbn and
+[4603s] there will be a second portion of that
+[4604s] derivative coming from this second
+[4606s] Branch so we're not done yet and we
+[4608s] expect it to be incorrect so there you
+[4610s] go
+[4610s] uh so let's now back propagate from uh B
+[4613s] and mean I into hpbn
+[4616s] um
+[4617s] and so here again we have to be careful
+[4618s] because there's a broadcasting along
+[4621s] um or there's a Sum along the zeroth
+[4623s] dimension so this will turn into
+[4624s] broadcasting in the backward pass now
+[4626s] and I'm going to go a little bit faster
+[4628s] on this line because it is very similar
+[4630s] to the line that we had before and
+[4632s] multiplies in the past in fact
+[4634s] so the hpbn
+[4638s] will be
+[4640s] the gradient will be scaled by 1 over n
+[4642s] and then basically this gradient here on
+[4645s] dbn mean I
+[4647s] is going to be scaled by 1 over n and
+[4650s] then it's going to flow across all the
+[4652s] columns and deposit itself into the hpvn
+[4655s] so what we want is this thing scaled by
+[4658s] 1 over n
+[4659s] only put the constant up front here
+[4663s] um
+[4665s] so scale down the gradient and now we
+[4667s] need to replicate it across all the um
+[4671s] across all the rows here so we I like to
+[4675s] do that by torch.lunslike of basically
+[4680s] um hpbn
+[4683s] and I will let the broadcasting do the
+[4685s] work of replication
+[4689s] so
+[4694s] like that
+[4696s] so this is uh the hppn and hopefully
+[4701s] we can plus equals that
+[4707s] so this here is broadcasting
+[4710s] um and then this is the scaling so this
+[4712s] should be current
+[4713s] okay
+[4715s] so that completes the back propagation
+[4717s] of the bathroom layer and we are now
+[4718s] here let's back propagate through the
+[4720s] linear layer one here now because
+[4723s] everything is getting a little
+[4724s] vertically crazy I copy pasted the line
+[4726s] here and let's just back properly
+[4728s] through this one line
+[4730s] so first of course we inspect the shapes
+[4732s] and we see that this is 32 by 64. MCAT
+[4736s] is 32 by 30.
+[4738s] W1 is 30 30 by 64 and B1 is just 64. so
+[4744s] as I mentioned back propagating through
+[4746s] linear layers is fairly easy just by
+[4748s] matching the shapes so let's do that we
+[4751s] have that dmcat
+[4754s] should be
+[4755s] um some matrix multiplication of dhbn
+[4758s] with uh W1 and one transpose thrown in
+[4761s] there so to make uh MCAT be 32 by 30
+[4768s] I need to take dhpn
+[4772s] 32 by 64 and multiply it by w1.
+[4776s] transpose
+[4779s] to get the only one I need to end up
+[4783s] with 30 by 64.
+[4785s] so to get that I need to take uh MCAT
+[4788s] transpose
+[4791s] and multiply that by
+[4793s] uh dhpion
+[4798s] and finally to get DB1
+[4801s] this is a addition and we saw that
+[4804s] basically I need to just sum the
+[4806s] elements in dhpbn along some Dimension
+[4809s] and to make the dimensions work out I
+[4812s] need to Sum along the zeroth axis here
+[4814s] to eliminate this Dimension and we do
+[4817s] not keep dims
+[4819s] uh so that we want to just get a single
+[4821s] one-dimensional lecture of 64.
+[4823s] so these are the claimed derivatives
+[4827s] let me put that here and let me
+[4829s] uncomment three lines and cross our
+[4832s] fingers
+[4834s] everything is great okay so we now
+[4836s] continue almost there we have the
+[4837s] derivative of MCAT and we want to
+[4839s] derivative we want to back propagate
+[4841s] into m
+[4843s] so I again copied this line over here
+[4846s] so this is the forward pass and then
+[4848s] this is the shapes so remember that the
+[4851s] shape here was 32 by 30 and the original
+[4853s] shape of M plus 32 by 3 by 10. so this
+[4857s] layer in the forward pass as you recall
+[4858s] did the concatenation of these three
+[4861s] 10-dimensional character vectors
+[4864s] and so now we just want to undo that
+[4866s] so this is actually relatively
+[4868s] straightforward operation because uh the
+[4871s] backward pass of the what is the view
+[4872s] view is just a representation of the
+[4875s] array it's just a logical form of how
+[4877s] you interpret the array so let's just
+[4878s] reinterpret it to be what it was before
+[4881s] so in other words the end is not uh 32
+[4885s] by 30. it is basically dmcat
+[4889s] but if you view it as the original shape
+[4894s] so just m dot shape
+[4897s] uh you can you can pass in tuples into
+[4899s] view
+[4900s] and so this should just be okay
+[4904s] we just re-represent that view and then
+[4907s] we uncomment this line here and
+[4909s] hopefully
+[4911s] yeah so the derivative of M is correct
+[4915s] so in this case we just have to
+[4916s] re-represent the shape of those
+[4917s] derivatives into the original View
+[4919s] so now we are at the final line and the
+[4921s] only thing that's left to back propagate
+[4922s] through is this indexing operation here
+[4925s] MSC at xB so as I did before I copy
+[4929s] pasted this line here and let's look at
+[4931s] the shapes of everything that's involved
+[4932s] and remind ourselves how this worked
+[4935s] so m.shape was 32 by 3 by 10.
+[4939s] it says 32 examples and then we have
+[4942s] three characters each one of them has a
+[4944s] 10 dimensional embedding
+[4946s] and this was achieved by taking the
+[4948s] lookup table C which have 27 possible
+[4951s] characters
+[4952s] each of them 10 dimensional and we
+[4954s] looked up
+[4955s] at the rows that were specified inside
+[4959s] this tensor xB
+[4961s] so XB is 32 by 3 and it's basically
+[4963s] giving us for each example the Identity
+[4965s] or the index of which character is part
+[4969s] of that example
+[4970s] and so here I'm showing the first five
+[4972s] rows of three of this tensor xB
+[4977s] and so we can see that for example here
+[4978s] it was the first example in this batch
+[4980s] is that the first character and the
+[4982s] first character and the fourth character
+[4984s] comes into the neural net
+[4986s] and then we want to predict the next
+[4988s] character in a sequence after the
+[4990s] character is one one four
+[4992s] so basically What's Happening Here is
+[4994s] there are integers inside XB and each
+[4998s] one of these integers is specifying
+[4999s] which row of C we want to pluck out
+[5002s] right and then we arrange those rows
+[5005s] that we've plucked out into 32 by 3 by
+[5008s] 10 tensor and we just package them in we
+[5010s] just package them into the sensor
+[5013s] and now what's happening is that we have
+[5015s] D amp
+[5016s] so for every one of these uh basically
+[5019s] plucked out rows we have their gradients
+[5021s] now
+[5022s] but they're arranged inside this 32 by 3
+[5025s] by 10 tensor so all we have to do now is
+[5028s] we just need to Route this gradient
+[5029s] backwards through this assignment so we
+[5032s] need to find which row of C that every
+[5034s] one of these
+[5036s] um 10 dimensional embeddings come from
+[5039s] and then we need to deposit them into DC
+[5043s] so we just need to undo the indexing and
+[5046s] of course if any of these rows of C was
+[5048s] used multiple times which almost
+[5050s] certainly is the case like the row one
+[5051s] and one was used multiple times then we
+[5053s] have to remember that the gradients that
+[5055s] arrive there have to add
+[5058s] so for each occurrence we have to have
+[5059s] an addition
+[5061s] so let's now write this out and I don't
+[5063s] actually know if like a much better way
+[5064s] to do this than a for Loop unfortunately
+[5066s] in Python
+[5068s] um so maybe someone can come up with a
+[5069s] vectorized efficient operation but for
+[5072s] now let's just use for loops so let me
+[5074s] create a torch.zeros like
+[5077s] C to initialize uh just uh 27 by 10
+[5080s] tensor of all zeros
+[5083s] and then honestly 4K in range XB dot
+[5086s] shape at zero
+[5089s] maybe someone has a better way to do
+[5091s] this but for J and range
+[5093s] be that shape at one
+[5095s] this is going to iterate over all the
+[5098s] um all the elements of XB all these
+[5101s] integers
+[5103s] and then let's get the index at this
+[5105s] position
+[5106s] so the index is basically x b at KJ
+[5111s] so that an example of that like is 11 or
+[5114s] 14 and so on
+[5116s] and now in the forward pass we took
+[5119s] and we basically took um
+[5124s] the row of C at index and we deposited
+[5127s] it into M at K of J
+[5130s] that's what happened that's where they
+[5132s] are packaged so now we need to go
+[5134s] backwards and we just need to route
+[5136s] DM at the position KJ
+[5139s] we now have these derivatives
+[5142s] for each position and it's 10
+[5144s] dimensional
+[5145s] and you just need to go into the correct
+[5147s] row of C
+[5149s] so DC rather at IX is this but plus
+[5154s] equals
+[5155s] because there could be multiple
+[5156s] occurrences uh like the same row could
+[5158s] have been used many many times and so
+[5160s] all of those derivatives will just go
+[5164s] backwards through the indexing and they
+[5166s] will add
+[5167s] so this is my candidate solution
+[5172s] let's copy it here
+[5176s] let's uncomment this and cross our
+[5179s] fingers
+[5180s] hey
+[5181s] so that's it we've back propagated
+[5184s] through
+[5185s] this entire Beast
+[5188s] so there we go totally makes sense
+[5191s] so now we come to exercise two it
+[5193s] basically turns out that in this first
+[5194s] exercise we were doing way too much work
+[5196s] uh we were back propagating way too much
+[5199s] and it was all good practice and so on
+[5200s] but it's not what you would do in
+[5202s] practice and the reason for that is for
+[5204s] example here I separated out this loss
+[5207s] calculation over multiple lines and I
+[5209s] broke it up all all to like its smallest
+[5211s] atomic pieces and we back propagated
+[5213s] through all of those individually
+[5215s] but it turns out that if you just look
+[5216s] at the mathematical expression for the
+[5218s] loss
+[5220s] um then actually you can do the
+[5222s] differentiation on pen and paper and a
+[5224s] lot of terms cancel and simplify and the
+[5226s] mathematical expression you end up with
+[5227s] can be significantly shorter and easier
+[5230s] to implement than back propagating
+[5231s] through all the little pieces of
+[5232s] everything you've done
+[5233s] so before we had this complicated
+[5236s] forward paths going from logits to the
+[5238s] loss
+[5239s] but in pytorch everything can just be
+[5241s] glued together into a single call at
+[5242s] that cross entropy you just pass in
+[5244s] logits and the labels and you get the
+[5246s] exact same loss as I verify here so our
+[5248s] previous loss and the fast loss coming
+[5251s] from the chunk of operations as a single
+[5253s] mathematical expression is the same but
+[5256s] it's much much faster in a forward pass
+[5258s] it's also much much faster in backward
+[5260s] pass and the reason for that is if you
+[5262s] just look at the mathematical form of
+[5263s] this and differentiate again you will
+[5265s] end up with a very small and short
+[5266s] expression so that's what we want to do
+[5268s] here we want to in a single operation or
+[5271s] in a single go or like very quickly go
+[5274s] directly to delojits
+[5276s] and we need to implement the logits as a
+[5279s] function of logits and yb's
+[5282s] but it will be significantly shorter
+[5284s] than whatever we did here where to get
+[5286s] to deluggets we had to go all the way
+[5288s] here
+[5290s] so all of this work can be skipped in a
+[5292s] much much simpler mathematical
+[5293s] expression that you can Implement here
+[5296s] so you can give it a shot yourself
+[5298s] basically look at what exactly is the
+[5301s] mathematical expression of loss and
+[5303s] differentiate with respect to the logits
+[5306s] so let me show you a hint you can of
+[5309s] course try it fully yourself but if not
+[5311s] I can give you some hint of how to get
+[5313s] started mathematically
+[5316s] so basically What's Happening Here is we
+[5318s] have logits then there's a softmax that
+[5321s] takes the logits and gives you
+[5322s] probabilities then we are using the
+[5324s] identity of the correct next character
+[5326s] to pluck out a row of probabilities take
+[5330s] the negative log of it to get our
+[5331s] negative block probability and then we
+[5334s] average up all the log probabilities or
+[5336s] negative block probabilities to get our
+[5338s] loss
+[5339s] so basically what we have is for a
+[5341s] single individual example rather we have
+[5344s] that loss is equal to negative log
+[5346s] probability uh where P here is kind of
+[5349s] like thought of as a vector of all the
+[5351s] probabilities so at the Y position where
+[5354s] Y is the label
+[5356s] and we have that P here of course is the
+[5359s] softmax so the ith component of P of
+[5363s] this probability Vector is just the
+[5365s] softmax function so raising all the
+[5368s] logits uh basically to the power of E
+[5371s] and normalizing so everything comes to
+[5374s] 1.
+[5375s] now if you write out P of Y here you can
+[5378s] just write out the soft Max and then
+[5380s] basically what we're interested in is
+[5381s] we're interested in the derivative of
+[5383s] the loss with respect to the I logit
+[5387s] and so basically it's a d by DLI of this
+[5391s] expression here
+[5392s] where we have L indexed with the
+[5394s] specific label Y and on the bottom we
+[5396s] have a sum over J of e to the L J and
+[5398s] the negative block of all that so
+[5400s] potentially give it a shot pen and paper
+[5402s] and see if you can actually derive the
+[5404s] expression for the loss by DLI and then
+[5407s] we're going to implement it here okay so
+[5409s] I'm going to give away the result here
+[5411s] so this is some of the math I did to
+[5413s] derive the gradients analytically and so
+[5417s] we see here that I'm just applying the
+[5419s] rules of calculus from your first or
+[5420s] second year of bachelor's degree if you
+[5422s] took it and we see that the expression
+[5424s] is actually simplify quite a bit you
+[5426s] have to separate out the analysis in the
+[5427s] case where the ith index that you're
+[5430s] interested in inside logits is either
+[5432s] equal to the label or it's not equal to
+[5434s] the label and then the expression
+[5435s] simplify and cancel in a slightly
+[5437s] different way and what we end up with is
+[5439s] something very very simple
+[5441s] and we either end up with basically
+[5443s] pirai where p is again this Vector of
+[5446s] probabilities after a soft Max or P at I
+[5449s] minus 1 where we just simply subtract a
+[5451s] one but in any case we just need to
+[5453s] calculate the soft Max p e and then in
+[5456s] the correct Dimension we need to
+[5458s] subtract one and that's the gradient the
+[5460s] form that it takes analytically so let's
+[5463s] implement this basically and we have to
+[5464s] keep in mind that this is only done for
+[5466s] a single example but here we are working
+[5468s] with batches of examples
+[5469s] so we have to be careful of that and
+[5472s] then the loss for a batch is the average
+[5474s] loss over all the examples so in other
+[5477s] words is the example for all the
+[5478s] individual examples is the loss for each
+[5480s] individual example summed up and then
+[5482s] divided by n and we have to back
+[5484s] propagate through that as well and be
+[5486s] careful with it
+[5488s] so deluggets is going to be of that soft
+[5490s] Max
+[5492s] uh pytorch has a softmax function that
+[5495s] you can call and we want to apply the
+[5496s] softmax on the logits and we want to go
+[5499s] in the dimension that is one so
+[5502s] basically we want to do the softmax
+[5504s] along the rows of these logits
+[5507s] then at the correct positions we need to
+[5509s] subtract a 1. so delugits at iterating
+[5512s] over all the rows
+[5514s] and indexing into the columns
+[5517s] provided by the correct labels inside YB
+[5520s] we need to subtract one
+[5523s] and then finally it's the average loss
+[5525s] that is the loss and in the average
+[5527s] there's a one over n of all the losses
+[5529s] added up and so we need to also
+[5532s] propagate through that division
+[5534s] so the gradient has to be scaled down by
+[5536s] by n as well because of the mean
+[5539s] but this otherwise should be the result
+[5542s] so now if we verify this
+[5544s] we see that we don't get an exact match
+[5546s] but at the same time the maximum
+[5550s] difference from logits from pytorch and
+[5553s] RD logits here is uh on the order of 5e
+[5557s] negative 9. so it's a tiny tiny number
+[5559s] so because of floating point wantiness
+[5561s] we don't get the exact bitwise result
+[5564s] but we basically get the correct answer
+[5567s] approximately
+[5569s] now I'd like to pause here briefly
+[5571s] before we move on to the next exercise
+[5572s] because I'd like us to get an intuitive
+[5574s] sense of what the logits is because it
+[5576s] has a beautiful and very simple
+[5578s] explanation honestly
+[5580s] um so here I'm taking the logits and I'm
+[5583s] visualizing it and we can see that we
+[5585s] have a batch of 32 examples of 27
+[5587s] characters
+[5588s] and what is the logits intuitively right
+[5590s] the logits is the probabilities that the
+[5593s] properties Matrix in the forward pass
+[5595s] but then here these black squares are
+[5597s] the positions of the correct indices
+[5599s] where we subtracted a one
+[5601s] and so uh what is this doing right these
+[5604s] are the derivatives on the logits and so
+[5607s] let's look at just the first row here
+[5611s] so that's what I'm doing here I'm
+[5613s] clocking the probabilities of these
+[5614s] logits and then I'm taking just the
+[5616s] first row and this is the probability
+[5618s] row and then the logits of the first row
+[5621s] and multiplying by n just for us so that
+[5623s] we don't have the scaling by n in here
+[5626s] and everything is more interpretable we
+[5628s] see that it's exactly equal to the
+[5630s] probability of course but then the
+[5632s] position of the correct index has a
+[5633s] minus equals one so minus one on that
+[5636s] position
+[5637s] and so notice that
+[5639s] um if you take Delo Jets at zero and you
+[5641s] sum it
+[5643s] it actually sums to zero and so you
+[5646s] should think of these uh gradients here
+[5648s] at each cell as like a force
+[5652s] um we are going to be basically pulling
+[5655s] down on the probabilities of the
+[5657s] incorrect characters and we're going to
+[5659s] be pulling up on the probability at the
+[5662s] correct index and that's what's
+[5664s] basically happening in each row and thus
+[5669s] the amount of push and pull is exactly
+[5671s] equalized because the sum is zero so the
+[5674s] amount to which we pull down in the
+[5676s] probabilities and the demand that we
+[5677s] push up on the probability of the
+[5679s] correct character is equal
+[5681s] so sort of the the repulsion and the
+[5683s] attraction are equal and think of the
+[5685s] neural app now as a like a massive uh
+[5688s] pulley system or something like that
+[5690s] we're up here on top of the logits and
+[5692s] we're pulling up we're pulling down the
+[5694s] properties of Incorrect and pulling up
+[5695s] the property of the correct and in this
+[5697s] complicated pulley system because
+[5699s] everything is mathematically uh just
+[5701s] determined just think of it as sort of
+[5703s] like this tension translating to this
+[5705s] complicating pulling mechanism and then
+[5707s] eventually we get a tug on the weights
+[5709s] and the biases and basically in each
+[5711s] update we just kind of like tug in the
+[5713s] direction that we like for each of these
+[5715s] elements and the parameters are slowly
+[5717s] given in to the tug and that's what
+[5719s] training in neural net kind of like
+[5720s] looks like on a high level
+[5722s] and so I think the the forces of push
+[5724s] and pull in these gradients are actually
+[5726s] uh very intuitive here we're pushing and
+[5729s] pulling on the correct answer and the
+[5731s] incorrect answers and the amount of
+[5733s] force that we're applying is actually
+[5734s] proportional to uh the probabilities
+[5737s] that came out in the forward pass
+[5739s] and so for example if our probabilities
+[5741s] came out exactly correct so they would
+[5743s] have had zero everywhere except for one
+[5745s] at the correct uh position then the the
+[5748s] logits would be all a row of zeros for
+[5751s] that example there would be no push and
+[5752s] pull so the amount to which your
+[5755s] prediction is incorrect is exactly the
+[5758s] amount by which you're going to get a
+[5759s] pull or a push in that dimension
+[5761s] so if you have for example a very
+[5764s] confidently mispredicted element here
+[5765s] then
+[5767s] um what's going to happen is that
+[5768s] element is going to be pulled down very
+[5770s] heavily and the correct answer is going
+[5772s] to be pulled up to the same amount
+[5774s] and the other characters are not going
+[5776s] to be influenced too much
+[5779s] so the amounts to which you mispredict
+[5781s] is then proportional to the strength of
+[5783s] the pole and that's happening
+[5785s] independently in all the dimensions of
+[5787s] this of this tensor and it's sort of
+[5789s] very intuitive and varies to think
+[5790s] through and that's basically the magic
+[5792s] of the cross-entropy loss and what it's
+[5794s] doing dynamically in the backward pass
+[5796s] of the neural net so now we get to
+[5798s] exercise number three which is a very
+[5801s] fun exercise
+[5802s] um depending on your definition of fun
+[5803s] and we are going to do for batch
+[5805s] normalization exactly what we did for
+[5807s] cross entropy loss in exercise number
+[5809s] two that is we are going to consider it
+[5811s] as a glued single mathematical
+[5812s] expression and back propagate through it
+[5814s] in a very efficient manner because we
+[5816s] are going to derive a much simpler
+[5818s] formula for the backward path of batch
+[5819s] normalization
+[5821s] and we're going to do that using pen and
+[5822s] paper
+[5823s] so previously we've broken up
+[5825s] bastionalization into all of the little
+[5826s] intermediate pieces and all the atomic
+[5828s] operations inside it and then we back
+[5830s] propagate it through it one by one
+[5833s] now we just have a single sort of
+[5835s] forward pass of a batch form and it's
+[5838s] all glued together
+[5840s] and we see that we get the exact same
+[5841s] result as before
+[5843s] now for the backward pass we'd like to
+[5845s] also Implement a single formula
+[5847s] basically for back propagating through
+[5849s] this entire operation that is the
+[5850s] bachelorization
+[5852s] so in the forward pass previously we
+[5854s] took hpvn the hidden states of the
+[5857s] pre-batch realization and created H
+[5859s] preact which is the hidden States just
+[5862s] before the activation
+[5864s] in the bachelorization paper each pbn is
+[5866s] X and each preact is y
+[5869s] so in the backward pass what we'd like
+[5871s] to do now is we have DH preact and we'd
+[5874s] like to produce d h previous
+[5876s] and we'd like to do that in a very
+[5877s] efficient manner so that's the name of
+[5880s] the game calculate the H previan given
+[5882s] DH preact and for the purposes of this
+[5885s] exercise we're going to ignore gamma and
+[5887s] beta and their derivatives because they
+[5889s] take on a very simple form in a very
+[5891s] similar way to what we did up above
+[5894s] so let's calculate this given that right
+[5898s] here
+[5898s] so to help you a little bit like I did
+[5900s] before I started off the implementation
+[5903s] here on pen and paper and I took two
+[5906s] sheets of paper to derive the
+[5908s] mathematical formulas for the backward
+[5909s] pass
+[5910s] and basically to set up the problem uh
+[5913s] just write out the MU Sigma Square
+[5915s] variance x i hat and Y I exactly as in
+[5919s] the paper except for the bezel
+[5920s] correction
+[5921s] and then
+[5922s] in a backward pass we have the
+[5924s] derivative of the loss with respect to
+[5926s] all the elements of Y and remember that
+[5928s] Y is a vector there's there's multiple
+[5930s] numbers here
+[5932s] so we have all the derivatives with
+[5934s] respect to all the Y's
+[5936s] and then there's a demo and a beta and
+[5939s] this is kind of like the compute graph
+[5941s] the gamma and the beta there's the X hat
+[5943s] and then the MU and the sigma squared
+[5946s] and the X so we have DL by DYI and we
+[5950s] won't DL by d x i for all the I's in
+[5953s] these vectors
+[5955s] so this is the compute graph and you
+[5957s] have to be careful because I'm trying to
+[5959s] note here that these are vectors so
+[5962s] there's many nodes here inside x x hat
+[5965s] and Y but mu and sigma sorry Sigma
+[5969s] Square are just individual scalars
+[5970s] single numbers so you have to be careful
+[5973s] with that you have to imagine there's
+[5974s] multiple nodes here or you're going to
+[5975s] get your math wrong
+[5978s] um so as an example I would suggest that
+[5980s] you go in the following order one two
+[5983s] three four in terms of the back
+[5984s] propagation so back propagating to X hat
+[5986s] then into Sigma Square then into mu and
+[5989s] then into X
+[5992s] um just like in a topological sort in
+[5994s] micrograd we would go from right to left
+[5995s] you're doing the exact same thing except
+[5997s] you're doing it with symbols and on a
+[5999s] piece of paper
+[6001s] so for number one uh I'm not giving away
+[6005s] too much if you want DL of d x i hat
+[6009s] then we just take DL by DYI and multiply
+[6012s] it by gamma because of this expression
+[6015s] here where any individual Yi is just
+[6017s] gamma times x i hat plus beta so it
+[6021s] doesn't help you too much there but this
+[6023s] gives you basically the derivatives for
+[6025s] all the X hats and so now try to go
+[6028s] through this computational graph and
+[6031s] derive what is DL by D Sigma Square
+[6035s] and then what is DL by B mu and then one
+[6038s] is D L by DX
+[6039s] eventually so give it a go and I'm going
+[6042s] to be revealing the answer one piece at
+[6044s] a time okay so to get DL by D Sigma
+[6046s] Square we have to remember again like I
+[6048s] mentioned that there are many excess X
+[6051s] hats here
+[6052s] and remember that Sigma square is just a
+[6054s] single individual number here
+[6055s] so when we look at the expression
+[6059s] for the L by D Sigma Square
+[6061s] we have that we have to actually
+[6063s] consider all the possible paths that um
+[6068s] we basically have that there's many X
+[6070s] hats and they all feed off from they all
+[6073s] depend on Sigma Square so Sigma square
+[6075s] has a large fan out there's lots of
+[6077s] arrows coming out from Sigma square into
+[6079s] all the X hats
+[6080s] and then there's a back propagating
+[6082s] signal from each X hat into Sigma square
+[6084s] and that's why we actually need to sum
+[6086s] over all those I's from I equal to 1 to
+[6089s] m
+[6090s] of the DL by d x i hat which is the
+[6095s] global gradient
+[6096s] times the x i Hat by D Sigma Square
+[6100s] which is the local gradient
+[6102s] of this operation here
+[6104s] and then mathematically I'm just working
+[6106s] it out here and I'm simplifying and you
+[6108s] get a certain expression for DL by D
+[6111s] Sigma square and we're going to be using
+[6112s] this expression when we back propagate
+[6113s] into mu and then eventually into X so
+[6116s] now let's continue our back propagation
+[6118s] into mu so what is D L by D mu now again
+[6121s] be careful that mu influences X hat and
+[6124s] X hat is actually lots of values so for
+[6127s] example if our mini batch size is 32 as
+[6129s] it is in our example that we were
+[6130s] working on then this is 32 numbers and
+[6133s] 32 arrows going back to mu and then mu
+[6136s] going to Sigma square is just a single
+[6138s] Arrow because Sigma square is a scalar
+[6139s] so in total there are 33 arrows
+[6142s] emanating from you and then all of them
+[6145s] have gradients coming into mu and they
+[6147s] all need to be summed up
+[6149s] and so that's why when we look at the
+[6151s] expression for DL by D mu I am summing
+[6154s] up over all the gradients of DL by d x i
+[6157s] hat times the x i Hat by being mu
+[6160s] uh so that's the that's this arrow and
+[6163s] that's 32 arrows here and then plus the
+[6165s] one Arrow from here which is the L by
+[6167s] the sigma Square Times the sigma squared
+[6169s] by D mu
+[6170s] so now we have to work out that
+[6172s] expression and let me just reveal the
+[6174s] rest of it
+[6175s] uh simplifying here is not complicated
+[6178s] the first term and you just get an
+[6180s] expression here
+[6181s] for the second term though there's
+[6182s] something really interesting that
+[6183s] happens
+[6184s] when we look at the sigma squared by D
+[6186s] mu and we simplify
+[6188s] at one point if we assume that in a
+[6191s] special case where mu is actually the
+[6194s] average of X I's as it is in this case
+[6197s] then if we plug that in then actually
+[6200s] the gradient vanishes and becomes
+[6202s] exactly zero and that makes the entire
+[6204s] second term cancel
+[6206s] and so these uh if you just have a
+[6209s] mathematical expression like this and
+[6210s] you look at D Sigma Square by D mu you
+[6213s] would get some mathematical formula for
+[6215s] how mu impacts Sigma Square
+[6217s] but if it is the special case that Nu is
+[6219s] actually equal to the average as it is
+[6222s] in the case of pastoralization that
+[6223s] gradient will actually vanish and become
+[6225s] zero so the whole term cancels and we
+[6228s] just get a fairly straightforward
+[6229s] expression here for DL by D mu okay and
+[6232s] now we get to the craziest part which is
+[6234s] uh deriving DL by dxi which is
+[6237s] ultimately what we're after
+[6239s] now let's count
+[6240s] first of all how many numbers are there
+[6243s] inside X as I mentioned there are 32
+[6245s] numbers there are 32 Little X I's and
+[6248s] let's count the number of arrows
+[6249s] emanating from each x i
+[6251s] there's an arrow going to Mu an arrow
+[6253s] going to Sigma Square
+[6254s] and then there's an arrow going to X hat
+[6256s] but this Arrow here let's scrutinize
+[6259s] that a little bit
+[6260s] each x i hat is just a function of x i
+[6263s] and all the other scalars so x i hat
+[6267s] only depends on x i and none of the
+[6269s] other X's
+[6270s] and so therefore there are actually in
+[6272s] this single Arrow there are 32 arrows
+[6274s] but those 32 arrows are going exactly
+[6277s] parallel they don't interfere and
+[6279s] they're just going parallel between x
+[6280s] and x hat you can look at it that way
+[6282s] and so how many arrows are emanating
+[6284s] from each x i there are three arrows mu
+[6287s] Sigma squared and the associated X hat
+[6290s] and so in back propagation we now need
+[6293s] to apply the chain rule and we need to
+[6295s] add up those three contributions
+[6297s] so here's what that looks like if I just
+[6299s] write that out
+[6302s] we have uh we're going through we're
+[6304s] chaining through mu Sigma square and
+[6306s] through X hat and those three terms are
+[6309s] just here
+[6310s] now we already have three of these we
+[6313s] have d l by d x i hat
+[6315s] we have DL by D mu which we derived here
+[6317s] and we have DL by D Sigma Square which
+[6319s] we derived here but we need three other
+[6322s] terms here
+[6323s] the this one this one and this one so I
+[6326s] invite you to try to derive them it's
+[6328s] not that complicated you're just looking
+[6329s] at these Expressions here and
+[6331s] differentiating with respect to x i
+[6334s] so give it a shot but here's the result
+[6339s] or at least what I got
+[6341s] um
+[6342s] yeah I'm just I'm just differentiating
+[6344s] with respect to x i for all these
+[6345s] expressions and honestly I don't think
+[6347s] there's anything too tricky here it's
+[6348s] basic calculus
+[6350s] now it gets a little bit more tricky is
+[6352s] we are now going to plug everything
+[6353s] together so all of these terms
+[6355s] multiplied with all of these terms and
+[6357s] add it up according to this formula and
+[6359s] that gets a little bit hairy so what
+[6361s] ends up happening is
+[6364s] uh
+[6365s] you get a large expression and the thing
+[6368s] to be very careful with here of course
+[6369s] is we are working with a DL by dxi for
+[6372s] specific I here but when we are plugging
+[6375s] in some of these terms
+[6377s] like say
+[6378s] um
+[6379s] this term here deal by D signal squared
+[6382s] you see how the L by D Sigma squared I
+[6384s] end up with an expression and I'm
+[6386s] iterating over little I's here but I
+[6389s] can't use I as the variable when I plug
+[6391s] in here because this is a different I
+[6393s] from this eye
+[6395s] this I here is just a place or like a
+[6397s] local variable for for a for Loop in
+[6399s] here so here when I plug that in you
+[6401s] notice that I rename the I to a j
+[6403s] because I need to make sure that this J
+[6405s] is not that this J is not this I this J
+[6408s] is like like a little local iterator
+[6410s] over 32 terms and so you have to be
+[6413s] careful with that when you're plugging
+[6414s] in the expressions from here to here you
+[6416s] may have to rename eyes into J's and you
+[6418s] have to be very careful what is actually
+[6420s] an I with respect to the L by t x i
+[6424s] so some of these are J's some of these
+[6427s] are I's
+[6428s] and then we simplify this expression
+[6431s] and I guess like the big thing to notice
+[6433s] here is a bunch of terms just kind of
+[6435s] come out to the front and you can
+[6436s] refactor them there's a sigma squared
+[6438s] plus Epsilon raised to the power of
+[6439s] negative three over two uh this Sigma
+[6441s] squared plus Epsilon can be actually
+[6443s] separated out into three terms each of
+[6445s] them are Sigma squared plus Epsilon to
+[6448s] the negative one over two so the three
+[6450s] of them multiplied is equal to this and
+[6453s] then those three terms can go different
+[6455s] places because of the multiplication so
+[6457s] one of them actually comes out to the
+[6459s] front and will end up here outside one
+[6462s] of them joins up with this term and one
+[6465s] of them joins up with this other term
+[6467s] and then when you simplify the
+[6469s] expression you'll notice that some of
+[6471s] these terms that are coming out are just
+[6472s] the x i hats
+[6474s] so you can simplify just by rewriting
+[6476s] that
+[6477s] and what we end up with at the end is a
+[6478s] fairly simple mathematical expression
+[6480s] over here that I cannot simplify further
+[6482s] but basically you'll notice that it only
+[6485s] uses the stuff we have and it derives
+[6486s] the thing we need so we have the L by d
+[6490s] y for all the I's and those are used
+[6493s] plenty of times here and also in
+[6495s] addition what we're using is these x i
+[6497s] hats and XJ hats and they just come from
+[6499s] the forward pass
+[6500s] and otherwise this is a simple
+[6502s] expression and it gives us DL by d x i
+[6505s] for all the I's and that's ultimately
+[6507s] what we're interested in
+[6509s] so that's the end of Bachelor backward
+[6512s] pass analytically let's now implement
+[6514s] this final result
+[6516s] okay so I implemented the expression
+[6518s] into a single line of code here and you
+[6521s] can see that the max diff is Tiny so
+[6523s] this is the correct implementation of
+[6524s] this formula now I'll just uh
+[6528s] basically tell you that getting this
+[6530s] formula here from this mathematical
+[6532s] expression was not trivial and there's a
+[6534s] lot going on packed into this one
+[6536s] formula and this is a whole exercise by
+[6538s] itself because you have to consider the
+[6540s] fact that this formula here is just for
+[6543s] a single neuron and a batch of 32
+[6545s] examples but what I'm doing here is I'm
+[6547s] actually we actually have 64 neurons and
+[6550s] so this expression has to in parallel
+[6551s] evaluate the bathroom backward pass for
+[6554s] all of those 64 neurons in parallel
+[6556s] independently so this has to happen
+[6558s] basically in every single
+[6560s] um
+[6560s] column of the inputs here
+[6564s] and in addition to that you see how
+[6566s] there are a bunch of sums here and we
+[6568s] need to make sure that when I do those
+[6569s] sums that they broadcast correctly onto
+[6571s] everything else that's here
+[6573s] and so getting this expression is just
+[6575s] like highly non-trivial and I invite you
+[6576s] to basically look through it and step
+[6577s] through it and it's a whole exercise to
+[6579s] make sure that this this checks out but
+[6583s] once all the shapes are green and once
+[6585s] you convince yourself that it's correct
+[6586s] you can also verify that Patrick's gets
+[6588s] the exact same answer as well and so
+[6590s] that gives you a lot of peace of mind
+[6591s] that this mathematical formula is
+[6593s] correctly implemented here and
+[6595s] broadcasted correctly and replicated in
+[6597s] parallel for all of the 64 neurons
+[6600s] inside this bastrum layer okay and
+[6603s] finally exercise number four asks you to
+[6605s] put it all together and uh here we have
+[6608s] a redefinition of the entire problem so
+[6610s] you see that we reinitialize the neural
+[6611s] nut from scratch and everything and then
+[6613s] here instead of calling loss that
+[6615s] backward we want to have the manual back
+[6618s] propagation here as we derived It Up
+[6620s] Above so go up copy paste all the chunks
+[6623s] of code that we've already derived put
+[6625s] them here and drive your own gradients
+[6626s] and then optimize this neural nut
+[6628s] basically using your own gradients all
+[6631s] the way to the calibration of The
+[6633s] Bachelor and the evaluation of the loss
+[6634s] and I was able to achieve quite a good
+[6636s] loss basically the same loss you would
+[6638s] achieve before and that shouldn't be
+[6640s] surprising because all we've done is
+[6641s] we've really gotten to Lost That
+[6644s] backward and we've pulled out all the
+[6645s] code
+[6646s] and inserted it here but those gradients
+[6649s] are identical and everything is
+[6650s] identical and the results are identical
+[6652s] it's just that we have full visibility
+[6654s] on exactly what goes on under the hood
+[6656s] I'll plot that backward in this specific
+[6658s] case and this is all of our code this is
+[6662s] the full backward pass using basically
+[6664s] the simplified backward pass for the
+[6666s] cross entropy loss and the mass
+[6668s] generalization so back propagating
+[6670s] through cross entropy the second layer
+[6673s] the 10 H nonlinearity the batch
+[6675s] normalization
+[6676s] uh through the first layer and through
+[6679s] the embedding and so you see that this
+[6681s] is only maybe what is this 20 lines of
+[6683s] code or something like that and that's
+[6685s] what gives us gradients and now we can
+[6687s] potentially erase losses backward so the
+[6690s] way I have the code set up is you should
+[6691s] be able to run this entire cell once you
+[6693s] fill this in and this will run for only
+[6696s] 100 iterations and then break
+[6697s] and it breaks because it gives you an
+[6699s] opportunity to check your gradients
+[6701s] against pytorch
+[6703s] so here our gradients we see are not
+[6706s] exactly equal they are approximately
+[6708s] equal and the differences are tiny
+[6711s] wanting negative 9 or so and I don't
+[6712s] exactly know where they're coming from
+[6714s] to be honest
+[6716s] um so once we have some confidence that
+[6717s] the gradients are basically correct we
+[6719s] can take out the gradient tracking
+[6721s] we can disable this breaking statement
+[6725s] and then we can
+[6727s] basically disable lost of backward we
+[6730s] don't need it anymore it feels amazing
+[6733s] to say that
+[6734s] and then here when we are doing the
+[6736s] update we're not going to use P dot grad
+[6738s] this is the old way of pytorch we don't
+[6741s] have that anymore because we're not
+[6742s] doing backward we are going to use this
+[6745s] update where we you see that I'm
+[6747s] iterating over
+[6749s] I've arranged the grads to be in the
+[6750s] same order as the parameters and I'm
+[6752s] zipping them up the gradients and the
+[6754s] parameters into p and grad and then here
+[6757s] I'm going to step with just the grad
+[6758s] that we derived manually
+[6760s] so the last piece
+[6763s] um is that none of this now requires
+[6766s] gradients from pytorch and so one thing
+[6769s] you can do here
+[6771s] um
+[6772s] is you can do with no grad and offset
+[6776s] this whole code block
+[6778s] and really what you're saying is you're
+[6779s] telling Pat George that hey I'm not
+[6780s] going to call backward on any of this
+[6782s] and this allows pytorch to be a bit more
+[6783s] efficient with all of it
+[6785s] and then we should be able to just uh
+[6787s] run this
+[6789s] and
+[6791s] it's running
+[6793s] and you see that losses backward is
+[6796s] commented out
+[6798s] and we're optimizing
+[6800s] so we're going to leave this run and uh
+[6803s] hopefully we get a good result
+[6805s] okay so I allowed the neural net to
+[6807s] finish optimization
+[6808s] then here I calibrate the bachelor
+[6811s] parameters because I did not keep track
+[6813s] of the running mean and very variants in
+[6815s] their training Loop
+[6817s] then here I ran the loss and you see
+[6819s] that we actually obtained a pretty good
+[6820s] loss very similar to what we've achieved
+[6822s] before
+[6823s] and then here I'm sampling from the
+[6825s] model and we see some of the name like
+[6827s] gibberish that we're sort of used to so
+[6829s] basically the model worked and samples
+[6832s] uh pretty decent results compared to
+[6834s] what we were used to so everything is
+[6836s] the same but of course the big deal is
+[6838s] that we did not use lots of backward we
+[6840s] did not use package Auto grad and we
+[6842s] estimated our gradients ourselves by
+[6844s] hand
+[6845s] and so hopefully you're looking at this
+[6846s] the backward pass of this neural net and
+[6848s] you're thinking to yourself actually
+[6850s] that's not too complicated
+[6852s] um
+[6853s] each one of these layers is like three
+[6855s] lines of code or something like that and
+[6857s] most of it is fairly straightforward
+[6858s] potentially with the notable exception
+[6860s] of the batch normalization backward pass
+[6862s] otherwise it's pretty good okay and
+[6865s] that's everything I wanted to cover for
+[6866s] this lecture so hopefully you found this
+[6869s] interesting and what I liked about it
+[6871s] honestly is that it gave us a very nice
+[6873s] diversity of layers to back propagate
+[6874s] through and
+[6876s] um I think it gives a pretty nice and
+[6878s] comprehensive sense of how these
+[6879s] backward passes are implemented and how
+[6881s] they work and you'd be able to derive
+[6883s] them yourself but of course in practice
+[6885s] you probably don't want to and you want
+[6886s] to use the pythonograd but hopefully you
+[6889s] have some intuition about how gradients
+[6891s] flow backwards through the neural net
+[6892s] starting at the loss and how they flow
+[6895s] through all the variables and all the
+[6896s] intermediate results
+[6898s] and if you understood a good chunk of it
+[6900s] and if you have a sense of that then you
+[6902s] can count yourself as one of these buff
+[6903s] doji's on the left instead of the uh
+[6906s] those on the right here now in the next
+[6909s] lecture we're actually going to go to
+[6910s] recurrent neural nuts lstms and all the
+[6913s] other variants of RNs and we're going to
+[6916s] start to complexify the architecture and
+[6917s] start to achieve better uh log
+[6919s] likelihoods and so I'm really looking
+[6921s] forward to that and I'll see you then
