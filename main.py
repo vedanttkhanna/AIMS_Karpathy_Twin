@@ -4,13 +4,13 @@ import uuid
 from datetime import datetime
 from rich.console import Console
 from rich.panel import Panel
-from rich.text import Text
 from rich.markdown import Markdown
 from rich.prompt import Prompt
 
 from agent.teaching import generate_response
 from agent.advisory import think
 from agent.guard import classify_query, get_guard_response
+from agent.feedback import analyze_feedback, AdaptationState
 from memory.short_term import ShortTermMemory
 from memory.long_term import LongTermMemory
 from ingest.embedder import build_index
@@ -22,6 +22,7 @@ BANNER = """
 ║         Andrej Karpathy — Digital Twin            ║
 ║   Type /think <problem> for advisory mode         ║
 ║   Type /memory to see what I remember             ║
+║   Type /reward to see conversation reward signal  ║
 ║   Type /clear to reset conversation               ║
 ║   Type /quit to exit                              ║
 ╚═══════════════════════════════════════════════════╝
@@ -43,8 +44,15 @@ def print_response(text: str, mode: str = "teaching"):
     ))
 
 
+def print_feedback_signal(sentiment: str, reward: float):
+    """Show subtle adaptation signal so user knows the system is learning."""
+    color = "green" if reward >= 0 else "red"
+    console.print(
+        f"[dim {color}][ adaptation signal: {sentiment} | reward: {reward:+.1f} ][/dim {color}]"
+    )
+
+
 def summarize_session(short_term: ShortTermMemory) -> str:
-    """Generate a short summary of the session for long term memory."""
     history = short_term.get()
     if not history:
         return ""
@@ -55,13 +63,14 @@ def summarize_session(short_term: ShortTermMemory) -> str:
 def main():
     print_banner()
 
-    # build index if not already built
     console.print("[dim]Checking RAG index...[/dim]")
     build_index()
 
     short_term = ShortTermMemory()
     long_term = LongTermMemory()
+    adaptation_state = AdaptationState()    # NEW
     session_id = str(uuid.uuid4())[:8]
+    last_response = ""                      # NEW — track last response for feedback analysis
 
     console.print(f"[dim]Session {session_id} started at {datetime.now().strftime('%H:%M')}[/dim]\n")
 
@@ -84,45 +93,75 @@ def main():
 
         elif user_input.lower() == "/clear":
             short_term.clear()
-            console.print("[dim]Conversation cleared.[/dim]")
+            adaptation_state = AdaptationState()   # reset adaptation on clear
+            console.print("[dim]Conversation and adaptation state cleared.[/dim]")
             continue
 
         elif user_input.lower() == "/memory":
             long_term.show()
             continue
 
+        elif user_input.lower() == "/reward":
+            reward = adaptation_state.get_reward()
+            depth = adaptation_state.depth_level
+            color = "green" if reward >= 0 else "red"
+            console.print(f"\n[bold]Conversation Reward Signal[/bold]")
+            console.print(f"  Reward score:     [{color}]{reward:+.1f}[/{color}]")
+            console.print(f"  Depth level:      {depth} (-2 simple ←→ +2 technical)")
+            console.print(f"  Confusion count:  {adaptation_state.confusion_count}")
+            console.print(f"  Satisfaction:     {adaptation_state.satisfaction_count}")
+            if adaptation_state.style_notes:
+                console.print(f"  Recent signals:   {'; '.join(adaptation_state.style_notes[-3:])}")
+            print()
+            continue
+
         elif user_input.lower().startswith("/think "):
             problem = user_input[7:].strip()
             if not problem:
-                console.print("[red]Usage: /think <your problem or question>[/red]")
+                console.print("[red]Usage: /think <your problem>[/red]")
                 continue
             console.print("[dim yellow]Thinking...[/dim yellow]")
             response = think(problem, short_term)
             print_response(response, mode="advisory")
             short_term.add("user", f"[think] {problem}")
             short_term.add("assistant", response)
+            last_response = response
             continue
 
+        # ── RL feedback loop ──────────────────────────────────────────
+        # if there's a previous response, analyze this message as potential feedback
+        if last_response:
+            feedback = analyze_feedback(user_input, last_response)
+            if feedback.get("is_feedback") and feedback.get("confidence", 0) > 0.5:
+                adaptation_state.update(
+                    feedback["sentiment"],
+                    feedback.get("adjustment", "none")
+                )
+                print_feedback_signal(
+                    feedback["sentiment"],
+                    adaptation_state.get_reward()
+                )
+        # ─────────────────────────────────────────────────────────────
+
         # guard layer
-        console.print("[dim]...[/dim]", end="\r")
         classification = classify_query(user_input)
         if classification in ("attack", "offtopic"):
             response = get_guard_response(classification)
             print_response(response)
             short_term.add("user", user_input)
             short_term.add("assistant", response)
+            last_response = response
             continue
 
-        # normal teaching mode
-        response = generate_response(user_input, short_term, long_term, session_id)
+        # generate response with adaptation state
+        response = generate_response(
+            user_input, short_term, long_term, session_id,
+            adaptation_state=adaptation_state    # NEW
+        )
         print_response(response, mode="teaching")
         short_term.add("user", user_input)
         short_term.add("assistant", response)
-
-    # save session on exit
-    summary = summarize_session(short_term)
-    if summary:
-        long_term.save_session_summary(session_id, summary)
+        last_response = response                 # NEW
 
 
 if __name__ == "__main__":

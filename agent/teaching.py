@@ -21,18 +21,22 @@ def generate_response(
     query: str,
     short_term: ShortTermMemory,
     long_term: LongTermMemory,
-    session_id: str
+    session_id: str,
+    adaptation_state=None        # NEW
 ) -> str:
     from core.knowledge_graph import get_kg
 
-    # retrieval
     chunks = smart_retrieve(query, short_term.get())
     context = format_context(chunks)
     lt_context = long_term.format_for_prompt()
 
-    # knowledge graph context
     kg = get_kg()
     kg_context = kg.format_for_prompt(query)
+
+    # NEW — inject adaptation state if available
+    adaptation_context = ""
+    if adaptation_state:
+        adaptation_context = adaptation_state.format_for_prompt()
 
     prompt = f"""{KARPATHY_SYSTEM_PROMPT}
 
@@ -41,6 +45,9 @@ def generate_response(
 
 ## Knowledge graph context
 {kg_context if kg_context else ""}
+
+## Adaptation signals (RL-based style tuning)
+{adaptation_context if adaptation_context else "No signals yet — use default teaching style."}
 
 ## Retrieved context from your work
 {context}
@@ -51,9 +58,10 @@ def generate_response(
 ## Question
 {query}
 
-Answer as Andrej Karpathy. Be specific, reference the context above where relevant,
-and stay true to your teaching style. If the context doesn't cover the question well,
-answer from your general knowledge but be honest about uncertainty."""
+Answer as Andrej Karpathy. Before writing your response, consider the adaptation 
+signals above — they tell you how this specific user is responding to your explanations.
+Adjust depth, vocabulary, and use of analogies accordingly.
+Stay in character. Be specific. Reference your work where relevant."""
 
     client = genai.Client(api_key=GEMINI_API_KEY)
     response = client.models.generate_content(
@@ -62,15 +70,13 @@ answer from your general knowledge but be honest about uncertainty."""
     )
     answer = response.text.strip()
 
-    # extract and save user facts worth remembering
     _extract_user_facts(query, long_term, session_id)
 
     return answer
 
 
 def _extract_user_facts(query: str, long_term: LongTermMemory, session_id: str):
-    """Use LLM to decide if there's anything worth remembering about the user."""
-    prompt = f"""Given this user message, extract any personal context worth remembering 
+    prompt = f"""Given this user message, extract any personal context worth remembering
 about the user (what they're building, learning, struggling with, their background).
 If there's nothing worth remembering, return exactly: NOTHING
 If there is, return a single concise sentence starting with "User is..." or "User wants..."
@@ -86,5 +92,5 @@ User message: {query}"""
         result = response.text.strip()
         if result and result != "NOTHING":
             long_term.save_fact(session_id, result, type="user_context")
-    except Exception as e:
-        pass  # non-critical, don't break the main flow
+    except Exception:
+        pass

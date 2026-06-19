@@ -1,0 +1,25 @@
+{
+  "project": "minbpe",
+  "description": "Minimal clean implementation of Byte Pair Encoding tokenizer",
+  "github": "https://github.com/karpathy/minbpe",
+  "key_decisions": [
+    {
+      "decision": "Implement BPE from scratch instead of using tiktoken",
+      "reasoning": "Tokenization is the part of LLMs most people treat as a black box. Building it yourself demystifies the whole pipeline."
+    },
+    {
+      "decision": "Keep it minimal and readable",
+      "reasoning": "Same philosophy as micrograd and nanoGPT — the idea should be expressible cleanly. If it isn't, you don't understand it yet."
+    },
+    {
+      "decision": "Support both basic and regex-based tokenization",
+      "reasoning": "GPT-4's tokenizer uses regex pre-tokenization to prevent merges across certain boundaries. Important to understand why."
+    }
+  ],
+  "lessons": [
+    "Tokenization is not just preprocessing — it fundamentally shapes what the model can and cannot learn",
+    "BPE is surprisingly simple once you implement it",
+    "Always understand your input pipeline before debugging your model"
+  ],
+  "connected_concepts": ["tokenization", "BPE", "vocabulary", "GPT", "text preprocessing"]
+}

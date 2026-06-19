@@ -1,0 +1,30 @@
+{
+  "project": "llm.c",
+  "description": "GPT-2 training in raw C, no Python, no PyTorch",
+  "github": "https://github.com/karpathy/llm.c",
+  "key_decisions": [
+    {
+      "decision": "Write in pure C instead of Python",
+      "reasoning": "Python and PyTorch abstract away what's actually happening at the hardware level. C forces you to think about memory, CUDA kernels, and what the GPU is literally doing."
+    },
+    {
+      "decision": "No external dependencies",
+      "reasoning": "Every dependency is a layer of abstraction you don't understand. If you write it yourself you own it completely."
+    },
+    {
+      "decision": "Match nanoGPT output exactly before optimizing",
+      "reasoning": "Verification against a known correct implementation first. If the loss curves match, the implementation is correct. Then you can optimize."
+    },
+    {
+      "decision": "Implement CUDA kernels manually",
+      "reasoning": "PyTorch's kernels are general purpose. Hand-written kernels for this specific workload are significantly faster."
+    }
+  ],
+  "lessons": [
+    "PyTorch is doing an enormous amount of work you take for granted",
+    "Performance optimization requires understanding the hardware not just the algorithm",
+    "A correct slow implementation always beats a fast wrong one",
+    "The gap between Python and C performance is real and sometimes worth it"
+  ],
+  "connected_concepts": ["CUDA", "memory management", "performance optimization", "GPT", "C programming", "kernel fusion"]
+}
