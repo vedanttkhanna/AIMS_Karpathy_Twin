@@ -3,12 +3,12 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 import json
 from pathlib import Path
-from google import genai
 from agent.persona import KARPATHY_SYSTEM_PROMPT
 from rag.rewriter import smart_retrieve
 from memory.short_term import ShortTermMemory
-from config import GEMINI_API_KEY, GEMINI_MODEL, KNOWLEDGE_BASE_DIR
+from config import GROQ_MODEL, KNOWLEDGE_BASE_DIR
 from core.knowledge_graph import get_kg
+from core.key_manager import key_manager
 
 
 def load_knowledge_base() -> str:
@@ -26,13 +26,11 @@ def load_knowledge_base() -> str:
 def think(query: str, short_term: ShortTermMemory) -> str:
     """
     Advisory mode — Karpathy thinks through a practical problem
-    using knowledge graph + RAG + Gemini.
+    using knowledge graph + RAG + Groq.
     """
-    # get knowledge graph context
     kg = get_kg()
     kg_context = kg.format_for_prompt(query)
 
-    # get RAG context
     rag_chunks = smart_retrieve(query, short_term.get())
     rag_context = "\n\n".join(c["text"] for c in rag_chunks[:4])
 
@@ -60,9 +58,8 @@ Think through this as Andrej Karpathy:
 Show the reasoning, then land on a specific actionable answer.
 Reference your actual projects naturally, not as a list."""
 
-    client = genai.Client(api_key=GEMINI_API_KEY)
-    response = client.models.generate_content(
-        model=GEMINI_MODEL,
-        contents=prompt
+    response = key_manager.generate_content(
+        contents=prompt,
+        model=GROQ_MODEL
     )
     return response.text.strip()

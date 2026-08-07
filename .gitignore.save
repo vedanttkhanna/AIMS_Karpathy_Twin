@@ -1,9 +1,7 @@
-﻿.env
+\﻿.env
 data/chroma
 memory_store/memory.db
 memory_store/sessions
-venv/
-.venv/
 __pycache__
 */__pycache__
 */*/__pycache__

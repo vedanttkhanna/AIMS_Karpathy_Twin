@@ -3,8 +3,8 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 import json
 import re
-from google import genai
-from config import GEMINI_API_KEY, GEMINI_MODEL
+from config import GROQ_MODEL
+from core.key_manager import key_manager
 
 
 class AdaptationState:
@@ -36,7 +36,6 @@ class AdaptationState:
             self.satisfaction_count += 1
             self.style_notes.append("user is engaged and following along")
 
-        # keep only last 5 signals to avoid prompt bloat
         self.style_notes = self.style_notes[-5:]
 
     def format_for_prompt(self) -> str:
@@ -58,21 +57,10 @@ Confusion count: {self.confusion_count} | Satisfaction count: {self.satisfaction
 Adjust your response style accordingly."""
 
     def get_reward(self) -> float:
-        """
-        Scalar reward signal for the conversation so far.
-        Positive = doing well, negative = losing the user.
-        Not used for weight updates (frozen LLM) but logged
-        and used to modulate response verbosity and style.
-        """
         return (self.satisfaction_count * 1.0) - (self.confusion_count * 1.5)
 
 
 def analyze_feedback(user_message: str, previous_response: str) -> dict:
-    """
-    Given the user's follow-up message and the previous response,
-    classify whether this is implicit feedback or a new question,
-    and if feedback, what signal it carries.
-    """
     prompt = f"""You are analyzing a user's message to detect implicit feedback about a previous AI response.
 
 Previous AI response (summary): {previous_response[:300]}...
@@ -85,30 +73,20 @@ Classify this message and return ONLY a JSON object with these exact fields:
 - "confidence": float between 0.0 and 1.0
 - "adjustment": one sentence describing how the next response should differ (or "none" if neutral/new question)
 
-Examples of feedback signals:
-- "I didn't understand that" → confused
-- "oh that makes sense!" → satisfied  
-- "can you go deeper on X" → wants_more_depth
-- "can you explain that more simply" → wants_simpler
-- "interesting, what about Y" → engaged
-- "what is X" (new question, no reaction) → is_feedback: false
-
 Return only valid JSON, no markdown."""
 
     try:
-        client = genai.Client(api_key=GEMINI_API_KEY)
-        response = client.models.generate_content(
-            model=GEMINI_MODEL,
-            contents=prompt
+        response = key_manager.generate_content(
+            contents=prompt,
+            model=GROQ_MODEL
         )
         text = response.text.strip()
         match = re.search(r'\{.*\}', text, re.DOTALL)
         if match:
             return json.loads(match.group())
     except Exception as e:
-        pass
+        print(f"[feedback] error: {e}")
 
-    # fallback — treat as neutral new question
     return {
         "is_feedback": False,
         "sentiment": "neutral",

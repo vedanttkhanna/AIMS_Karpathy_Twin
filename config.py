@@ -4,17 +4,10 @@ from pathlib import Path
 
 load_dotenv(dotenv_path=Path(__file__).parent / ".env")
 
-# --- API Keys ---
-GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
-
-
-if not GEMINI_API_KEY:
-    raise ValueError("GEMINI_API_KEY not found in .env file")
-
-
+GROQ_API_KEY = os.getenv("GROQ_API_KEY", "")
 
 # --- Model ---
-GEMINI_MODEL = "gemini-2.5-flash"
+GROQ_MODEL = "llama-3.3-70b-versatile"
 
 # --- Embedding ---
 EMBEDDING_MODEL = "all-MiniLM-L6-v2"
@@ -37,15 +30,12 @@ KNOWLEDGE_BASE_DIR = "knowledge_base"
 
 # --- Sources to scrape ---
 
-
 GITHUB_READMES = [
-    # existing...
     "https://raw.githubusercontent.com/karpathy/nanoGPT/master/README.md",
     "https://raw.githubusercontent.com/karpathy/micrograd/master/README.md",
     "https://raw.githubusercontent.com/karpathy/makemore/master/README.md",
     "https://raw.githubusercontent.com/karpathy/llm.c/master/README.md",
     "https://raw.githubusercontent.com/karpathy/minbpe/master/README.md",
-    # new
     "https://raw.githubusercontent.com/karpathy/nn-zero-to-hero/master/README.md",
     "https://raw.githubusercontent.com/karpathy/randomfun/master/README.md",
 ]
@@ -61,14 +51,13 @@ YOUTUBE_VIDEO_IDS = [
     "l8pRSuU81PU",
     "zduSFxRajkE",
 ]
+
 KARPATHY_BLOG_URLS = [
-    # existing ones...
     "https://karpathy.github.io/2015/05/21/rnn-effectiveness/",
     "https://karpathy.github.io/2019/04/25/recipe/",
     "https://karpathy.github.io/2022/03/14/lecun1989/",
     "https://karpathy.github.io/neuralnets/",
     "https://karpathy.github.io/2015/03/30/breaking-convnets/",
-    # new
     "https://karpathy.github.io/2022/03/14/lecun1989/",
     "https://karpathy.github.io/2015/05/21/rnn-effectiveness/",
 ]

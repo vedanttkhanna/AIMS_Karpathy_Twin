@@ -3,6 +3,7 @@ import os
 import uuid
 from datetime import datetime
 from flask import Flask, request, jsonify, render_template, session
+from core.key_manager import key_manager, QuotaExceededError, InvalidApiKeyError
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
@@ -35,17 +36,15 @@ def index():
 
 @app.route("/api/init", methods=["POST"])
 def init_session():
-    """Called when user enters API key. Sets up the RAG index."""
+    """Called when user enters Groq API key(s). Sets up key_manager & RAG index."""
     data = request.json
     api_key = data.get("api_key", "").strip()
     if not api_key:
-        return jsonify({"error": "API key required"}), 400
+        return jsonify({"error": "Groq API key required"}), 400
 
-    # set the key in environment so config picks it up
-    os.environ["GEMINI_API_KEY"] = api_key
+    key_manager.set_keys(api_key)
 
     try:
-        # build index if needed
         from ingest.embedder import build_index
         build_index()
 
@@ -54,6 +53,18 @@ def init_session():
         return jsonify({"session_id": session_id, "status": "ready"})
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+
+@app.route("/api/reset-keys", methods=["POST"])
+def reset_keys():
+    """Completely clears registered keys and session states for a fresh run."""
+    key_manager.keys = []
+    key_manager.current_idx = 0
+    if "GROQ_API_KEY" in os.environ:
+        del os.environ["GROQ_API_KEY"]
+    _sessions.clear()
+    session.clear()
+    return jsonify({"status": "cleared"})
 
 
 @app.route("/api/chat", methods=["POST"])
@@ -75,7 +86,6 @@ def chat():
     try:
         feedback_signal = None
 
-        # RL feedback loop — runs if there's a previous response
         if last_response and mode == "teach":
             from agent.feedback import analyze_feedback
             try:
@@ -122,6 +132,8 @@ def chat():
             "satisfaction_count": adaptation.satisfaction_count,
         })
 
+    except (QuotaExceededError, InvalidApiKeyError) as e:
+        return jsonify({"error": str(e)}), 400
     except Exception as e:
         import traceback
         traceback.print_exc()

@@ -1,12 +1,12 @@
 import sys, os
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from google import genai
 from agent.persona import KARPATHY_SYSTEM_PROMPT
 from rag.rewriter import smart_retrieve
 from memory.short_term import ShortTermMemory
 from memory.long_term import LongTermMemory
-from config import GEMINI_API_KEY, GEMINI_MODEL
+from config import GROQ_MODEL
+from core.key_manager import key_manager
 from typing import List, Dict
 
 
@@ -22,7 +22,7 @@ def generate_response(
     short_term: ShortTermMemory,
     long_term: LongTermMemory,
     session_id: str,
-    adaptation_state=None        # NEW
+    adaptation_state=None
 ) -> str:
     from core.knowledge_graph import get_kg
 
@@ -33,7 +33,6 @@ def generate_response(
     kg = get_kg()
     kg_context = kg.format_for_prompt(query)
 
-    # NEW — inject adaptation state if available
     adaptation_context = ""
     if adaptation_state:
         adaptation_context = adaptation_state.format_for_prompt()
@@ -46,7 +45,7 @@ def generate_response(
 ## Knowledge graph context
 {kg_context if kg_context else ""}
 
-## Adaptation signals (RL-based style tuning)
+## Adaptation signals
 {adaptation_context if adaptation_context else "No signals yet — use default teaching style."}
 
 ## Retrieved context from your work
@@ -63,10 +62,9 @@ signals above — they tell you how this specific user is responding to your exp
 Adjust depth, vocabulary, and use of analogies accordingly.
 Stay in character. Be specific. Reference your work where relevant."""
 
-    client = genai.Client(api_key=GEMINI_API_KEY)
-    response = client.models.generate_content(
-        model=GEMINI_MODEL,
-        contents=prompt
+    response = key_manager.generate_content(
+        contents=prompt,
+        model=GROQ_MODEL
     )
     answer = response.text.strip()
 
@@ -84,10 +82,9 @@ If there is, return a single concise sentence starting with "User is..." or "Use
 User message: {query}"""
 
     try:
-        client = genai.Client(api_key=GEMINI_API_KEY)
-        response = client.models.generate_content(
-            model=GEMINI_MODEL,
-            contents=prompt
+        response = key_manager.generate_content(
+            contents=prompt,
+            model=GROQ_MODEL
         )
         result = response.text.strip()
         if result and result != "NOTHING":
